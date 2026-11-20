@@ -23,18 +23,19 @@
 | `contact:department.organize:readonly` | 读取部门组织架构（通讯录同步）   | API 报错要求 |
 | `contact:user.base:readonly`           | 读取用户基础字段                 | 官方文档示例 |
 | `contact:user.id:readonly`             | 读取用户 open_id/user_id         | 官方文档示例 |
-| `im:message`                           | 消息读写总权限                   | API 报错要求 |
-| `im:message:send`                      | 发送消息                         | API 报错要求 |
+| `im:message`                           | 获取与发送单聊、群组消息         | API 报错要求 |
 | `im:message:send_as_bot`               | 以机器人身份发送消息卡片         | 官方文档示例 |
 | `im:message.p2p_msg:readonly`          | 接收单聊消息（事件订阅）         | 官方文档示例 |
 | `im:message.group_at_msg:readonly`     | 接收群聊 @机器人消息（事件订阅） | 官方文档示例 |
 
-### user（用户身份权限，OAuth 场景）
+> 注意：`im:message:send` 是**历史版本权限**（发送消息 V2），新版批量导入不接受该 scope，会报"格式错误"。
+> 发消息能力已由 `im:message` 与 `im:message:send_as_bot` 覆盖，无需导入 `im:message:send`。
+> 依据：https://open.larkoffice.com/document/server-docs/im-v1/message/reply?lang=zh-CN
 
-| 权限                         | 用途                       |
-| ---------------------------- | -------------------------- |
-| `contact:user.base:readonly` | 用户授权后读取本人基础信息 |
-| `contact:user.id:readonly`   | 用户授权后读取本人 ID      |
+### user（用户身份权限，OAuth 场景，当前留空）
+
+当前项目主要使用应用身份权限，OAuth 用户授权尚未真正接入，因此 `user` 数组留空。
+后续接入飞书登录时，再按需补充用户身份 scope（如 `contact:user.base:readonly` 的 user 版本）。
 
 ## 导入后还需配置（JSON 无法覆盖）
 

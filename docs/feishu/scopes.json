@@ -6,11 +6,10 @@
       "contact:user.base:readonly",
       "contact:user.id:readonly",
       "im:message",
-      "im:message:send",
       "im:message:send_as_bot",
       "im:message.p2p_msg:readonly",
       "im:message.group_at_msg:readonly"
     ],
-    "user": ["contact:user.base:readonly", "contact:user.id:readonly"]
+    "user": []
   }
 }

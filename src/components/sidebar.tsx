@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/customers", label: "客户", icon: "◉" },
   { href: "/leads", label: "线索", icon: "◇" },
   { href: "/opportunities", label: "商机", icon: "◆" },
+  { href: "/settings", label: "设置", icon: "⚙" },
 ];
 
 export function Sidebar() {

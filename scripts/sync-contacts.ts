@@ -1,43 +1,34 @@
 /**
- * 用真实飞书通讯录跑一次同步，数据写入 Postgres。
- * 运行：DATABASE_URL=... npx tsx scripts/sync-contacts.ts
+ * 飞书通讯录同步（命令行）。
+ *
+ * 运行：npm run feishu:sync-contacts
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
-import { DbContactStore } from "../src/lib/db/contact-store";
+
+import { runContactSync } from "../src/lib/services/contact-sync";
 import { prisma } from "../src/lib/db/client";
-import { syncContacts } from "../src/lib/feishu/contact/sync";
-import {
-  listAllDepartments,
-  listUsersByDepartment,
-} from "../src/lib/feishu/contact/client";
-import { getFeishuClient } from "../src/lib/feishu/client";
 
 async function main() {
-  if (!process.env.FEISHU_APP_ID || !process.env.FEISHU_APP_SECRET) {
-    throw new Error("飞书凭证未配置");
+  console.log("[fscrm] 开始同步飞书通讯录...");
+  const outcome = await runContactSync();
+
+  if (!outcome.ok) {
+    console.error("[fscrm] 同步失败:", outcome.error);
+    process.exitCode = 1;
+    return;
   }
-  // 初始化客户端（凭证校验）
-  getFeishuClient();
-  const store = new DbContactStore();
-  const result = await syncContacts(store, {
-    listAllDepartments,
-    listUsersByDepartment,
-  });
-  console.log("同步结果:", result);
-  console.log("部门数:", await prisma.department.count());
-  console.log("用户数:", await prisma.user.count());
-  const users = await prisma.user.findMany({
-    select: { name: true, feishuOpenId: true, email: true },
-  });
-  console.log("用户:", users);
+
+  console.log(
+    `[fscrm] 同步完成：部门 ${outcome.result?.departmentCount ?? 0} 个，` +
+      `人员 ${outcome.result?.personCount ?? 0} 个，耗时 ${outcome.durationMs}ms`
+  );
+  console.log(
+    `[fscrm] 数据库当前：部门 ${outcome.totals?.departments ?? 0} 个，` +
+      `用户 ${outcome.totals?.users ?? 0} 个`
+  );
 }
 
-main()
-  .catch((e) => {
-    console.error("同步失败:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().finally(async () => {
+  await prisma.$disconnect();
+});

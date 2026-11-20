@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/repositories/sales";
 import { getUserById } from "@/lib/db/repositories/user";
 import { getCustomer } from "@/lib/db/repositories/customer";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { notifyUser } from "@/lib/feishu/message/notify";
 import { OpportunityStage } from "@/generated/prisma/enums";
 
@@ -46,7 +47,7 @@ export async function createOpportunityAction(formData: FormData) {
   if (ownerId) {
     const [owner, customer] = await Promise.all([
       getUserById(ownerId),
-      getCustomer(customerId),
+      getCustomer(customerId, { followUpViewer: await requireCurrentUser() }),
     ]);
     await notifyUser(
       owner ? { name: owner.name, feishuOpenId: owner.feishuOpenId } : null,

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
-import { prisma } from "@/lib/db/client";
-import { countLeads } from "@/lib/db/repositories/sales";
-import { accessScopeFor } from "@/lib/auth/scope";
 import { getCurrentUser } from "@/lib/auth/session";
+import { prisma } from "@/lib/db/client";
+import { accessScopeFor } from "@/lib/auth/scope";
+import { countFollowUps, countLeads } from "@/lib/db/repositories/sales";
 
 /**
  * CRM 概览页：展示关键业务指标与各模块入口。
@@ -16,7 +16,7 @@ export default async function HomePage() {
       prisma.customer.count(),
       scope ? countLeads(scope) : Promise.resolve(0),
       prisma.opportunity.count(),
-      prisma.followUp.count(),
+      currentUser ? countFollowUps(currentUser) : Promise.resolve(0),
     ]);
 
   const stats = [

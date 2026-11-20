@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
 import { getCustomer } from "@/lib/db/repositories/customer";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { OpportunityStage } from "@/generated/prisma/enums";
 
 const stageLabel: Record<string, string> = {
@@ -20,7 +21,8 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = await getCustomer(id);
+  const currentUser = await requireCurrentUser();
+  const customer = await getCustomer(id, { followUpViewer: currentUser });
   if (!customer) {
     notFound();
   }

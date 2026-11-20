@@ -1,4 +1,5 @@
 import { prisma } from "../client";
+import type { CurrentUser } from "@/lib/auth/session";
 import type { Customer, Prisma } from "../../../generated/prisma/client";
 
 /**
@@ -44,15 +45,35 @@ export async function listCustomers(params: ListCustomersParams = {}) {
   });
 }
 
-/** 按 ID 查询客户详情（含联系人、商机、跟进记录）。 */
-export async function getCustomer(id: string) {
+/** 客户详情查询参数：当前会话负责决定跟进记录可见范围。 */
+export interface GetCustomerParams {
+  /** 跟进记录列表按当前会话角色过滤；管理员不过滤。 */
+  followUpViewer: CurrentUser;
+}
+
+/** 按 ID 查询客户详情（含联系人、商机、权限范围内的跟进记录）。 */
+export async function getCustomer(id: string, params: GetCustomerParams) {
+  const followUpWhere: Prisma.FollowUpWhereInput =
+    params.followUpViewer.role === "ADMIN"
+      ? {}
+      : {
+          OR: [
+            { customer: { ownerId: params.followUpViewer.id } },
+            { opportunity: { ownerId: params.followUpViewer.id } },
+          ],
+        };
+
   return prisma.customer.findUnique({
     where: { id },
     include: {
       owner: true,
       contacts: true,
       opportunities: true,
-      followUps: { include: { owner: true }, orderBy: { createdAt: "desc" } },
+      followUps: {
+        where: followUpWhere,
+        include: { owner: true },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }

@@ -1,17 +1,20 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/client";
+import { countFollowUps } from "@/lib/db/repositories/sales";
 
 /**
  * CRM 概览页：展示关键业务指标与各模块入口。
  */
 export default async function HomePage() {
+  const currentUser = await requireCurrentUser();
   const [customerCount, leadCount, opportunityCount, followUpCount] =
     await Promise.all([
       prisma.customer.count(),
       prisma.lead.count(),
       prisma.opportunity.count(),
-      prisma.followUp.count(),
+      countFollowUps(currentUser),
     ]);
 
   const stats = [

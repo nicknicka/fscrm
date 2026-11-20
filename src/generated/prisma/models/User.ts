@@ -32,6 +32,7 @@ export type UserMinAggregateOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  departmentId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -44,6 +45,7 @@ export type UserMaxAggregateOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  departmentId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -56,6 +58,7 @@ export type UserCountAggregateOutputType = {
   feishuOpenId: number;
   feishuUnionId: number;
   feishuUserId: number;
+  departmentId: number;
   createdAt: number;
   updatedAt: number;
   _all: number;
@@ -69,6 +72,7 @@ export type UserMinAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -81,6 +85,7 @@ export type UserMaxAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -93,6 +98,7 @@ export type UserCountAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
   _all?: true;
@@ -184,6 +190,7 @@ export type UserGroupByOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  departmentId: string | null;
   createdAt: Date;
   updatedAt: Date;
   _count: UserCountAggregateOutputType | null;
@@ -215,8 +222,13 @@ export type UserWhereInput = {
   feishuOpenId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+  departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
+  department?: Prisma.XOR<
+    Prisma.DepartmentNullableScalarRelationFilter,
+    Prisma.DepartmentWhereInput
+  > | null;
   customers?: Prisma.CustomerListRelationFilter;
   opportunities?: Prisma.OpportunityListRelationFilter;
   leads?: Prisma.LeadListRelationFilter;
@@ -231,8 +243,10 @@ export type UserOrderByWithRelationInput = {
   feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  departmentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
+  department?: Prisma.DepartmentOrderByWithRelationInput;
   customers?: Prisma.CustomerOrderByRelationAggregateInput;
   opportunities?: Prisma.OpportunityOrderByRelationAggregateInput;
   leads?: Prisma.LeadOrderByRelationAggregateInput;
@@ -251,8 +265,13 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null;
     feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
     feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+    departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
     createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
+    department?: Prisma.XOR<
+      Prisma.DepartmentNullableScalarRelationFilter,
+      Prisma.DepartmentWhereInput
+    > | null;
     customers?: Prisma.CustomerListRelationFilter;
     opportunities?: Prisma.OpportunityListRelationFilter;
     leads?: Prisma.LeadListRelationFilter;
@@ -269,6 +288,7 @@ export type UserOrderByWithAggregationInput = {
   feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  departmentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   _count?: Prisma.UserCountOrderByAggregateInput;
@@ -294,6 +314,8 @@ export type UserScalarWhereWithAggregatesInput = {
     Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
   feishuUserId?:
     Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
+  departmentId?:
+    Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string;
 };
@@ -308,6 +330,7 @@ export type UserCreateInput = {
   feishuUserId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
   customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
   opportunities?: Prisma.OpportunityCreateNestedManyWithoutOwnerInput;
   leads?: Prisma.LeadCreateNestedManyWithoutOwnerInput;
@@ -322,6 +345,7 @@ export type UserUncheckedCreateInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
@@ -343,6 +367,7 @@ export type UserUpdateInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
   customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
   opportunities?: Prisma.OpportunityUpdateManyWithoutOwnerNestedInput;
   leads?: Prisma.LeadUpdateManyWithoutOwnerNestedInput;
@@ -360,6 +385,8 @@ export type UserUncheckedUpdateInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutOwnerNestedInput;
@@ -376,6 +403,7 @@ export type UserCreateManyInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -406,8 +434,20 @@ export type UserUncheckedUpdateManyInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type UserListRelationFilter = {
+  every?: Prisma.UserWhereInput;
+  some?: Prisma.UserWhereInput;
+  none?: Prisma.UserWhereInput;
+};
+
+export type UserOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder;
 };
 
 export type UserCountOrderByAggregateInput = {
@@ -418,6 +458,7 @@ export type UserCountOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -430,6 +471,7 @@ export type UserMaxOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -442,6 +484,7 @@ export type UserMinOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -451,16 +494,90 @@ export type UserNullableScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput | null;
 };
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string;
+export type UserCreateNestedManyWithoutDepartmentInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UserCreateWithoutDepartmentInput,
+        Prisma.UserUncheckedCreateWithoutDepartmentInput
+      >
+    | Prisma.UserCreateWithoutDepartmentInput[]
+    | Prisma.UserUncheckedCreateWithoutDepartmentInput[];
+  connectOrCreate?:
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput[];
+  createMany?: Prisma.UserCreateManyDepartmentInputEnvelope;
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
 };
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null;
+export type UserUncheckedCreateNestedManyWithoutDepartmentInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UserCreateWithoutDepartmentInput,
+        Prisma.UserUncheckedCreateWithoutDepartmentInput
+      >
+    | Prisma.UserCreateWithoutDepartmentInput[]
+    | Prisma.UserUncheckedCreateWithoutDepartmentInput[];
+  connectOrCreate?:
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput[];
+  createMany?: Prisma.UserCreateManyDepartmentInputEnvelope;
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
 };
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string;
+export type UserUpdateManyWithoutDepartmentNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UserCreateWithoutDepartmentInput,
+        Prisma.UserUncheckedCreateWithoutDepartmentInput
+      >
+    | Prisma.UserCreateWithoutDepartmentInput[]
+    | Prisma.UserUncheckedCreateWithoutDepartmentInput[];
+  connectOrCreate?:
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput[];
+  upsert?:
+    | Prisma.UserUpsertWithWhereUniqueWithoutDepartmentInput
+    | Prisma.UserUpsertWithWhereUniqueWithoutDepartmentInput[];
+  createMany?: Prisma.UserCreateManyDepartmentInputEnvelope;
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  update?:
+    | Prisma.UserUpdateWithWhereUniqueWithoutDepartmentInput
+    | Prisma.UserUpdateWithWhereUniqueWithoutDepartmentInput[];
+  updateMany?:
+    | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput
+    | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput[];
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
+};
+
+export type UserUncheckedUpdateManyWithoutDepartmentNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.UserCreateWithoutDepartmentInput,
+        Prisma.UserUncheckedCreateWithoutDepartmentInput
+      >
+    | Prisma.UserCreateWithoutDepartmentInput[]
+    | Prisma.UserUncheckedCreateWithoutDepartmentInput[];
+  connectOrCreate?:
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput
+    | Prisma.UserCreateOrConnectWithoutDepartmentInput[];
+  upsert?:
+    | Prisma.UserUpsertWithWhereUniqueWithoutDepartmentInput
+    | Prisma.UserUpsertWithWhereUniqueWithoutDepartmentInput[];
+  createMany?: Prisma.UserCreateManyDepartmentInputEnvelope;
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[];
+  update?:
+    | Prisma.UserUpdateWithWhereUniqueWithoutDepartmentInput
+    | Prisma.UserUpdateWithWhereUniqueWithoutDepartmentInput[];
+  updateMany?:
+    | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput
+    | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput[];
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
 };
 
 export type UserCreateNestedOneWithoutCustomersInput = {
@@ -575,6 +692,97 @@ export type UserUpdateOneWithoutFollowUpsNestedInput = {
   >;
 };
 
+export type UserCreateWithoutDepartmentInput = {
+  id?: string;
+  name: string;
+  email?: string | null;
+  avatarUrl?: string | null;
+  feishuOpenId?: string | null;
+  feishuUnionId?: string | null;
+  feishuUserId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
+  opportunities?: Prisma.OpportunityCreateNestedManyWithoutOwnerInput;
+  leads?: Prisma.LeadCreateNestedManyWithoutOwnerInput;
+  followUps?: Prisma.FollowUpCreateNestedManyWithoutOwnerInput;
+};
+
+export type UserUncheckedCreateWithoutDepartmentInput = {
+  id?: string;
+  name: string;
+  email?: string | null;
+  avatarUrl?: string | null;
+  feishuOpenId?: string | null;
+  feishuUnionId?: string | null;
+  feishuUserId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
+  opportunities?: Prisma.OpportunityUncheckedCreateNestedManyWithoutOwnerInput;
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutOwnerInput;
+  followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOwnerInput;
+};
+
+export type UserCreateOrConnectWithoutDepartmentInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutDepartmentInput,
+    Prisma.UserUncheckedCreateWithoutDepartmentInput
+  >;
+};
+
+export type UserCreateManyDepartmentInputEnvelope = {
+  data:
+    | Prisma.UserCreateManyDepartmentInput
+    | Prisma.UserCreateManyDepartmentInput[];
+  skipDuplicates?: boolean;
+};
+
+export type UserUpsertWithWhereUniqueWithoutDepartmentInput = {
+  where: Prisma.UserWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutDepartmentInput,
+    Prisma.UserUncheckedUpdateWithoutDepartmentInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutDepartmentInput,
+    Prisma.UserUncheckedCreateWithoutDepartmentInput
+  >;
+};
+
+export type UserUpdateWithWhereUniqueWithoutDepartmentInput = {
+  where: Prisma.UserWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutDepartmentInput,
+    Prisma.UserUncheckedUpdateWithoutDepartmentInput
+  >;
+};
+
+export type UserUpdateManyWithWhereWithoutDepartmentInput = {
+  where: Prisma.UserScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateManyMutationInput,
+    Prisma.UserUncheckedUpdateManyWithoutDepartmentInput
+  >;
+};
+
+export type UserScalarWhereInput = {
+  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
+  OR?: Prisma.UserScalarWhereInput[];
+  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
+  id?: Prisma.StringFilter<"User"> | string;
+  name?: Prisma.StringFilter<"User"> | string;
+  email?: Prisma.StringNullableFilter<"User"> | string | null;
+  avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null;
+  feishuOpenId?: Prisma.StringNullableFilter<"User"> | string | null;
+  feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
+  feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+  departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
+};
+
 export type UserCreateWithoutCustomersInput = {
   id?: string;
   name: string;
@@ -585,6 +793,7 @@ export type UserCreateWithoutCustomersInput = {
   feishuUserId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
   opportunities?: Prisma.OpportunityCreateNestedManyWithoutOwnerInput;
   leads?: Prisma.LeadCreateNestedManyWithoutOwnerInput;
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOwnerInput;
@@ -598,6 +807,7 @@ export type UserUncheckedCreateWithoutCustomersInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   opportunities?: Prisma.OpportunityUncheckedCreateNestedManyWithoutOwnerInput;
@@ -646,6 +856,7 @@ export type UserUpdateWithoutCustomersInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
   opportunities?: Prisma.OpportunityUpdateManyWithoutOwnerNestedInput;
   leads?: Prisma.LeadUpdateManyWithoutOwnerNestedInput;
   followUps?: Prisma.FollowUpUpdateManyWithoutOwnerNestedInput;
@@ -661,6 +872,8 @@ export type UserUncheckedUpdateWithoutCustomersInput = {
   feishuUnionId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -679,6 +892,7 @@ export type UserCreateWithoutLeadsInput = {
   feishuUserId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
   customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
   opportunities?: Prisma.OpportunityCreateNestedManyWithoutOwnerInput;
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOwnerInput;
@@ -692,6 +906,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
@@ -740,6 +955,7 @@ export type UserUpdateWithoutLeadsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
   customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
   opportunities?: Prisma.OpportunityUpdateManyWithoutOwnerNestedInput;
   followUps?: Prisma.FollowUpUpdateManyWithoutOwnerNestedInput;
@@ -755,6 +971,8 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   feishuUnionId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -773,6 +991,7 @@ export type UserCreateWithoutOpportunitiesInput = {
   feishuUserId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
   customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
   leads?: Prisma.LeadCreateNestedManyWithoutOwnerInput;
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOwnerInput;
@@ -786,6 +1005,7 @@ export type UserUncheckedCreateWithoutOpportunitiesInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
@@ -834,6 +1054,7 @@ export type UserUpdateWithoutOpportunitiesInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
   customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
   leads?: Prisma.LeadUpdateManyWithoutOwnerNestedInput;
   followUps?: Prisma.FollowUpUpdateManyWithoutOwnerNestedInput;
@@ -849,6 +1070,8 @@ export type UserUncheckedUpdateWithoutOpportunitiesInput = {
   feishuUnionId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -867,6 +1090,7 @@ export type UserCreateWithoutFollowUpsInput = {
   feishuUserId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
   customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
   opportunities?: Prisma.OpportunityCreateNestedManyWithoutOwnerInput;
   leads?: Prisma.LeadCreateNestedManyWithoutOwnerInput;
@@ -880,6 +1104,7 @@ export type UserUncheckedCreateWithoutFollowUpsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
@@ -928,6 +1153,7 @@ export type UserUpdateWithoutFollowUpsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
   customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
   opportunities?: Prisma.OpportunityUpdateManyWithoutOwnerNestedInput;
   leads?: Prisma.LeadUpdateManyWithoutOwnerNestedInput;
@@ -944,11 +1170,78 @@ export type UserUncheckedUpdateWithoutFollowUpsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  departmentId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutOwnerNestedInput;
   opportunities?: Prisma.OpportunityUncheckedUpdateManyWithoutOwnerNestedInput;
   leads?: Prisma.LeadUncheckedUpdateManyWithoutOwnerNestedInput;
+};
+
+export type UserCreateManyDepartmentInput = {
+  id?: string;
+  name: string;
+  email?: string | null;
+  avatarUrl?: string | null;
+  feishuOpenId?: string | null;
+  feishuUnionId?: string | null;
+  feishuUserId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type UserUpdateWithoutDepartmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuOpenId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUnionId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
+  opportunities?: Prisma.OpportunityUpdateManyWithoutOwnerNestedInput;
+  leads?: Prisma.LeadUpdateManyWithoutOwnerNestedInput;
+  followUps?: Prisma.FollowUpUpdateManyWithoutOwnerNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutDepartmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuOpenId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUnionId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutOwnerNestedInput;
+  opportunities?: Prisma.OpportunityUncheckedUpdateManyWithoutOwnerNestedInput;
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutOwnerNestedInput;
+  followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOwnerNestedInput;
+};
+
+export type UserUncheckedUpdateManyWithoutDepartmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuOpenId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUnionId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  feishuUserId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
 /**
@@ -1037,8 +1330,10 @@ export type UserSelect<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
     customers?: boolean | Prisma.User$customersArgs<ExtArgs>;
     opportunities?: boolean | Prisma.User$opportunitiesArgs<ExtArgs>;
     leads?: boolean | Prisma.User$leadsArgs<ExtArgs>;
@@ -1060,8 +1355,10 @@ export type UserSelectCreateManyAndReturn<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
   },
   ExtArgs["result"]["user"]
 >;
@@ -1078,8 +1375,10 @@ export type UserSelectUpdateManyAndReturn<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
   },
   ExtArgs["result"]["user"]
 >;
@@ -1092,6 +1391,7 @@ export type UserSelectScalar = {
   feishuOpenId?: boolean;
   feishuUnionId?: boolean;
   feishuUserId?: boolean;
+  departmentId?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
 };
@@ -1107,6 +1407,7 @@ export type UserOmit<
   | "feishuOpenId"
   | "feishuUnionId"
   | "feishuUserId"
+  | "departmentId"
   | "createdAt"
   | "updatedAt",
   ExtArgs["result"]["user"]
@@ -1115,6 +1416,7 @@ export type UserInclude<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = {
+  department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
   customers?: boolean | Prisma.User$customersArgs<ExtArgs>;
   opportunities?: boolean | Prisma.User$opportunitiesArgs<ExtArgs>;
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>;
@@ -1124,11 +1426,15 @@ export type UserInclude<
 export type UserIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
-> = {};
+> = {
+  department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
+};
 export type UserIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
-> = {};
+> = {
+  department?: boolean | Prisma.User$departmentArgs<ExtArgs>;
+};
 
 export type $UserPayload<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -1136,6 +1442,7 @@ export type $UserPayload<
 > = {
   name: "User";
   objects: {
+    department: Prisma.$DepartmentPayload<ExtArgs> | null;
     customers: Prisma.$CustomerPayload<ExtArgs>[];
     opportunities: Prisma.$OpportunityPayload<ExtArgs>[];
     leads: Prisma.$LeadPayload<ExtArgs>[];
@@ -1153,6 +1460,10 @@ export type $UserPayload<
       feishuOpenId: string | null;
       feishuUnionId: string | null;
       feishuUserId: string | null;
+      /**
+       * 所属部门。
+       */
+      departmentId: string | null;
       createdAt: Date;
       updatedAt: Date;
     },
@@ -1705,6 +2016,19 @@ export interface Prisma__UserClient<
   GlobalOmitOptions = {},
 > extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise";
+  department<T extends Prisma.User$departmentArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$departmentArgs<ExtArgs>>
+  ): Prisma.Prisma__DepartmentClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$DepartmentPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   customers<T extends Prisma.User$customersArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.User$customersArgs<ExtArgs>>
   ): Prisma.PrismaPromise<
@@ -1792,6 +2116,7 @@ export interface UserFieldRefs {
   readonly feishuOpenId: Prisma.FieldRef<"User", "String">;
   readonly feishuUnionId: Prisma.FieldRef<"User", "String">;
   readonly feishuUserId: Prisma.FieldRef<"User", "String">;
+  readonly departmentId: Prisma.FieldRef<"User", "String">;
   readonly createdAt: Prisma.FieldRef<"User", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"User", "DateTime">;
 }
@@ -2074,6 +2399,10 @@ export type UserCreateManyAndReturnArgs<
    */
   data: Prisma.UserCreateManyInput | Prisma.UserCreateManyInput[];
   skipDuplicates?: boolean;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeCreateManyAndReturn<ExtArgs> | null;
 };
 
 /**
@@ -2159,6 +2488,10 @@ export type UserUpdateManyAndReturnArgs<
    * Limit how many Users to update.
    */
   limit?: number;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeUpdateManyAndReturn<ExtArgs> | null;
 };
 
 /**
@@ -2234,6 +2567,28 @@ export type UserDeleteManyArgs<
    * Limit how many Users to delete.
    */
   limit?: number;
+};
+
+/**
+ * User.department
+ */
+export type User$departmentArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Department
+   */
+  select?: Prisma.DepartmentSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Department
+   */
+  omit?: Prisma.DepartmentOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DepartmentInclude<ExtArgs> | null;
+  where?: Prisma.DepartmentWhereInput;
 };
 
 /**

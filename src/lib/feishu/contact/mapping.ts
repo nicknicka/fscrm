@@ -20,6 +20,7 @@ export function mapDepartment(department: FeishuDepartment): CrmDepartment {
   return {
     id: department.departmentId,
     feishuDepartmentId: department.departmentId,
+    openDepartmentId: department.openDepartmentId,
     name: department.name,
     parentId:
       department.parentDepartmentId && department.parentDepartmentId !== "0"

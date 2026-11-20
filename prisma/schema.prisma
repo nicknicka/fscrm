@@ -46,6 +46,28 @@ enum FollowUpMode {
   OTHER // 其他
 }
 
+/// 部门：由飞书通讯录同步而来。
+model Department {
+  id               String  @id @default(uuid())
+  /// 飞书部门 ID，作为同步的唯一键。
+  feishuDepartmentId String @unique
+  /// 开放部门 ID。
+  openDepartmentId String?
+  name             String
+  /// 父部门在 CRM 中的 ID。
+  parentId         String?
+  /// 部门负责人（飞书用户 ID）。
+  leaderFeishuUserId String?
+  memberCount      Int?
+
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("departments")
+}
+
 /// CRM 用户（负责人）：可绑定飞书用户，是消息接收与操作归属的主体。
 model User {
   id            String   @id @default(uuid())
@@ -56,6 +78,9 @@ model User {
   feishuOpenId  String?  @unique
   feishuUnionId String?
   feishuUserId  String?
+  /// 所属部门。
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
 
   customers      Customer[]
   opportunities  Opportunity[]

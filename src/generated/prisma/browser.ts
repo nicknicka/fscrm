@@ -17,6 +17,11 @@ export { Prisma };
 export * as $Enums from "./enums";
 export * from "./enums";
 /**
+ * Model Department
+ * 部门：由飞书通讯录同步而来。
+ */
+export type Department = Prisma.DepartmentModel;
+/**
  * Model User
  * CRM 用户（负责人）：可绑定飞书用户，是消息接收与操作归属的主体。
  */

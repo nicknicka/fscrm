@@ -13,6 +13,7 @@ describe("mapDepartment", () => {
     expect(department).toEqual({
       id: "od_1",
       feishuDepartmentId: "od_1",
+      openDepartmentId: "od_1",
       name: "销售部",
       parentId: undefined,
     });

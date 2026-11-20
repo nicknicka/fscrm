@@ -27,9 +27,10 @@ async function fetchDepartmentPage(
   pageToken?: string
 ): Promise<FeishuResponse<FeishuPageData<Record<string, unknown>>>> {
   const client = getFeishuClient();
+  // 不传 parent_department_id：飞书仅返回应用通讯录权限范围内的部门。
+  // 若传 "0" 会触发全员权限校验，应用未被授予全员范围时返回 40004。
   return client.contact.department.list({
     params: {
-      parent_department_id: "0",
       fetch_child: true,
       page_size: 50,
       page_token: pageToken,
@@ -72,13 +73,15 @@ async function fetchUserPage(
   pageToken?: string
 ): Promise<FeishuResponse<FeishuPageData<Record<string, unknown>>>> {
   const client = getFeishuClient();
-  return client.contact.user.list({
-    params: {
-      department_id: departmentId,
-      page_size: 50,
-      page_token: pageToken,
-    },
-  });
+  // departmentId 为空时不传 department_id，返回应用权限范围内的全部用户。
+  const params: Record<string, string | number | undefined> = {
+    page_size: 50,
+    page_token: pageToken,
+  };
+  if (departmentId) {
+    params.department_id = departmentId;
+  }
+  return client.contact.user.list({ params });
 }
 
 /**

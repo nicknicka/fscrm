@@ -42,6 +42,8 @@ export interface CrmDepartment {
   id: string;
   /** 飞书部门 ID，用于回溯与增量同步。 */
   feishuDepartmentId: string;
+  /** 飞书开放部门 ID。 */
+  openDepartmentId?: string;
   /** 部门名称。 */
   name: string;
   /** 父部门在 CRM 中的 ID。 */

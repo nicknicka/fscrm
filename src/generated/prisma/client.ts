@@ -30,8 +30,8 @@ export * from "./enums";
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Users
- * const users = await prisma.user.findMany()
+ * // Fetch zero or more Departments
+ * const departments = await prisma.department.findMany()
  * ```
  *
  * Read more in our [docs](https://pris.ly/d/client).
@@ -46,6 +46,11 @@ export type PrismaClient<
 > = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>;
 export { Prisma };
 
+/**
+ * Model Department
+ * 部门：由飞书通讯录同步而来。
+ */
+export type Department = Prisma.DepartmentModel;
 /**
  * Model User
  * CRM 用户（负责人）：可绑定飞书用户，是消息接收与操作归属的主体。

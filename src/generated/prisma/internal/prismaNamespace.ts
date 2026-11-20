@@ -427,6 +427,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never
   : FieldRef<Model, FieldType>;
 
 export const ModelName = {
+  Department: "Department",
   User: "User",
   Customer: "Customer",
   Contact: "Contact",
@@ -455,10 +456,92 @@ export type TypeMap<
   };
   meta: {
     modelProps:
-      "user" | "customer" | "contact" | "lead" | "opportunity" | "followUp";
+      | "department"
+      | "user"
+      | "customer"
+      | "contact"
+      | "lead"
+      | "opportunity"
+      | "followUp";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
+    Department: {
+      payload: Prisma.$DepartmentPayload<ExtArgs>;
+      fields: Prisma.DepartmentFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.DepartmentFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.DepartmentFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        findFirst: {
+          args: Prisma.DepartmentFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.DepartmentFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        findMany: {
+          args: Prisma.DepartmentFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>[];
+        };
+        create: {
+          args: Prisma.DepartmentCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        createMany: {
+          args: Prisma.DepartmentCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.DepartmentCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>[];
+        };
+        delete: {
+          args: Prisma.DepartmentDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        update: {
+          args: Prisma.DepartmentUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        deleteMany: {
+          args: Prisma.DepartmentDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.DepartmentUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.DepartmentUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>[];
+        };
+        upsert: {
+          args: Prisma.DepartmentUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DepartmentPayload>;
+        };
+        aggregate: {
+          args: Prisma.DepartmentAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDepartment>;
+        };
+        groupBy: {
+          args: Prisma.DepartmentGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.DepartmentGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.DepartmentCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.DepartmentCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
     User: {
       payload: Prisma.$UserPayload<ExtArgs>;
       fields: Prisma.UserFieldRefs;
@@ -954,6 +1037,21 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel =
   (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
 
+export const DepartmentScalarFieldEnum = {
+  id: "id",
+  feishuDepartmentId: "feishuDepartmentId",
+  openDepartmentId: "openDepartmentId",
+  name: "name",
+  parentId: "parentId",
+  leaderFeishuUserId: "leaderFeishuUserId",
+  memberCount: "memberCount",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type DepartmentScalarFieldEnum =
+  (typeof DepartmentScalarFieldEnum)[keyof typeof DepartmentScalarFieldEnum];
+
 export const UserScalarFieldEnum = {
   id: "id",
   name: "name",
@@ -962,6 +1060,7 @@ export const UserScalarFieldEnum = {
   feishuOpenId: "feishuOpenId",
   feishuUnionId: "feishuUnionId",
   feishuUserId: "feishuUserId",
+  departmentId: "departmentId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
 } as const;
@@ -1090,6 +1189,22 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<
 >;
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "Int"
+>;
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "Int[]"
+>;
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<
@@ -1179,22 +1294,6 @@ export type EnumFollowUpModeFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListEnumFollowUpModeFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   "FollowUpMode[]"
->;
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<
-  $PrismaModel,
-  "Int"
->;
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<
-  $PrismaModel,
-  "Int[]"
 >;
 
 /**
@@ -1354,6 +1453,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions =
   PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter;
 export type GlobalOmitConfig = {
+  department?: Prisma.DepartmentOmit;
   user?: Prisma.UserOmit;
   customer?: Prisma.CustomerOmit;
   contact?: Prisma.ContactOmit;

@@ -54,6 +54,7 @@ export const JsonNull = runtime.JsonNull;
 export const AnyNull = runtime.AnyNull;
 
 export const ModelName = {
+  Department: "Department",
   User: "User",
   Customer: "Customer",
   Contact: "Contact",
@@ -78,6 +79,21 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel =
   (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
 
+export const DepartmentScalarFieldEnum = {
+  id: "id",
+  feishuDepartmentId: "feishuDepartmentId",
+  openDepartmentId: "openDepartmentId",
+  name: "name",
+  parentId: "parentId",
+  leaderFeishuUserId: "leaderFeishuUserId",
+  memberCount: "memberCount",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type DepartmentScalarFieldEnum =
+  (typeof DepartmentScalarFieldEnum)[keyof typeof DepartmentScalarFieldEnum];
+
 export const UserScalarFieldEnum = {
   id: "id",
   name: "name",
@@ -86,6 +102,7 @@ export const UserScalarFieldEnum = {
   feishuOpenId: "feishuOpenId",
   feishuUnionId: "feishuUnionId",
   feishuUserId: "feishuUserId",
+  departmentId: "departmentId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
 } as const;

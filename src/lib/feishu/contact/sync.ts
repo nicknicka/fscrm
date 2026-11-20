@@ -23,8 +23,10 @@ export interface ContactFetcher {
 
 /** 通讯录存储：负责写入 CRM 侧的部门与人员。 */
 export interface ContactStore {
-  upsertDepartments(departments: CrmDepartment[]): void;
-  upsertPersons(persons: CrmPerson[]): void;
+  /** 写入或更新部门；支持同步或异步实现。 */
+  upsertDepartments(departments: CrmDepartment[]): void | Promise<void>;
+  /** 写入或更新人员；支持同步或异步实现。 */
+  upsertPersons(persons: CrmPerson[]): void | Promise<void>;
 }
 
 /** 基于内存的通讯录存储实现（无数据库时使用）。 */
@@ -66,16 +68,26 @@ export async function syncContacts(
   const crmDepartments = departments
     .map(mapDepartment)
     .filter((department) => department.id);
-  store.upsertDepartments(crmDepartments);
+  await store.upsertDepartments(crmDepartments);
 
   let personCount = 0;
-  for (const department of crmDepartments) {
-    const users = await fetcher.listUsersByDepartment(department.id);
+  if (crmDepartments.length === 0) {
+    // 应用未被授予部门可见范围时，按全部用户拉取（不传 department_id）。
+    const users = await fetcher.listUsersByDepartment("");
     const persons = users
-      .map((user) => mapUser(user, department.id))
+      .map((user) => mapUser(user))
       .filter((person): person is CrmPerson => person !== null);
-    store.upsertPersons(persons);
+    await store.upsertPersons(persons);
     personCount += persons.length;
+  } else {
+    for (const department of crmDepartments) {
+      const users = await fetcher.listUsersByDepartment(department.id);
+      const persons = users
+        .map((user) => mapUser(user, department.id))
+        .filter((person): person is CrmPerson => person !== null);
+      await store.upsertPersons(persons);
+      personCount += persons.length;
+    }
   }
 
   return {

@@ -1,4 +1,5 @@
 import { prisma } from "../client";
+import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
 import type {
   FollowUp,
   Lead,
@@ -10,19 +11,28 @@ import type {
  * 线索、商机、跟进记录的数据访问层。
  */
 
+/** 权限不足或对象不存在时统一返回该错误，避免泄露对象是否存在。 */
+export class BusinessObjectNotFoundError extends Error {
+  constructor() {
+    super("NOT_FOUND");
+    this.name = "BusinessObjectNotFoundError";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 线索
 // ---------------------------------------------------------------------------
 
 /** 查询线索列表（含负责人）。 */
 export async function listLeads(
-  params: { status?: string; ownerId?: string } = {}
+  params: { status?: string; ownerId?: string },
+  scope: AccessScope
 ) {
-  const where: Prisma.LeadWhereInput = {};
+  const where: Prisma.LeadWhereInput = { ...ownerWhere(scope) };
   if (params.status) {
     where.status = params.status as Prisma.LeadWhereInput["status"];
   }
-  if (params.ownerId) {
+  if (params.ownerId && scope.role === "ADMIN") {
     where.ownerId = params.ownerId;
   }
   return prisma.lead.findMany({
@@ -32,21 +42,52 @@ export async function listLeads(
   });
 }
 
-/** 创建线索。 */
-export async function createLead(data: Prisma.LeadCreateInput): Promise<Lead> {
-  return prisma.lead.create({ data });
+/** 统计当前权限范围内的线索数。 */
+export async function countLeads(scope: AccessScope): Promise<number> {
+  return prisma.lead.count({ where: ownerWhere(scope) });
 }
 
-/** 更新线索。 */
+/** 创建线索。普通负责人创建的线索归属本人，管理员可指定负责人。 */
+export async function createLead(
+  data: Prisma.LeadCreateInput,
+  scope: AccessScope
+): Promise<Lead> {
+  const owner = ownerWhere(scope) as { ownerId?: string };
+  return prisma.lead.create({
+    data: owner.ownerId
+      ? { ...data, owner: { connect: { id: owner.ownerId } } }
+      : data,
+  });
+}
+
+/** 更新当前权限范围内的线索。 */
 export async function updateLead(
   id: string,
-  data: Prisma.LeadUpdateInput
+  data: Prisma.LeadUpdateInput,
+  scope: AccessScope
 ): Promise<Lead> {
-  return prisma.lead.update({ where: { id }, data });
+  const owner = ownerWhere(scope) as { ownerId?: string };
+  const result = await prisma.lead.updateMany({
+    where: owner.ownerId ? { id, ownerId: owner.ownerId } : { id },
+    data,
+  });
+  if (result.count === 0) {
+    throw new BusinessObjectNotFoundError();
+  }
+  return prisma.lead.findUniqueOrThrow({ where: { id } });
 }
 
-/** 删除线索。 */
-export async function deleteLead(id: string): Promise<Lead> {
+/** 删除当前权限范围内的线索。 */
+export async function deleteLead(
+  id: string,
+  scope: AccessScope
+): Promise<Lead> {
+  const owner = ownerWhere(scope) as { ownerId?: string };
+  const where = owner.ownerId ? { id, ownerId: owner.ownerId } : { id };
+  const lead = await prisma.lead.findFirst({ where });
+  if (!lead) {
+    throw new BusinessObjectNotFoundError();
+  }
   return prisma.lead.delete({ where: { id } });
 }
 

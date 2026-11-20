@@ -5,7 +5,13 @@ import { LeadStatus } from "@/generated/prisma/enums";
 import { createLeadAction } from "./actions";
 
 /** 新建线索表单。 */
-export function LeadForm() {
+export function LeadForm({
+  users,
+  currentUserId,
+}: {
+  users: { id: string; name: string }[];
+  currentUserId: string;
+}) {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -42,6 +48,22 @@ export function LeadForm() {
           required
           placeholder="如：展会名单-A公司"
         />
+        <div>
+          <label className="mb-1 block text-sm font-medium text-zinc-700">
+            负责人
+          </label>
+          <select
+            name="ownerId"
+            defaultValue={currentUserId}
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-zinc-700">
             状态

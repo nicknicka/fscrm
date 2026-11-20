@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import { prisma } from "@/lib/db/client";
+import { countLeads } from "@/lib/db/repositories/sales";
+import { accessScopeFor } from "@/lib/auth/scope";
+import { getCurrentUser } from "@/lib/auth/session";
 
 /**
  * CRM 概览页：展示关键业务指标与各模块入口。
  */
 export default async function HomePage() {
+  const currentUser = await getCurrentUser();
+  const scope = currentUser ? accessScopeFor(currentUser) : null;
   const [customerCount, leadCount, opportunityCount, followUpCount] =
     await Promise.all([
       prisma.customer.count(),
-      prisma.lead.count(),
+      scope ? countLeads(scope) : Promise.resolve(0),
       prisma.opportunity.count(),
       prisma.followUp.count(),
     ]);

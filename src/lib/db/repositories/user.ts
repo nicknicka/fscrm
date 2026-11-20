@@ -1,4 +1,6 @@
 import { prisma } from "../client";
+import { accessScopeFor } from "@/lib/auth/scope";
+import type { CurrentUser } from "@/lib/auth/session";
 import type { User } from "../../../generated/prisma/client";
 
 /**
@@ -8,6 +10,18 @@ import type { User } from "../../../generated/prisma/client";
 /** 查询用户列表。 */
 export async function listUsers(): Promise<User[]> {
   return prisma.user.findMany({
+    orderBy: { name: "asc" },
+  });
+}
+
+/** 按当前会话角色查询线索负责人可选项。 */
+export async function listAssignableUsers(
+  currentUser: CurrentUser
+): Promise<Pick<User, "id" | "name">[]> {
+  const scope = accessScopeFor(currentUser);
+  return prisma.user.findMany({
+    where: scope.role === "ADMIN" ? {} : { id: scope.userId },
+    select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
 }

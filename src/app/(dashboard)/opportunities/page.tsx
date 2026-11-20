@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listOpportunities } from "@/lib/db/repositories/sales";
 import { listCustomers } from "@/lib/db/repositories/customer";
+import { listUsers } from "@/lib/db/repositories/user";
 import { OpportunityStage } from "@/generated/prisma/enums";
 import { OpportunityForm } from "./opportunity-form";
 import {
@@ -22,9 +23,10 @@ const stageMeta: Record<
 
 /** 商机列表页。 */
 export default async function OpportunitiesPage() {
-  const [opportunities, customers] = await Promise.all([
+  const [opportunities, customers, users] = await Promise.all([
     listOpportunities(),
     listCustomers(),
+    listUsers(),
   ]);
 
   return (
@@ -35,6 +37,7 @@ export default async function OpportunitiesPage() {
         action={
           <OpportunityForm
             customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+            users={users.map((u) => ({ id: u.id, name: u.name }))}
           />
         }
       />

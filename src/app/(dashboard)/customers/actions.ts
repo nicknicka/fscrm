@@ -7,6 +7,8 @@ import {
   deleteCustomer,
   updateCustomer,
 } from "@/lib/db/repositories/customer";
+import { getUserById } from "@/lib/db/repositories/user";
+import { notifyUser } from "@/lib/feishu/message/notify";
 import { CustomerLevel } from "@/generated/prisma/enums";
 
 /**
@@ -30,7 +32,8 @@ export async function createCustomerAction(formData: FormData) {
     throw new Error("客户名称不能为空");
   }
 
-  await createCustomer({
+  const ownerId = String(formData.get("ownerId") ?? "").trim() || null;
+  const customer = await createCustomer({
     name,
     level: parseLevel(formData.get("level")),
     industry: String(formData.get("industry") ?? "").trim() || null,
@@ -38,7 +41,18 @@ export async function createCustomerAction(formData: FormData) {
     email: String(formData.get("email") ?? "").trim() || null,
     address: String(formData.get("address") ?? "").trim() || null,
     remark: String(formData.get("remark") ?? "").trim() || null,
+    ...(ownerId ? { owner: { connect: { id: ownerId } } } : {}),
   });
+
+  // 客户创建成功后通知负责人（失败不影响业务）
+  if (ownerId) {
+    const owner = await getUserById(ownerId);
+    await notifyUser(
+      owner ? { name: owner.name, feishuOpenId: owner.feishuOpenId } : null,
+      "customer_created",
+      { customerName: customer.name }
+    );
+  }
 
   revalidatePath("/customers");
   redirect("/customers");

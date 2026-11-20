@@ -1,4 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+
+// 隔离数据库依赖：消息处理器会按 open_id 查询 CRM 用户
+vi.mock("@/lib/db/repositories/user", () => ({
+  getUserByFeishuOpenId: vi.fn(async () => null),
+}));
+
 import { extractMessage, handleMessageReceive } from "./message";
 import type { FeishuMessageReceiveEvent } from "../types";
 
@@ -54,11 +60,11 @@ describe("extractMessage", () => {
 });
 
 describe("handleMessageReceive", () => {
-  it("收到消息事件时记录结构化日志且不抛错", () => {
+  it("收到消息事件时记录结构化日志且不抛错", async () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
-    expect(() =>
+    await expect(
       handleMessageReceive({ key: "im.message.receive_v1", data: makeEvent() })
-    ).not.toThrow();
+    ).resolves.toBeUndefined();
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });

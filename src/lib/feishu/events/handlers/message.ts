@@ -1,3 +1,4 @@
+import { getUserByFeishuOpenId } from "@/lib/db/repositories/user";
 import type { FeishuEventHandler, FeishuMessageReceiveEvent } from "../types";
 
 /** 从消息事件解析出的结构化消息信息。 */
@@ -52,13 +53,33 @@ export function extractMessage(
 /**
  * `im.message.receive_v1`（收到消息）事件处理器。
  *
- * 当前作为事件链路的验证入口：提取消息的结构化信息并记录。
- * 后续可在此处接入业务逻辑，如识别特定指令、创建跟进记录等。
+ * 收到消息后：
+ * 1. 提取结构化消息内容；
+ * 2. 按发送者飞书 open_id 匹配 CRM 用户（身份联动）；
+ * 3. 记录结构化日志。
+ *
+ * 注：当前不自动创建跟进记录——消息可能没有明确的客户上下文，
+ * 强行写入会污染跟进数据。识别出的 CRM 用户可用于后续交互（如回复确认、指令处理）。
  */
-export const handleMessageReceive: FeishuEventHandler = ({ data }) => {
+export const handleMessageReceive: FeishuEventHandler = async ({ data }) => {
   const message = extractMessage(asMessageReceiveEvent(data));
+
+  // 按 open_id 匹配 CRM 用户，失败不影响事件处理
+  let crmUser: { id: string; name: string } | null = null;
+  if (message.senderOpenId) {
+    try {
+      const user = await getUserByFeishuOpenId(message.senderOpenId);
+      if (user) {
+        crmUser = { id: user.id, name: user.name };
+      }
+    } catch (error) {
+      console.warn("[feishu:event] 匹配 CRM 用户失败（已忽略）:", error);
+    }
+  }
+
   console.log(
     `[feishu:event] 收到消息 messageId=${message.messageId} ` +
-      `chatId=${message.chatId} type=${message.messageType}`
+      `chatId=${message.chatId} type=${message.messageType} ` +
+      `from=${crmUser ? `CRM用户:${crmUser.name}` : (message.senderOpenId ?? "未知")}`
   );
 };

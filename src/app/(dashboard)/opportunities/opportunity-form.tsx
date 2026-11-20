@@ -7,8 +7,10 @@ import { createOpportunityAction } from "./actions";
 /** 新建商机表单。 */
 export function OpportunityForm({
   customers,
+  users,
 }: {
   customers: { id: string; name: string }[];
+  users: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -81,6 +83,22 @@ export function OpportunityForm({
           </select>
         </div>
         <Field label="预计金额" name="amount" placeholder="如：50000" />
+        <div>
+          <label className="mb-1 block text-sm font-medium text-zinc-700">
+            负责人
+          </label>
+          <select
+            name="ownerId"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            <option value="">暂不分配</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <Field
           label="预计成交日期"
           name="expectedCloseDate"

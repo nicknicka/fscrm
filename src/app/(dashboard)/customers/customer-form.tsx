@@ -9,7 +9,11 @@ import { createCustomerAction } from "./actions";
  *
  * 默认收起，点击「新建客户」展开。提交后由 Server Action 写入数据库。
  */
-export function CustomerForm() {
+export function CustomerForm({
+  users,
+}: {
+  users: { id: string; name: string }[];
+}) {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -59,6 +63,22 @@ export function CustomerForm() {
             <option value={CustomerLevel.HIGH}>高价值</option>
             <option value={CustomerLevel.MEDIUM}>中价值</option>
             <option value={CustomerLevel.LOW}>低价值</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-zinc-700">
+            负责人
+          </label>
+          <select
+            name="ownerId"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+          >
+            <option value="">暂不分配</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
           </select>
         </div>
         <Field label="行业" name="industry" placeholder="如：教育" />

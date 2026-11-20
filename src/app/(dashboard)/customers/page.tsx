@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
 import { listCustomers } from "@/lib/db/repositories/customer";
+import { listUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { CustomerForm } from "./customer-form";
 import { deleteCustomerAction } from "./actions";
@@ -16,7 +17,10 @@ export default async function CustomersPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const customers = await listCustomers({ search: q });
+  const [customers, users] = await Promise.all([
+    listCustomers({ search: q }),
+    listUsers(),
+  ]);
 
   const levelTone: Record<string, "red" | "amber" | "zinc"> = {
     [CustomerLevel.HIGH]: "red",
@@ -34,7 +38,11 @@ export default async function CustomersPage({
       <PageHeader
         title="客户"
         description={`共 ${customers.length} 个客户`}
-        action={<CustomerForm />}
+        action={
+          <CustomerForm
+            users={users.map((u) => ({ id: u.id, name: u.name }))}
+          />
+        }
       />
 
       <form className="mb-4 flex gap-2" action="/customers">

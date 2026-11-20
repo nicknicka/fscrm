@@ -34,6 +34,18 @@ const TEMPLATES: Record<FeishuNotificationScenario, NotificationTemplate> = {
     title: "审批通知",
     body: "有新的审批待处理：{{approvalName}}，请尽快处理。",
   },
+  customer_created: {
+    receiveIdType: "open_id",
+    kind: "card",
+    title: "新客户分配",
+    body: "有新客户「{{customerName}}」已创建，负责人是您，请及时跟进。",
+  },
+  opportunity_created: {
+    receiveIdType: "open_id",
+    kind: "card",
+    title: "商机创建提醒",
+    body: "新商机「{{opportunityName}}」（客户：{{customerName}}）已创建，负责人是您。",
+  },
 };
 
 /** 将 `{{变量名}}` 占位替换为实际值，未提供的变量保留原占位。 */

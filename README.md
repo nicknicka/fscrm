@@ -17,7 +17,7 @@ npm install
 
 # 2. 配置飞书凭证（复制后填入真实值，切勿提交真实凭证）
 cp .env.example .env.local
-# 编辑 .env.local，填入 FEISHU_APP_ID / FEISHU_APP_SECRET
+# 编辑 .env.local，填入 FEISHU_APP_ID / FEISHU_APP_SECRET 与 SESSION_SECRET
 
 # 3. 本地开发
 npm run dev
@@ -35,6 +35,13 @@ npm run start
   - `FEISHU_APP_DOMAIN`：飞书用 `https://open.feishu.cn`（默认）；Lark 用 `https://open.larksuite.com`
 - 客户端封装位于 `src/lib/feishu/client.ts`，进程内单例，自动复用令牌缓存。
 - 调用飞书接口前请先检查 `isFeishuConfigured`，凭证缺失时避免直接调用。
+
+## 服务端会话设置
+
+- `SESSION_SECRET` 必须配置为至少 32 个字符的独立随机值，可用 `openssl rand -base64 32` 生成；不要复用飞书应用凭证。
+- 会话签名与校验位于 `src/lib/auth/session.ts`，当前负责人、姓名与角色通过签名载荷传递，受保护入口统一用 `getCurrentUser()` 读取。
+- 会话 Cookie 固定为 `HttpOnly` + `SameSite=Lax`，生产环境自动启用 `Secure`；退出登录调用 `clearSession()` 清除 Cookie。
+- 飞书 OAuth 回调页面与按负责人/角色的业务数据过滤尚未实现，将由后续工单接入现有会话边界。
 
 ## 目录结构
 

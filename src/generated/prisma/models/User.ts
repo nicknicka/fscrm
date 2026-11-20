@@ -32,6 +32,7 @@ export type UserMinAggregateOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  role: $Enums.UserRole | null;
   departmentId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -45,6 +46,7 @@ export type UserMaxAggregateOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  role: $Enums.UserRole | null;
   departmentId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -58,6 +60,7 @@ export type UserCountAggregateOutputType = {
   feishuOpenId: number;
   feishuUnionId: number;
   feishuUserId: number;
+  role: number;
   departmentId: number;
   createdAt: number;
   updatedAt: number;
@@ -72,6 +75,7 @@ export type UserMinAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  role?: true;
   departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -85,6 +89,7 @@ export type UserMaxAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  role?: true;
   departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -98,6 +103,7 @@ export type UserCountAggregateInputType = {
   feishuOpenId?: true;
   feishuUnionId?: true;
   feishuUserId?: true;
+  role?: true;
   departmentId?: true;
   createdAt?: true;
   updatedAt?: true;
@@ -190,6 +196,7 @@ export type UserGroupByOutputType = {
   feishuOpenId: string | null;
   feishuUnionId: string | null;
   feishuUserId: string | null;
+  role: $Enums.UserRole;
   departmentId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -222,6 +229,7 @@ export type UserWhereInput = {
   feishuOpenId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+  role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole;
   departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
@@ -243,6 +251,7 @@ export type UserOrderByWithRelationInput = {
   feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  role?: Prisma.SortOrder;
   departmentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -265,6 +274,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null;
     feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
     feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+    role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole;
     departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
     createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
@@ -288,6 +298,7 @@ export type UserOrderByWithAggregationInput = {
   feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrderInput | Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  role?: Prisma.SortOrder;
   departmentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -314,6 +325,7 @@ export type UserScalarWhereWithAggregatesInput = {
     Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
   feishuUserId?:
     Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
+  role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole;
   departmentId?:
     Prisma.StringNullableWithAggregatesFilter<"User"> | string | null;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string;
@@ -328,6 +340,7 @@ export type UserCreateInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
@@ -345,6 +358,7 @@ export type UserUncheckedCreateInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -365,6 +379,7 @@ export type UserUpdateInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
@@ -385,6 +400,7 @@ export type UserUncheckedUpdateInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -403,6 +419,7 @@ export type UserCreateManyInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -419,6 +436,7 @@ export type UserUpdateManyMutationInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -434,6 +452,7 @@ export type UserUncheckedUpdateManyInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -458,6 +477,7 @@ export type UserCountOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  role?: Prisma.SortOrder;
   departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -471,6 +491,7 @@ export type UserMaxOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  role?: Prisma.SortOrder;
   departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -484,6 +505,7 @@ export type UserMinOrderByAggregateInput = {
   feishuOpenId?: Prisma.SortOrder;
   feishuUnionId?: Prisma.SortOrder;
   feishuUserId?: Prisma.SortOrder;
+  role?: Prisma.SortOrder;
   departmentId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
@@ -578,6 +600,10 @@ export type UserUncheckedUpdateManyWithoutDepartmentNestedInput = {
     | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput
     | Prisma.UserUpdateManyWithWhereWithoutDepartmentInput[];
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
+};
+
+export type EnumUserRoleFieldUpdateOperationsInput = {
+  set?: $Enums.UserRole;
 };
 
 export type UserCreateNestedOneWithoutCustomersInput = {
@@ -700,6 +726,7 @@ export type UserCreateWithoutDepartmentInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerCreateNestedManyWithoutOwnerInput;
@@ -716,6 +743,7 @@ export type UserUncheckedCreateWithoutDepartmentInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutOwnerInput;
@@ -778,6 +806,7 @@ export type UserScalarWhereInput = {
   feishuOpenId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUnionId?: Prisma.StringNullableFilter<"User"> | string | null;
   feishuUserId?: Prisma.StringNullableFilter<"User"> | string | null;
+  role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole;
   departmentId?: Prisma.StringNullableFilter<"User"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string;
@@ -791,6 +820,7 @@ export type UserCreateWithoutCustomersInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
@@ -807,6 +837,7 @@ export type UserUncheckedCreateWithoutCustomersInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -854,6 +885,7 @@ export type UserUpdateWithoutCustomersInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
@@ -873,6 +905,7 @@ export type UserUncheckedUpdateWithoutCustomersInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -890,6 +923,7 @@ export type UserCreateWithoutLeadsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
@@ -906,6 +940,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -953,6 +988,7 @@ export type UserUpdateWithoutLeadsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
@@ -972,6 +1008,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -989,6 +1026,7 @@ export type UserCreateWithoutOpportunitiesInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
@@ -1005,6 +1043,7 @@ export type UserUncheckedCreateWithoutOpportunitiesInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -1052,6 +1091,7 @@ export type UserUpdateWithoutOpportunitiesInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
@@ -1071,6 +1111,7 @@ export type UserUncheckedUpdateWithoutOpportunitiesInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1088,6 +1129,7 @@ export type UserCreateWithoutFollowUpsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   department?: Prisma.DepartmentCreateNestedOneWithoutUsersInput;
@@ -1104,6 +1146,7 @@ export type UserUncheckedCreateWithoutFollowUpsInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   departmentId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -1151,6 +1194,7 @@ export type UserUpdateWithoutFollowUpsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   department?: Prisma.DepartmentUpdateOneWithoutUsersNestedInput;
@@ -1170,6 +1214,7 @@ export type UserUncheckedUpdateWithoutFollowUpsInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   departmentId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -1187,6 +1232,7 @@ export type UserCreateManyDepartmentInput = {
   feishuOpenId?: string | null;
   feishuUnionId?: string | null;
   feishuUserId?: string | null;
+  role?: $Enums.UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1202,6 +1248,7 @@ export type UserUpdateWithoutDepartmentInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customers?: Prisma.CustomerUpdateManyWithoutOwnerNestedInput;
@@ -1221,6 +1268,7 @@ export type UserUncheckedUpdateWithoutDepartmentInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutOwnerNestedInput;
@@ -1240,6 +1288,7 @@ export type UserUncheckedUpdateManyWithoutDepartmentInput = {
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   feishuUserId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1330,6 +1379,7 @@ export type UserSelect<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    role?: boolean;
     departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -1355,6 +1405,7 @@ export type UserSelectCreateManyAndReturn<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    role?: boolean;
     departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -1375,6 +1426,7 @@ export type UserSelectUpdateManyAndReturn<
     feishuOpenId?: boolean;
     feishuUnionId?: boolean;
     feishuUserId?: boolean;
+    role?: boolean;
     departmentId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
@@ -1391,6 +1443,7 @@ export type UserSelectScalar = {
   feishuOpenId?: boolean;
   feishuUnionId?: boolean;
   feishuUserId?: boolean;
+  role?: boolean;
   departmentId?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
@@ -1407,6 +1460,7 @@ export type UserOmit<
   | "feishuOpenId"
   | "feishuUnionId"
   | "feishuUserId"
+  | "role"
   | "departmentId"
   | "createdAt"
   | "updatedAt",
@@ -1460,6 +1514,10 @@ export type $UserPayload<
       feishuOpenId: string | null;
       feishuUnionId: string | null;
       feishuUserId: string | null;
+      /**
+       * 角色：普通负责人或管理员；新用户默认按普通负责人处理。
+       */
+      role: $Enums.UserRole;
       /**
        * 所属部门。
        */
@@ -2116,6 +2174,7 @@ export interface UserFieldRefs {
   readonly feishuOpenId: Prisma.FieldRef<"User", "String">;
   readonly feishuUnionId: Prisma.FieldRef<"User", "String">;
   readonly feishuUserId: Prisma.FieldRef<"User", "String">;
+  readonly role: Prisma.FieldRef<"User", "UserRole">;
   readonly departmentId: Prisma.FieldRef<"User", "String">;
   readonly createdAt: Prisma.FieldRef<"User", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"User", "DateTime">;

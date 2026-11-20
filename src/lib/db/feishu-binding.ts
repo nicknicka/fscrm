@@ -15,9 +15,15 @@ export function createDbPersonLookup(): PersonLookup {
     async findByOpenId(openId: string): Promise<CrmPersonRef | null> {
       const user = await prisma.user.findUnique({
         where: { feishuOpenId: openId },
-        select: { id: true, name: true },
+        select: { id: true, name: true, role: true },
       });
-      return user ? { id: user.id, name: user.name } : null;
+      return user
+        ? {
+            id: user.id,
+            name: user.name,
+            role: user.role ?? "OWNER",
+          }
+        : null;
     },
   };
 }

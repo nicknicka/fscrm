@@ -50,5 +50,6 @@ export function mapUser(
     name: user.name,
     email: user.email,
     departmentId,
+    role: "OWNER",
   };
 }

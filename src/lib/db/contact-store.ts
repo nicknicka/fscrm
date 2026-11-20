@@ -63,6 +63,8 @@ export class DbContactStore implements ContactStore {
           feishuUnionId: person.feishuUnionId ?? null,
           feishuUserId: person.feishuUserId ?? null,
           departmentId: departmentDbId,
+          // 通讯录同步只创建普通负责人；管理员角色由显式授权赋予。
+          role: person.role ?? "OWNER",
         },
       });
     }

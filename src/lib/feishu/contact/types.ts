@@ -50,6 +50,13 @@ export interface CrmDepartment {
   parentId?: string;
 }
 
+/**
+ * CRM 用户角色。
+ *
+ * 与 Prisma `UserRole` 对齐；通讯录同步的新用户只使用普通负责人。
+ */
+export type CrmUserRole = "OWNER" | "ADMIN";
+
 /** CRM 人员（由飞书用户映射而来，可作为负责人数据源）。 */
 export interface CrmPerson {
   /** CRM 内部 ID。 */
@@ -62,6 +69,8 @@ export interface CrmPerson {
   feishuUserId?: string;
   /** 姓名。 */
   name: string;
+  /** 角色；通讯录同步默认普通负责人，不自动提升为管理员。 */
+  role: CrmUserRole;
   /** 邮箱。 */
   email?: string;
   /** 所属部门在 CRM 中的 ID。 */

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { prisma } from "@/lib/db/client";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/session";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { getOpportunityForCurrentUser } from "../scope";
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -21,28 +21,9 @@ export default async function OpportunityDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const currentUser = await requireCurrentUser();
-  const followUpWhere =
-    currentUser.role === "ADMIN"
-      ? {}
-      : {
-          OR: [
-            { customer: { ownerId: currentUser.id } },
-            { opportunity: { ownerId: currentUser.id } },
-          ],
-        };
-  const opportunity = await prisma.opportunity.findUnique({
-    where: { id },
-    include: {
-      customer: true,
-      owner: true,
-      followUps: {
-        where: followUpWhere,
-        include: { owner: true },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+  const user = await getCurrentUser();
+  if (!user) notFound();
+  const opportunity = await getOpportunityForCurrentUser(id, user);
   if (!opportunity) notFound();
 
   return (

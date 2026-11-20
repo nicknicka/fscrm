@@ -1,20 +1,17 @@
+import { notFound } from "next/navigation";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { listOpportunities } from "@/lib/db/repositories/sales";
-import { listCustomers } from "@/lib/db/repositories/customer";
-import type { AccessScope } from "@/lib/auth/scope";
-import { listUsers } from "@/lib/db/repositories/user";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { getCurrentUser } from "@/lib/auth/session";
+import { listOpportunitiesForCurrentUser } from "./scope";
 import { OpportunityForm } from "./opportunity-form";
 import {
   deleteOpportunityAction,
   updateOpportunityStageAction,
 } from "./actions";
-
-// #17 将收敛商机自身权限；这里只保持客户选项当前的全量行为。
-const CUSTOMER_OPTIONS_SCOPE: AccessScope = {
-  userId: "system",
-  role: "ADMIN",
-};
+import {
+  loadOpportunityFormCustomers,
+  loadOpportunityFormUsers,
+} from "./form-options";
 
 const stageMeta: Record<
   string,
@@ -30,10 +27,13 @@ const stageMeta: Record<
 
 /** 商机列表页。 */
 export default async function OpportunitiesPage() {
+  const user = await getCurrentUser();
+  if (!user) notFound();
+
   const [opportunities, customers, users] = await Promise.all([
-    listOpportunities(),
-    listCustomers({}, CUSTOMER_OPTIONS_SCOPE),
-    listUsers(),
+    listOpportunitiesForCurrentUser(user),
+    loadOpportunityFormCustomers(user),
+    loadOpportunityFormUsers(user),
   ]);
 
   return (
@@ -43,8 +43,9 @@ export default async function OpportunitiesPage() {
         description={`共 ${opportunities.length} 个商机`}
         action={
           <OpportunityForm
-            customers={customers.map((c) => ({ id: c.id, name: c.name }))}
-            users={users.map((u) => ({ id: u.id, name: u.name }))}
+            customers={customers}
+            users={users}
+            defaultOwnerId={user.id}
           />
         }
       />

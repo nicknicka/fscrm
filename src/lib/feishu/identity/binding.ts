@@ -9,8 +9,10 @@ import type { CrmPersonRef, FeishuUserProfile, UserMatchResult } from "./types";
 
 /** CRM 人员查找接口：按飞书开放 ID 查找 CRM 人员。 */
 export interface PersonLookup {
-  /** 按飞书开放 ID 查找；未找到返回 null 或 undefined。 */
-  findByOpenId(openId: string): CrmPersonRef | null | undefined;
+  /** 按飞书开放 ID 查找；未找到返回 null 或 undefined。支持同步或异步实现。 */
+  findByOpenId(
+    openId: string
+  ): CrmPersonRef | null | undefined | Promise<CrmPersonRef | null | undefined>;
 }
 
 /**
@@ -20,14 +22,14 @@ export interface PersonLookup {
  * @param lookup 人员查找接口
  * @returns 匹配到的 CRM 人员；未匹配返回 null
  */
-export function matchUser(
+export async function matchUser(
   profile: FeishuUserProfile,
   lookup: PersonLookup
-): CrmPersonRef | null {
+): Promise<CrmPersonRef | null> {
   if (!profile.openId) {
     return null;
   }
-  const person = lookup.findByOpenId(profile.openId);
+  const person = await lookup.findByOpenId(profile.openId);
   return person ?? null;
 }
 
@@ -38,11 +40,11 @@ export function matchUser(
  * @param lookup 人员查找接口
  * @returns 带匹配状态的完整结果
  */
-export function resolveUser(
+export async function resolveUser(
   profile: FeishuUserProfile,
   lookup: PersonLookup
-): UserMatchResult {
-  const person = matchUser(profile, lookup);
+): Promise<UserMatchResult> {
+  const person = await matchUser(profile, lookup);
   return {
     status: person ? "matched" : "unmatched",
     person,

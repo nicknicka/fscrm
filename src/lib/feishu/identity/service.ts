@@ -31,7 +31,7 @@ export async function authenticateWithCode(
 ): Promise<AuthenticateResult> {
   const token = await exchangeCodeForToken(code);
   const user = await fetchUserProfile(token.accessToken);
-  const match = resolveUser(user, lookup);
+  const match = await resolveUser(user, lookup);
 
   return {
     auth: { token, user },

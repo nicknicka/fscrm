@@ -1,0 +1,177 @@
+// Prisma schema for fscrm — a Feishu-integrated CRM.
+//
+// 领域词汇对齐根目录 GLOSSARY.md：客户、联系人、线索、商机、销售阶段、
+// 跟进、负责人、客户生命周期等。
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// 客户等级：对客户价值或重要程度的分级。
+enum CustomerLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// 销售阶段：商机在成交路径上所处的阶段。
+enum OpportunityStage {
+  CONTACT // 初步接触
+  NEED_CONFIRM // 需求确认
+  QUOTE // 报价
+  NEGOTIATE // 谈判
+  WON // 赢单
+  LOST // 输单
+}
+
+/// 线索状态：线索在培育路径上的状态。
+enum LeadStatus {
+  NEW // 新线索
+  FOLLOWING // 跟进中
+  CONVERTED // 已转化
+  INVALID // 无效
+}
+
+/// 跟进方式：跟进时使用的沟通渠道。
+enum FollowUpMode {
+  CALL // 电话
+  MEETING // 面谈
+  EMAIL // 邮件
+  IM // 即时消息
+  OTHER // 其他
+}
+
+/// CRM 用户（负责人）：可绑定飞书用户，是消息接收与操作归属的主体。
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String?
+  avatarUrl     String?
+  /// 飞书开放 ID，用于与飞书用户稳定匹配（身份绑定）。
+  feishuOpenId  String?  @unique
+  feishuUnionId String?
+  feishuUserId  String?
+
+  customers      Customer[]
+  opportunities  Opportunity[]
+  leads          Lead[]
+  followUps      FollowUp[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// 客户：CRM 的核心业务对象。
+model Customer {
+  id         String        @id @default(uuid())
+  name       String
+  level      CustomerLevel @default(MEDIUM)
+  industry   String?
+  phone      String?
+  email      String?
+  address    String?
+  remark     String?
+  /// 负责人，对应 User。
+  ownerId    String?
+  owner      User?         @relation(fields: [ownerId], references: [id])
+
+  contacts   Contact[]
+  opportunities Opportunity[]
+  followUps  FollowUp[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+/// 联系人：与客户关联的具体人员。
+model Contact {
+  id         String  @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name       String
+  position   String?
+  phone      String?
+  email      String?
+  remark     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+/// 线索：尚未明确成交意向的原始客户信息。
+model Lead {
+  id         String     @id @default(uuid())
+  name       String
+  /// 线索来源：表单、转介绍、市场活动等。
+  source     String?
+  status     LeadStatus  @default(NEW)
+  /// 负责人，对应 User。
+  ownerId    String?
+  owner      User?       @relation(fields: [ownerId], references: [id])
+  contactPhone String?
+  contactEmail String?
+  remark     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("leads")
+}
+
+/// 商机：已识别出明确意向、进入销售流程的销售机会。
+model Opportunity {
+  id                String           @id @default(uuid())
+  customerId        String
+  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name              String
+  stage             OpportunityStage  @default(CONTACT)
+  /// 预计成交金额。
+  amount            Float?
+  /// 预计成交日期。
+  expectedCloseDate DateTime?
+  /// 负责人，对应 User。
+  ownerId           String?
+  owner             User?            @relation(fields: [ownerId], references: [id])
+  remark            String?
+
+  followUps         FollowUp[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("opportunities")
+}
+
+/// 跟进记录：对某次跟进的时间、方式、内容与下一步的结构化记录。
+model FollowUp {
+  id          String       @id @default(uuid())
+  /// 关联的客户；跟进可挂在客户或商机下，二者至少有一个。
+  customerId  String?
+  customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// 关联的商机。
+  opportunityId String?
+  opportunity  Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  /// 跟进人，对应 User。
+  ownerId     String?
+  owner       User?        @relation(fields: [ownerId], references: [id])
+  mode        FollowUpMode
+  content     String
+  /// 下一步计划跟进时间。
+  nextFollowUpAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("follow_ups")
+}

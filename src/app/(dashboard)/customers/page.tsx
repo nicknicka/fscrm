@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
+import { requireCurrentUser } from "@/lib/auth/session";
+import { accessScopeFor } from "@/lib/auth/scope";
 import { listCustomers } from "@/lib/db/repositories/customer";
-import { listUsers } from "@/lib/db/repositories/user";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { CustomerForm } from "./customer-form";
 import { deleteCustomerAction } from "./actions";
@@ -9,17 +11,19 @@ import { deleteCustomerAction } from "./actions";
 /**
  * 客户列表页。
  *
- * 通过 `searchParams` 支持按名称/电话/邮箱搜索。
+ * 先读取当前会话，再以该负责人/管理员的访问范围查询客户；
+ * 新建客户的负责人选项同样按角色收敛。
  */
 export default async function CustomersPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const currentUser = await requireCurrentUser();
   const { q } = await searchParams;
   const [customers, users] = await Promise.all([
-    listCustomers({ search: q }),
-    listUsers(),
+    listCustomers({ search: q }, accessScopeFor(currentUser)),
+    listAssignableUsers(currentUser),
   ]);
 
   const levelTone: Record<string, "red" | "amber" | "zinc"> = {

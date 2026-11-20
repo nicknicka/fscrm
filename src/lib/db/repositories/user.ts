@@ -14,7 +14,7 @@ export async function listUsers(): Promise<User[]> {
   });
 }
 
-/** 按当前会话角色查询线索负责人可选项。 */
+/** 查询可分配的负责人：管理员可选全部人，普通负责人只有自己。 */
 export async function listAssignableUsers(
   currentUser: CurrentUser
 ): Promise<Pick<User, "id" | "name">[]> {

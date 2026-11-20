@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listOpportunities } from "@/lib/db/repositories/sales";
 import { listCustomers } from "@/lib/db/repositories/customer";
+import type { AccessScope } from "@/lib/auth/scope";
 import { listUsers } from "@/lib/db/repositories/user";
 import { OpportunityStage } from "@/generated/prisma/enums";
 import { OpportunityForm } from "./opportunity-form";
@@ -8,6 +9,12 @@ import {
   deleteOpportunityAction,
   updateOpportunityStageAction,
 } from "./actions";
+
+// #17 将收敛商机自身权限；这里只保持客户选项当前的全量行为。
+const CUSTOMER_OPTIONS_SCOPE: AccessScope = {
+  userId: "system",
+  role: "ADMIN",
+};
 
 const stageMeta: Record<
   string,
@@ -25,7 +32,7 @@ const stageMeta: Record<
 export default async function OpportunitiesPage() {
   const [opportunities, customers, users] = await Promise.all([
     listOpportunities(),
-    listCustomers(),
+    listCustomers({}, CUSTOMER_OPTIONS_SCOPE),
     listUsers(),
   ]);
 

@@ -9,11 +9,17 @@ import {
 } from "@/lib/db/repositories/sales";
 import { getUserById } from "@/lib/db/repositories/user";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import { requireCurrentUser } from "@/lib/auth/session";
+import type { AccessScope } from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
 import { OpportunityStage } from "@/generated/prisma/enums";
 
 /** 商机相关的 Server Actions。 */
+
+// #17 将收敛商机自身权限；这里只需用管理员范围读取关联客户名称用于通知。
+const CUSTOMER_LOOKUP_SCOPE: AccessScope = {
+  userId: "system",
+  role: "ADMIN",
+};
 
 function parseStage(value: FormDataEntryValue | null) {
   const raw = String(value ?? "");
@@ -47,7 +53,7 @@ export async function createOpportunityAction(formData: FormData) {
   if (ownerId) {
     const [owner, customer] = await Promise.all([
       getUserById(ownerId),
-      getCustomer(customerId, { followUpViewer: await requireCurrentUser() }),
+      getCustomer(customerId, CUSTOMER_LOOKUP_SCOPE),
     ]);
     await notifyUser(
       owner ? { name: owner.name, feishuOpenId: owner.feishuOpenId } : null,

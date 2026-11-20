@@ -1,18 +1,23 @@
 import { prisma } from "../client";
-import type { CurrentUser } from "@/lib/auth/session";
+import {
+  ownerWhere,
+  resolveAssignableOwnerId,
+  type AccessScope,
+} from "../../auth/scope";
 import type { Customer, Prisma } from "../../../generated/prisma/client";
 
 /**
  * 客户数据访问层。
  *
- * 封装客户的常用查询与写入操作，供页面与业务服务复用。
+ * 所有查询与写入都显式接收当前负责人/管理员的访问范围：
+ * 普通负责人只能访问自己负责的客户，管理员可访问与管理全部客户。
  */
 
 /** 客户列表查询参数。 */
 export interface ListCustomersParams {
   /** 按名称模糊搜索。 */
   search?: string;
-  /** 按负责人筛选。 */
+  /** 管理员可按负责人筛选；普通负责人传入的值会被忽略。 */
   ownerId?: string;
   /** 分页：跳过条数。 */
   skip?: number;
@@ -20,9 +25,20 @@ export interface ListCustomersParams {
   take?: number;
 }
 
+/** 越权或对象不存在时抛出的统一错误，避免泄露对象存在性。 */
+export class CustomerAccessError extends Error {
+  constructor() {
+    super("CUSTOMER_NOT_FOUND_OR_FORBIDDEN");
+    this.name = "CustomerAccessError";
+  }
+}
+
 /** 查询客户列表（含负责人与联系人数量）。 */
-export async function listCustomers(params: ListCustomersParams = {}) {
-  const where: Prisma.CustomerWhereInput = {};
+export async function listCustomers(
+  params: ListCustomersParams,
+  scope: AccessScope
+) {
+  const where: Prisma.CustomerWhereInput = { ...ownerWhere(scope) };
   if (params.search) {
     where.OR = [
       { name: { contains: params.search, mode: "insensitive" } },
@@ -30,7 +46,7 @@ export async function listCustomers(params: ListCustomersParams = {}) {
       { email: { contains: params.search, mode: "insensitive" } },
     ];
   }
-  if (params.ownerId) {
+  if (scope.role === "ADMIN" && params.ownerId) {
     where.ownerId = params.ownerId;
   }
   return prisma.customer.findMany({
@@ -45,30 +61,25 @@ export async function listCustomers(params: ListCustomersParams = {}) {
   });
 }
 
-/** 客户详情查询参数：当前会话负责决定跟进记录可见范围。 */
-export interface GetCustomerParams {
-  /** 跟进记录列表按当前会话角色过滤；管理员不过滤。 */
-  followUpViewer: CurrentUser;
-}
-
 /** 按 ID 查询客户详情（含联系人、商机、权限范围内的跟进记录）。 */
-export async function getCustomer(id: string, params: GetCustomerParams) {
+export async function getCustomer(id: string, scope: AccessScope) {
   const followUpWhere: Prisma.FollowUpWhereInput =
-    params.followUpViewer.role === "ADMIN"
+    scope.role === "ADMIN"
       ? {}
       : {
           OR: [
-            { customer: { ownerId: params.followUpViewer.id } },
-            { opportunity: { ownerId: params.followUpViewer.id } },
+            { customer: { ownerId: scope.userId } },
+            { opportunity: { ownerId: scope.userId } },
           ],
         };
 
-  return prisma.customer.findUnique({
-    where: { id },
+  return prisma.customer.findFirst({
+    where: { id, ...ownerWhere(scope) },
     include: {
       owner: true,
       contacts: true,
-      opportunities: true,
+      opportunities:
+        scope.role === "ADMIN" ? true : { where: ownerWhere(scope) },
       followUps: {
         where: followUpWhere,
         include: { owner: true },
@@ -78,27 +89,65 @@ export async function getCustomer(id: string, params: GetCustomerParams) {
   });
 }
 
-/** 创建客户。 */
+/** 创建客户：普通负责人强制归属自己，管理员可指定或暂不分配。 */
 export async function createCustomer(
-  data: Prisma.CustomerCreateInput
+  data: Prisma.CustomerCreateInput,
+  scope: AccessScope
 ): Promise<Customer> {
-  return prisma.customer.create({ data });
+  const ownerId = resolveAssignableOwnerId(
+    scope,
+    data.owner?.connect?.id ?? null
+  );
+  return prisma.customer.create({
+    data: {
+      ...data,
+      ...(scope.role === "ADMIN"
+        ? {}
+        : { owner: { connect: { id: scope.userId } } }),
+      ...(ownerId && scope.role === "ADMIN"
+        ? { owner: { connect: { id: ownerId } } }
+        : {}),
+    },
+  });
 }
 
-/** 更新客户。 */
+/** 更新客户：普通负责人只能更新自己的客户，且不能改变负责人。 */
 export async function updateCustomer(
   id: string,
-  data: Prisma.CustomerUpdateInput
+  data: Prisma.CustomerUpdateInput,
+  scope: AccessScope
 ): Promise<Customer> {
-  return prisma.customer.update({ where: { id }, data });
+  const updateData = { ...data };
+  if (scope.role !== "ADMIN") {
+    delete updateData.owner;
+  }
+  const result = await prisma.customer.updateMany({
+    where: { id, ...ownerWhere(scope) },
+    data: updateData as Prisma.CustomerUpdateManyMutationInput,
+  });
+  if (result.count === 0) {
+    throw new CustomerAccessError();
+  }
+  const updated = await prisma.customer.findUnique({ where: { id } });
+  if (!updated) {
+    throw new CustomerAccessError();
+  }
+  return updated;
 }
 
 /** 删除客户（级联删除联系人、商机、跟进记录）。 */
-export async function deleteCustomer(id: string): Promise<Customer> {
+export async function deleteCustomer(
+  id: string,
+  scope: AccessScope
+): Promise<Customer> {
+  const customer = await getCustomer(id, scope);
+  if (!customer) {
+    throw new CustomerAccessError();
+  }
   return prisma.customer.delete({ where: { id } });
 }
 
-/** 统计客户数量。 */
-export async function countCustomers(): Promise<number> {
-  return prisma.customer.count();
+/** 统计当前可见客户数量。 */
+export async function countCustomers(scope: AccessScope): Promise<number> {
+  return prisma.customer.count({ where: ownerWhere(scope) });
 }

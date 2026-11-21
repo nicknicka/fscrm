@@ -5,6 +5,7 @@ import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { ContactsManager } from "./contacts/contacts-manager";
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -63,31 +64,19 @@ export default async function CustomerDetailPage({
           )}
         </section>
 
-        {/* 联系人 */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">
-            联系人（{customer.contacts.length}）
-          </h2>
-          {customer.contacts.length === 0 ? (
-            <p className="text-sm text-zinc-500">暂无联系人</p>
-          ) : (
-            <ul className="divide-y divide-zinc-100">
-              {customer.contacts.map((contact) => (
-                <li key={contact.id} className="py-2 text-sm">
-                  <span className="font-medium">{contact.name}</span>
-                  {contact.position && (
-                    <span className="ml-2 text-zinc-500">
-                      {contact.position}
-                    </span>
-                  )}
-                  <div className="text-xs text-zinc-400">
-                    {contact.phone ?? ""} {contact.email ?? ""}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {/* 联系人：新增/编辑/删除入口与表单 */}
+        <ContactsManager
+          customerId={customer.id}
+          contacts={customer.contacts.map((contact) => ({
+            id: contact.id,
+            customerId: contact.customerId,
+            name: contact.name,
+            position: contact.position,
+            phone: contact.phone,
+            email: contact.email,
+            remark: contact.remark,
+          }))}
+        />
 
         {/* 商机 */}
         <section className="rounded-xl border border-zinc-200 bg-white p-6">

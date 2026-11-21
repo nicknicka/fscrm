@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => ({
   isFeishuConfigured: vi.fn(),
   authenticateWithCode: vi.fn(),
   createDbPersonLookup: vi.fn(),
+  issueOAuthState: vi.fn(),
+  consumeOAuthState: vi.fn(),
 }));
 
 vi.mock("@/lib/feishu/client", () => ({
@@ -17,6 +19,14 @@ vi.mock("@/lib/feishu/identity/service", () => ({
 
 vi.mock("@/lib/db/feishu-binding", () => ({
   createDbPersonLookup: mocks.createDbPersonLookup,
+}));
+
+// OAuth state 一次性校验走共享存储（#46）：这里替身掉存储，验证路由确实
+// 通过它登记与消费，而不是依赖进程内 Map。
+vi.mock("@/lib/auth/oauth-state", () => ({
+  OAUTH_STATE_TTL_MS: 10 * 60 * 1000,
+  issueOAuthState: mocks.issueOAuthState,
+  consumeOAuthState: mocks.consumeOAuthState,
 }));
 
 const lookup = { findByOpenId: vi.fn() };
@@ -107,6 +117,14 @@ describe("Feishu OAuth callback route", () => {
     vi.stubEnv("SESSION_SECRET", "test-session-secret-that-is-at-least-thirty-two-bytes");
     mocks.isFeishuConfigured.mockReturnValue(true);
     mocks.createDbPersonLookup.mockReturnValue(lookup);
+    mocks.issueOAuthState.mockResolvedValue(undefined);
+    // 默认模拟共享存储的一次性语义：首次消费成功，再次消费同一 state 失败。
+    const consumed = new Set<string>();
+    mocks.consumeOAuthState.mockImplementation(async (state: string) => {
+      if (consumed.has(state)) return false;
+      consumed.add(state);
+      return true;
+    });
   });
 
   it("rejects a callback whose state does not match the one-time cookie", async () => {
@@ -301,6 +319,55 @@ describe("Feishu OAuth callback route", () => {
 
     expect(response.headers.get("location")).toBe("https://crm.example.com/");
     expect(setCookieNamed(response, "fscrm_session")).toBeDefined();
+  });
+
+  it("registers the issued state in the shared store instead of an in-process map", async () => {
+    const state = await issueState();
+
+    expect(mocks.issueOAuthState).toHaveBeenCalledTimes(1);
+    expect(mocks.issueOAuthState).toHaveBeenCalledWith(state);
+  });
+
+  it("consumes the state through the shared store and rejects a replay from another instance", async () => {
+    mocks.authenticateWithCode.mockResolvedValue(matchedResult());
+    const state = await issueState();
+
+    const response = await GET(callbackRequest({ params: { code: "code-123", state } }));
+    expect(setCookieNamed(response, "fscrm_session")).toBeDefined();
+    expect(mocks.consumeOAuthState).toHaveBeenCalledTimes(1);
+    expect(mocks.consumeOAuthState).toHaveBeenCalledWith(state);
+
+    // 另一个实例/进程消费同一 state：共享存储返回 false，重放被拒。
+    mocks.consumeOAuthState.mockResolvedValue(false);
+    const replay = await GET(callbackRequest({ params: { code: "code-123", state } }));
+    expect(setCookieNamed(replay, "fscrm_session")).toBeUndefined();
+    expect(new URL(replay.headers.get("location")!).searchParams.get("error")).toBe(
+      "invalid_state"
+    );
+    expect(mocks.authenticateWithCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an expired state without issuing a session", async () => {
+    mocks.authenticateWithCode.mockResolvedValue(matchedResult());
+    mocks.consumeOAuthState.mockResolvedValue(false);
+    const state = await issueState();
+
+    const response = await GET(callbackRequest({ params: { code: "code-123", state } }));
+
+    expect(mocks.consumeOAuthState).toHaveBeenCalledWith(state);
+    expect(setCookieNamed(response, "fscrm_session")).toBeUndefined();
+    expect(new URL(response.headers.get("location")!).searchParams.get("error")).toBe(
+      "invalid_state"
+    );
+    expect(mocks.authenticateWithCode).not.toHaveBeenCalled();
+  });
+
+  it("does not consume the state when the cookie does not match", async () => {
+    const state = await issueState();
+    await GET(callbackRequest({ state: "different-state" }));
+
+    expect(mocks.consumeOAuthState).not.toHaveBeenCalled();
+    expect(state).not.toBe("different-state");
   });
 
   it("marks the session cookie Secure in production", async () => {

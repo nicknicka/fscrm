@@ -42,13 +42,14 @@ fscrm 在生产环境需要**两个独立的长期运行进程**，二者缺一�
 | `FEISHU_OAUTH_SCOPE`        | 是         | 用户身份 scope，空格分隔，与后台已开通的 user scope 对齐                                    | Web（登录路由）                        |
 | `SESSION_SECRET`            | 是         | 会话签名密钥，**至少 32 字符**的独立随机值（`openssl rand -base64 32`）；长度不足会直接抛错 | Web                                    |
 | `DATABASE_URL`              | 是         | Postgres 连接串（Prisma 驱动适配器使用）                                                    | Web、事件 worker、同步脚本、admin 脚本 |
-| `CRON_SECRET`               | 视部署方式 | 仅供 **Vercel Cron** 方式的定时通讯录同步端点校验 `Authorization: Bearer <CRON_SECRET>`     | （规划中）定时同步端点                 |
+| `CRON_SECRET`               | 视部署方式 | 定时通讯录同步端点 `POST /api/cron/sync-contacts` 的 `Authorization: Bearer <CRON_SECRET>` 校验     | Web（定时同步端点；见 `docs/feishu/SCHEDULE.md`） |
 
-关于 `CRON_SECRET` 的现状，请不要误读：
+关于 `CRON_SECRET` 的现状：
 
-- `.env.example` **目前尚未**收录该键名；[`docs/feishu/SCHEDULE.md`](./feishu/SCHEDULE.md) 记录了它作为 Vercel Cron 方案的**规划项**；
-- 对应的 HTTP 端点（`src/app/api/cron/sync-contacts/route.ts`）**尚未实现**（见 [`docs/feishu/VERIFICATION.md`](./feishu/VERIFICATION.md) 的待办说明）；
-- 因此当前版本**不需要**配置 `CRON_SECRET`。只有采用 Vercel Cron 方式并实现该端点之后才需要，届时应同时补进 `.env.example`。若走本机 crontab / systemd timer 方式执行同步，则不涉及该变量。
+- 该键**已收录**在 [`.env.example`](../.env.example)，并已由 #43 落地；
+- 端点 `src/app/api/cron/sync-contacts/route.ts` **已实现**：未配置 `CRON_SECRET` 时**一律返回 503 且不执行同步**（fail closed）；密钥错误返回 401；密钥正确返回 200 与同步摘要；
+- 因此**只有采用 Vercel Cron / 云端调度器**触发定时同步的部署**必须**配置 `CRON_SECRET`。若走本机 crontab / systemd timer 直接执行 `npm run feishu:sync-contacts`，则不经过该端点，也就无需该变量；
+- 配置方式、`vercel.json` 示例与逐条验证命令见 [`docs/feishu/SCHEDULE.md`](./feishu/SCHEDULE.md)。
 
 ## 四、凭证安全规则（必须遵守）
 
@@ -292,6 +293,29 @@ sudo systemctl restart fscrm-web fscrm-events
 
 两个进程一起重启，避免新旧代码混跑。若迁移不可回滚，先备份数据库。
 
+### 9.4 OAuth state 一次性校验依赖数据库（多实例部署约束）
+
+飞书登录的一次性 `state` 校验**不再放在进程内存里**，而是存在数据库表 `oauth_states`（#46）：
+
+| 环节                      | 行为                                                                                                     |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 登录（`/api/auth/feishu/login`） | 生成 state 后写入一行 `oauth_states`（`state` 唯一，`expiresAt` = 当前时间 + 10 分钟）              |
+| 回调（`/api/auth/feishu/callback`） | 用原子 `DELETE ... WHERE state = ? AND expiresAt >= now()` 消费；删除到行才算成功，否则按 `invalid_state` 拒绝 |
+| 过期记录清理              | **每次消费时顺手删除所有 `expiresAt < now()` 的行**，无需额外的定时任务                                      |
+
+由此带来的部署约束：
+
+- **所有处理登录/回调的 Web 实例必须连同一个数据库**。多实例（负载均衡、多副本容器、滚动发布中新旧 Pod 并存）只有在共享 `DATABASE_URL` 的前提下才能保证「同一 state 全局只能成功一次」；连线到不同库的实例各自为政，重放仍可能成功。
+- **上线顺序**：本迁移（`20261122090000_add_oauth_state`）必须先于新代码应用。旧代码不读写该表，可继续运行；但新代码在表不存在时，登录会返回 500 `state_store_failed` 并记录日志 `[auth:feishu] 登记 OAuth state 失败`。
+- **重启 / 扩缩容不影响已签发的 state**：进程重启不再丢记录，10 分钟内回调仍可完成。反过来，这也意味着**不能靠重启来使某个 state 失效**。
+- **清理预期**：`oauth_states` 的体量约等于「近 10 分钟内发起的登录次数」，消费时即回收。若某段时间登录很少、没有任何回调，过期行会滞留在表里，直到下一次消费把它们一并删掉——这不影响安全（过期行不可消费），只是行数暂时偏多。需要时可按 `expiresAt` 周期清理：
+
+  ```sql
+  DELETE FROM oauth_states WHERE "expiresAt" < now();
+  ```
+
+- 该表只存随机 state 与过期时间，不存用户身份或令牌，泄露风险低；但仍应与其他业务表一样纳入数据库备份与访问控制。
+
 ## 十、相关文档（不在此重复）
 
 | 内容                                                     | 文档                                                                                                                   |
@@ -303,7 +327,7 @@ sudo systemctl restart fscrm-web fscrm-events
 | 真机端到端四条链路的清单与记录模板                       | [`docs/feishu/E2E-CHECKLIST.md`](./feishu/E2E-CHECKLIST.md)                                                            |
 | 既往验证记录                                             | [`docs/feishu/VERIFICATION.md`](./feishu/VERIFICATION.md)                                                              |
 | 技术栈与部署形态的背景决策                               | [`docs/adr/0001-tech-stack-nextjs.md`](./adr/0001-tech-stack-nextjs.md)                                                |
-| 数据库迁移与 schema 维护                                 | `docs/DATABASE.md`（**规划中**，本 worktree 尚未提供）；在此之前以 `prisma/schema.prisma` 与 `npm run db:migrate` 为准 |
+| 数据库迁移与 schema 维护                                 | [`docs/DATABASE.md`](./DATABASE.md)                                                                                     |
 
 ## 十一、本文的边界
 

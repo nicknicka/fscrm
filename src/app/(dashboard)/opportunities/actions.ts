@@ -10,7 +10,11 @@ import {
 } from "@/lib/db/repositories/sales";
 import { getUserById } from "@/lib/db/repositories/user";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import type { AccessScope } from "@/lib/auth/scope";
+import {
+  accessScopeFor,
+  resolveAssignableOwnerId,
+  type AccessScope,
+} from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
 import { OpportunityStage } from "@/generated/prisma/enums";
 
@@ -28,6 +32,52 @@ function parseStage(value: FormDataEntryValue | null) {
   return values.includes(raw)
     ? (raw as OpportunityStage)
     : OpportunityStage.CONTACT;
+}
+
+/** 把仓储层的越权/不存在拒绝统一映射为 NOT_FOUND。 */
+function rethrowOpportunityAccessError(error: unknown): never {
+  if (
+    error instanceof Error &&
+    (error.message === "FORBIDDEN" || error.message === "NOT_FOUND")
+  ) {
+    throw new Error("NOT_FOUND");
+  }
+  throw error;
+}
+
+/** 编辑商机基本信息；普通负责人的 owner 字段被忽略。 */
+export async function updateOpportunityAction(id: string, formData: FormData) {
+  const user = await requireCurrentUser();
+  const scope = accessScopeFor(user);
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) throw new Error("商机名称不能为空");
+
+  const amountRaw = String(formData.get("amount") ?? "").trim();
+  const dateRaw = String(formData.get("expectedCloseDate") ?? "").trim();
+  const requestedOwnerId = String(formData.get("ownerId") ?? "").trim() || null;
+  const ownerId = resolveAssignableOwnerId(scope, requestedOwnerId);
+
+  try {
+    await updateOpportunity(
+      id,
+      {
+        name,
+        amount: amountRaw ? Number(amountRaw) : null,
+        expectedCloseDate: dateRaw ? new Date(dateRaw) : null,
+        remark: String(formData.get("remark") ?? "").trim() || null,
+        ...(scope.role === "ADMIN" && ownerId
+          ? { owner: { connect: { id: ownerId } } }
+          : {}),
+      },
+      user
+    );
+  } catch (error) {
+    rethrowOpportunityAccessError(error);
+  }
+
+  revalidatePath("/opportunities");
+  revalidatePath(`/opportunities/${id}`);
+  return { ok: true as const };
 }
 
 export async function createOpportunityAction(formData: FormData) {

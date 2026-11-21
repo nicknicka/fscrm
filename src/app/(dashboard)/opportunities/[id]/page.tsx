@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUser } from "@/lib/auth/session";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { OpportunityStage } from "@/generated/prisma/enums";
 import { getOpportunityForCurrentUser } from "../scope";
+import { OpportunityDetailForm } from "./opportunity-detail-form";
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -21,10 +23,16 @@ export default async function OpportunityDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const user = await requireCurrentUser();
   const opportunity = await getOpportunityForCurrentUser(id, user);
   if (!opportunity) notFound();
+  const users =
+    user.role === "ADMIN"
+      ? (await listAssignableUsers(user)).map((candidate) => ({
+          id: candidate.id,
+          name: candidate.name,
+        }))
+      : [];
 
   return (
     <div>
@@ -78,6 +86,16 @@ export default async function OpportunityDetailPage({
               <div className="text-zinc-700">{opportunity.remark}</div>
             </div>
           )}
+          <OpportunityDetailForm
+            opportunityId={opportunity.id}
+            name={opportunity.name}
+            amount={opportunity.amount}
+            expectedCloseDate={opportunity.expectedCloseDate}
+            remark={opportunity.remark}
+            ownerId={opportunity.ownerId}
+            canReassignOwner={user.role === "ADMIN"}
+            users={users}
+          />
         </section>
 
         <section className="rounded-xl border border-zinc-200 bg-white p-6">

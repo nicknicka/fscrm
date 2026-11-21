@@ -191,3 +191,75 @@ describe("商机 Server Actions", () => {
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 });
+
+describe("opportunity detail edit", () => {
+  it("lets an owner edit their own opportunity and refresh the detail page", async () => {
+    const actions = await import("./actions");
+
+    await actions.updateOpportunityAction(
+      "opp_1",
+      createFormData({
+        name: "更新后的商机",
+        amount: "88000",
+        expectedCloseDate: "2026-12-31",
+        remark: "等待客户确认",
+      })
+    );
+
+    expect(mocks.updateOpportunity).toHaveBeenCalledWith(
+      "opp_1",
+      {
+        name: "更新后的商机",
+        amount: 88000,
+        expectedCloseDate: new Date("2026-12-31"),
+        remark: "等待客户确认",
+      },
+      owner
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/opportunities/opp_1");
+  });
+
+  it("ignores a forged owner field submitted by an ordinary owner", async () => {
+    const actions = await import("./actions");
+
+    await actions.updateOpportunityAction(
+      "opp_1",
+      createFormData({ name: "我的商机", ownerId: other.id })
+    );
+
+    expect(mocks.updateOpportunity).toHaveBeenCalledWith(
+      "opp_1",
+      expect.not.objectContaining({ owner: expect.anything() }),
+      owner
+    );
+  });
+
+  it("lets an administrator reassign the owner while editing an opportunity", async () => {
+    const actions = await import("./actions");
+    mocks.requireCurrentUser.mockResolvedValue(admin);
+
+    await actions.updateOpportunityAction(
+      "opp_1",
+      createFormData({ name: "移交后的商机", ownerId: other.id })
+    );
+
+    expect(mocks.updateOpportunity).toHaveBeenCalledWith(
+      "opp_1",
+      expect.objectContaining({ owner: { connect: { id: other.id } } }),
+      admin
+    );
+  });
+
+  it("maps a cross-owner opportunity edit to the unified NOT_FOUND result", async () => {
+    const actions = await import("./actions");
+    mocks.updateOpportunity.mockRejectedValue(new Error("FORBIDDEN"));
+
+    await expect(
+      actions.updateOpportunityAction(
+        "someone_else",
+        createFormData({ name: "越权商机" })
+      )
+    ).rejects.toThrow("NOT_FOUND");
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+});

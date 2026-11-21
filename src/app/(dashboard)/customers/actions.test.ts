@@ -33,7 +33,10 @@ vi.mock("@/lib/auth/session", () => ({
 
 vi.mock("@/lib/auth/scope", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/auth/scope")>();
-  return { ...actual, resolveAssignableOwnerId: mocks.resolveAssignableOwnerId };
+  return {
+    ...actual,
+    resolveAssignableOwnerId: mocks.resolveAssignableOwnerId,
+  };
 });
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
@@ -46,6 +49,7 @@ import {
   createCustomerAction,
   deleteCustomerAction,
   updateCustomerAction,
+  updateCustomerDetailAction,
 } from "./actions";
 
 const owner = { id: "user_owner", name: "张三", role: "OWNER" as const };
@@ -64,8 +68,10 @@ describe("customer Server Actions authorization", () => {
     vi.clearAllMocks();
     mocks.requireCurrentUser.mockResolvedValue(owner);
     mocks.resolveAssignableOwnerId.mockImplementation(
-      (scope: { userId: string; role: "OWNER" | "ADMIN" }, requested: string | null) =>
-        scope.role === "ADMIN" ? requested : scope.userId
+      (
+        scope: { userId: string; role: "OWNER" | "ADMIN" },
+        requested: string | null
+      ) => (scope.role === "ADMIN" ? requested : scope.userId)
     );
     mocks.getUserById.mockResolvedValue({
       name: "张三",
@@ -80,9 +86,7 @@ describe("customer Server Actions authorization", () => {
   });
 
   it("creates a customer for the signed-in owner and notifies the actual owner", async () => {
-    await createCustomerAction(
-      form({ name: "Acme", ownerId: "user_admin" })
-    );
+    await createCustomerAction(form({ name: "Acme", ownerId: "user_admin" }));
 
     expect(mocks.createCustomer).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -111,9 +115,7 @@ describe("customer Server Actions authorization", () => {
       ownerId: owner.id,
     });
 
-    await createCustomerAction(
-      form({ name: "Beta", ownerId: "user_owner" })
-    );
+    await createCustomerAction(form({ name: "Beta", ownerId: "user_owner" }));
 
     expect(mocks.createCustomer).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -133,9 +135,9 @@ describe("customer Server Actions authorization", () => {
     mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
     mocks.deleteCustomer.mockResolvedValue({ id: "customer_1" });
 
-    await expect(
-      createCustomerAction(form({ name: "Acme" }))
-    ).rejects.toThrow("UNAUTHENTICATED");
+    await expect(createCustomerAction(form({ name: "Acme" }))).rejects.toThrow(
+      "UNAUTHENTICATED"
+    );
     await expect(
       updateCustomerAction("customer_1", form({ name: "Acme" }))
     ).rejects.toThrow("UNAUTHENTICATED");
@@ -164,5 +166,79 @@ describe("customer Server Actions authorization", () => {
       userId: owner.id,
       role: owner.role,
     });
+  });
+});
+
+describe("customer detail edit", () => {
+  it("lets an owner edit their own customer and refresh the detail page", async () => {
+    mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
+
+    await updateCustomerDetailAction(
+      "customer_1",
+      form({
+        level: "HIGH",
+        industry: "教育",
+        phone: "13800000000",
+        email: "owner@example.com",
+        address: "上海",
+        remark: "重点跟进",
+      })
+    );
+
+    expect(mocks.updateCustomer).toHaveBeenCalledWith(
+      "customer_1",
+      {
+        level: "HIGH",
+        industry: "教育",
+        phone: "13800000000",
+        email: "owner@example.com",
+        address: "上海",
+        remark: "重点跟进",
+      },
+      { userId: owner.id, role: owner.role }
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/customers/customer_1");
+  });
+
+  it("ignores a forged owner field submitted by an ordinary owner", async () => {
+    mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
+
+    await updateCustomerDetailAction(
+      "customer_1",
+      form({ ownerId: "user_admin", remark: "仍归我负责" })
+    );
+
+    expect(mocks.updateCustomer).toHaveBeenCalledWith(
+      "customer_1",
+      expect.not.objectContaining({ owner: expect.anything() }),
+      { userId: owner.id, role: owner.role }
+    );
+  });
+
+  it("lets an administrator reassign the owner while editing a customer", async () => {
+    mocks.requireCurrentUser.mockResolvedValue(admin);
+    mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
+
+    await updateCustomerDetailAction(
+      "customer_1",
+      form({ ownerId: owner.id, remark: "移交负责人" })
+    );
+
+    expect(mocks.updateCustomer).toHaveBeenCalledWith(
+      "customer_1",
+      expect.objectContaining({ owner: { connect: { id: owner.id } } }),
+      { userId: admin.id, role: admin.role }
+    );
+  });
+
+  it("maps a cross-owner customer edit to the unified NOT_FOUND result", async () => {
+    const { CustomerAccessError } =
+      await import("@/lib/db/repositories/customer");
+    mocks.updateCustomer.mockRejectedValue(new CustomerAccessError());
+
+    await expect(
+      updateCustomerDetailAction("someone_else", form({ remark: "越权修改" }))
+    ).rejects.toThrow("NOT_FOUND");
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,9 @@ import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { CustomerDetailForm } from "./customer-detail-form";
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -27,6 +29,13 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+  const users =
+    currentUser.role === "ADMIN"
+      ? (await listAssignableUsers(currentUser)).map((user) => ({
+          id: user.id,
+          name: user.name,
+        }))
+      : [];
 
   return (
     <div>
@@ -61,6 +70,18 @@ export default async function CustomerDetailPage({
               <div className="text-zinc-700">{customer.remark}</div>
             </div>
           )}
+          <CustomerDetailForm
+            customerId={customer.id}
+            level={customer.level}
+            industry={customer.industry}
+            phone={customer.phone}
+            email={customer.email}
+            address={customer.address}
+            remark={customer.remark}
+            ownerId={customer.ownerId}
+            canReassignOwner={currentUser.role === "ADMIN"}
+            users={users}
+          />
         </section>
 
         {/* 联系人 */}

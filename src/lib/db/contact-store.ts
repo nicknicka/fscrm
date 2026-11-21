@@ -64,7 +64,8 @@ export class DbContactStore implements ContactStore {
           feishuUserId: person.feishuUserId ?? null,
           departmentId: departmentDbId,
           // 通讯录同步只创建普通负责人；管理员角色由显式授权赋予。
-          role: person.role ?? "OWNER",
+          // CrmPerson.role 必填，无需再按缺省兜底。
+          role: person.role,
         },
       });
     }

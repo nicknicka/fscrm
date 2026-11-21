@@ -1,9 +1,14 @@
 import { prisma } from "../client";
-import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
+import type { AccessScope } from "@/lib/auth/scope";
+import { customerOwnerWhere } from "./scoped";
+import { ContractNotFoundError } from "./not-found";
 import {
   ContractStatus,
   QuotationStatus,
 } from "../../../generated/prisma/enums";
+
+// 合同与报价/订单/回款共用同一种越权/不存在错误（NOT_FOUND），实体定义在 ./not-found。
+export { ContractNotFoundError };
 
 /**
  * 报价转合同服务（#35）。
@@ -13,34 +18,12 @@ import {
  * 不会留下没有来源报价或状态不一致的合同。
  */
 
-/** 越权或不存在时统一返回该错误，避免泄露报价存在性。 */
-export class ContractNotFoundError extends Error {
-  constructor() {
-    super("NOT_FOUND");
-    this.name = "ContractNotFoundError";
-  }
-}
-
 /** 合同列表与详情始终带出的来源链路。 */
 const contractInclude = {
   customer: true,
   opportunity: true,
   sourceQuotation: true,
 } as const;
-
-/** 把权限范围转成报价/合同的 Prisma where 条件。 */
-function scopedWhere(
-  scope: AccessScope,
-  id?: string
-): { id?: string; customer?: { ownerId: string } } {
-  const where: { id?: string; customer?: { ownerId: string } } = {};
-  if (id) where.id = id;
-  const customerScope = ownerWhere(scope) as { ownerId?: string };
-  if (customerScope.ownerId) {
-    where.customer = { ownerId: customerScope.ownerId };
-  }
-  return where;
-}
 
 /**
  * 把报价转为合同。
@@ -58,7 +41,7 @@ export async function convertQuotationToContract(
 ) {
   return prisma.$transaction(async (tx) => {
     const quotation = await tx.quotation.findFirst({
-      where: scopedWhere(scope, quotationId),
+      where: customerOwnerWhere<{ id?: string }>(scope, quotationId),
       select: {
         id: true,
         customerId: true,
@@ -82,7 +65,7 @@ export async function convertQuotationToContract(
     if (quotation.status !== QuotationStatus.CONFIRMED) {
       const confirmed = await tx.quotation.updateMany({
         where: {
-          ...scopedWhere(scope, quotation.id),
+          ...customerOwnerWhere<{ id?: string }>(scope, quotation.id),
           status: { not: QuotationStatus.CONFIRMED },
         },
         data: { status: QuotationStatus.CONFIRMED },
@@ -108,7 +91,7 @@ export async function convertQuotationToContract(
 /** 查询合同列表；普通负责人仅见本人客户的相关合同。 */
 export async function listContracts(scope: AccessScope) {
   return prisma.contract.findMany({
-    where: scopedWhere(scope),
+    where: customerOwnerWhere<{ id?: string }>(scope),
     include: contractInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -117,7 +100,7 @@ export async function listContracts(scope: AccessScope) {
 /** 按 ID 查询合同详情；越权与不存在都返回 null。 */
 export async function getContract(id: string, scope: AccessScope) {
   return prisma.contract.findFirst({
-    where: scopedWhere(scope, id),
+    where: customerOwnerWhere<{ id?: string }>(scope, id),
     include: contractInclude,
   });
 }

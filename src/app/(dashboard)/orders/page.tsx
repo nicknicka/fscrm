@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { ContractStatus, OrderStatus } from "@/generated/prisma/enums";
+import { OrderStatus } from "@/generated/prisma/enums";
+import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
 import { listOrdersForCurrentUser } from "./actions";
 
 /** 订单列表；读取权限在服务入口按当前用户收窄。 */
@@ -75,15 +76,3 @@ export default async function OrdersPage() {
   );
 }
 
-const orderStatusLabel: Record<string, string> = {
-  [OrderStatus.PENDING]: "待履约",
-  [OrderStatus.FULFILLING]: "履约中",
-  [OrderStatus.COMPLETED]: "已完成",
-  [OrderStatus.CANCELLED]: "已取消",
-};
-
-const contractStatusLabel: Record<string, string> = {
-  [ContractStatus.DRAFT]: "草稿",
-  [ContractStatus.EFFECTIVE]: "生效",
-  [ContractStatus.VOID]: "作废",
-};

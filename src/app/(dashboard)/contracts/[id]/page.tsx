@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
 import { ContractStatus } from "@/generated/prisma/enums";
+import { contractStatusLabel, quotationStatusLabel } from "@/lib/document-status";
 import { getContractForCurrentUser } from "../actions";
 import { convertContractToOrderAction } from "../../orders/actions";
 
@@ -96,18 +97,6 @@ export default async function ContractDetailPage({
     </div>
   );
 }
-
-const contractStatusLabel: Record<string, string> = {
-  [ContractStatus.DRAFT]: "草稿",
-  [ContractStatus.EFFECTIVE]: "生效",
-  [ContractStatus.VOID]: "作废",
-};
-
-const quotationStatusLabel: Record<string, string> = {
-  DRAFT: "草稿",
-  CONFIRMED: "已确认",
-  CANCELLED: "已取消",
-};
 
 function Info({ label, value }: { label: string; value: string }) {
   return (

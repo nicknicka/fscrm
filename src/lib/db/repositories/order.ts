@@ -1,6 +1,11 @@
 import { prisma } from "../client";
-import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
+import type { AccessScope } from "@/lib/auth/scope";
+import { customerOwnerWhere } from "./scoped";
+import { OrderNotFoundError } from "./not-found";
 import { OrderStatus } from "../../../generated/prisma/enums";
+
+// 订单与报价/合同/回款共用同一种越权/不存在错误（NOT_FOUND），实体定义在 ./not-found。
+export { OrderNotFoundError };
 
 /**
  * 合同转订单服务（#36）。
@@ -10,34 +15,12 @@ import { OrderStatus } from "../../../generated/prisma/enums";
  * 不会留下没有来源合同或状态不一致的订单。
  */
 
-/** 越权、合同不存在或重复转换时统一返回该错误，避免泄露合同存在性。 */
-export class OrderNotFoundError extends Error {
-  constructor() {
-    super("NOT_FOUND");
-    this.name = "OrderNotFoundError";
-  }
-}
-
 /** 订单列表与详情始终带出的来源链路。 */
 const orderInclude = {
   customer: true,
   opportunity: true,
   sourceContract: true,
 } as const;
-
-/** 把权限范围转成订单/合同的 Prisma where 条件。 */
-function scopedWhere(
-  scope: AccessScope,
-  id?: string
-): { id?: string; customer?: { ownerId: string } } {
-  const where: { id?: string; customer?: { ownerId: string } } = {};
-  if (id) where.id = id;
-  const customerScope = ownerWhere(scope) as { ownerId?: string };
-  if (customerScope.ownerId) {
-    where.customer = { ownerId: customerScope.ownerId };
-  }
-  return where;
-}
 
 /**
  * 把合同转为订单。
@@ -51,7 +34,7 @@ export async function convertContractToOrder(
 ) {
   return prisma.$transaction(async (tx) => {
     const contract = await tx.contract.findFirst({
-      where: scopedWhere(scope, contractId),
+      where: customerOwnerWhere<{ id?: string }>(scope, contractId),
       select: {
         id: true,
         customerId: true,
@@ -88,7 +71,7 @@ export async function convertContractToOrder(
 /** 查询订单列表；普通负责人仅见本人客户的相关订单。 */
 export async function listOrders(scope: AccessScope) {
   return prisma.order.findMany({
-    where: scopedWhere(scope),
+    where: customerOwnerWhere<{ id?: string }>(scope),
     include: orderInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -97,7 +80,7 @@ export async function listOrders(scope: AccessScope) {
 /** 按 ID 查询订单详情；越权与不存在都返回 null。 */
 export async function getOrder(id: string, scope: AccessScope) {
   return prisma.order.findFirst({
-    where: scopedWhere(scope, id),
+    where: customerOwnerWhere<{ id?: string }>(scope, id),
     include: orderInclude,
   });
 }

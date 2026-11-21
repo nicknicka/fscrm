@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   getUserById: vi.fn(),
   convertLeadToCustomerAndOpportunity: vi.fn(),
   revalidatePath: vi.fn(),
+  notifyUser: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/session", () => ({
@@ -27,6 +28,10 @@ vi.mock("@/lib/db/repositories/conversion", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
+
+vi.mock("@/lib/feishu/message/notify", () => ({
+  notifyUser: mocks.notifyUser,
+}));
 
 import { convertLeadAction } from "./actions";
 

@@ -18,7 +18,11 @@ import {
   type AccessScope,
 } from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
-import { FollowUpMode, OpportunityStage } from "@/generated/prisma/enums";
+import { OpportunityStage } from "@/generated/prisma/enums";
+import {
+  parseFollowUpMode,
+  parseNextFollowUpAt,
+} from "@/lib/follow-up-form";
 
 /** 商机相关的 Server Actions。每个入口都从会话重新认证并授权。 */
 
@@ -143,24 +147,6 @@ export async function deleteOpportunityAction(id: string) {
   revalidatePath("/opportunities");
 }
 
-/** 把表单中的跟进方式收敛到 FollowUpMode，非法值回退为 OTHER。 */
-function parseFollowUpMode(value: FormDataEntryValue | null): FollowUpMode {
-  const raw = String(value ?? "");
-  return Object.values(FollowUpMode).includes(raw as FollowUpMode)
-    ? (raw as FollowUpMode)
-    : FollowUpMode.OTHER;
-}
-
-/** 解析表单中的下一步计划跟进时间；空值表示未计划。 */
-function parseNextFollowUpAt(
-  value: FormDataEntryValue | null
-): Date | undefined {
-  const raw = String(value ?? "").trim();
-  if (!raw) return undefined;
-  const date = new Date(raw);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
 /** 商机详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */
 export async function createOpportunityFollowUpAction(
   opportunityId: string,
@@ -185,12 +171,28 @@ export async function createOpportunityFollowUpAction(
   revalidatePath(`/opportunities/${opportunityId}`);
 }
 
-/** 商机详情删除跟进；越权删除由 deleteFollowUp 仓储层拒绝。 */
+/** 把仓储层的拒绝统一映射成 NOT_FOUND，避免泄露跟进是否存在。 */
+function rethrowFollowUpDeleteResult(deleted: boolean | { id: string }): void {
+  if (!deleted) {
+    throw new Error("NOT_FOUND");
+  }
+}
+
+/** 商机详情删除跟进；越权/不存在由仓储层统一拒绝。 */
 export async function deleteOpportunityFollowUpAction(
   opportunityId: string,
   followUpId: string
 ) {
   const user = await requireCurrentUser();
-  await deleteFollowUp(followUpId, user);
+  let deleted;
+  try {
+    deleted = await deleteFollowUp(followUpId, user);
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      throw new Error("NOT_FOUND");
+    }
+    throw error;
+  }
+  rethrowFollowUpDeleteResult(deleted);
   revalidatePath(`/opportunities/${opportunityId}`);
 }

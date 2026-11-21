@@ -8,12 +8,17 @@ import {
   createCustomer,
   CustomerAccessError,
   deleteCustomer,
+  getCustomer,
   updateCustomer,
 } from "@/lib/db/repositories/customer";
 import { getUserById } from "@/lib/db/repositories/user";
 import { notifyUser } from "@/lib/feishu/message/notify";
-import { CustomerLevel, FollowUpMode } from "@/generated/prisma/enums";
+import { CustomerLevel } from "@/generated/prisma/enums";
 import { createFollowUp, deleteFollowUp } from "@/lib/db/repositories/sales";
+import {
+  parseFollowUpMode,
+  parseNextFollowUpAt,
+} from "@/lib/follow-up-form";
 
 /**
  * 客户相关的 Server Actions。
@@ -26,12 +31,13 @@ function parseOptionalText(value: FormDataEntryValue | null): string | null {
   return String(value ?? "").trim() || null;
 }
 
-/** 从表单数据解析客户等级，非法值回退为 MEDIUM。 */
+/** 从表单数据解析客户等级；未提供或非法时返回 undefined。 */
 function parseLevel(value: FormDataEntryValue | null) {
   const raw = String(value ?? "");
   if (raw === CustomerLevel.HIGH) return CustomerLevel.HIGH;
   if (raw === CustomerLevel.LOW) return CustomerLevel.LOW;
-  return CustomerLevel.MEDIUM;
+  if (raw === CustomerLevel.MEDIUM) return CustomerLevel.MEDIUM;
+  return undefined;
 }
 
 /** 创建客户。 */
@@ -50,7 +56,7 @@ export async function createCustomerAction(formData: FormData) {
   const customer = await createCustomer(
     {
       name,
-      level: parseLevel(formData.get("level")),
+      level: parseLevel(formData.get("level")) ?? CustomerLevel.MEDIUM,
       industry: String(formData.get("industry") ?? "").trim() || null,
       phone: String(formData.get("phone") ?? "").trim() || null,
       email: String(formData.get("email") ?? "").trim() || null,
@@ -85,18 +91,21 @@ function rethrowCustomerAccessError(error: unknown): never {
 }
 
 /** 从表单读取客户基本信息中可由详情页编辑的字段。 */
-function parseCustomerDetailInput(formData: FormData) {
-  return {
-    level: parseLevel(formData.get("level")),
-    industry: parseOptionalText(formData.get("industry")),
-    phone: parseOptionalText(formData.get("phone")),
-    email: parseOptionalText(formData.get("email")),
-    address: parseOptionalText(formData.get("address")),
-    remark: parseOptionalText(formData.get("remark")),
-  };
+function parseCustomerDetailInput(
+  formData: FormData
+): Parameters<typeof updateCustomer>[1] {
+  const level = parseLevel(formData.get("level"));
+  const data: Parameters<typeof updateCustomer>[1] = {};
+  if (level) data.level = level;
+  for (const field of ["industry", "phone", "email", "address", "remark"] as const) {
+    if (formData.has(field)) {
+      data[field] = parseOptionalText(formData.get(field));
+    }
+  }
+  return data;
 }
 
-/** 更新客户。 */
+/** 更新客户。详情表单不含 name，缺失字段保持原值。 */
 export async function updateCustomerAction(id: string, formData: FormData) {
   const currentUser = await requireCurrentUser();
   const scope = accessScopeFor(currentUser);
@@ -134,6 +143,12 @@ export async function updateCustomerDetailAction(
   const ownerId = resolveAssignableOwnerId(scope, requestedOwnerId);
 
   try {
+    // 以范围内读取到的现有值为基底，表单未提交的字段保持原值；
+    // 其中 level 不使用 MEDIUM 默认，避免管理员改负责人时误重置等级。
+    const current = await getCustomer(id, scope);
+    if (!current) {
+      throw new CustomerAccessError();
+    }
     await updateCustomer(
       id,
       {
@@ -164,24 +179,6 @@ export async function deleteCustomerAction(id: string) {
   revalidatePath("/customers");
 }
 
-/** 把表单中的跟进方式收敛到 FollowUpMode，非法值回退为 OTHER。 */
-function parseFollowUpMode(value: FormDataEntryValue | null): FollowUpMode {
-  const raw = String(value ?? "");
-  return Object.values(FollowUpMode).includes(raw as FollowUpMode)
-    ? (raw as FollowUpMode)
-    : FollowUpMode.OTHER;
-}
-
-/** 解析表单中的下一步计划跟进时间；空值表示未计划。 */
-function parseNextFollowUpAt(
-  value: FormDataEntryValue | null
-): Date | undefined {
-  const raw = String(value ?? "").trim();
-  if (!raw) return undefined;
-  const date = new Date(raw);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
 /** 客户详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */
 export async function createCustomerFollowUpAction(
   customerId: string,
@@ -206,12 +203,28 @@ export async function createCustomerFollowUpAction(
   revalidatePath(`/customers/${customerId}`);
 }
 
-/** 客户详情删除跟进；越权删除由 deleteFollowUp 仓储层拒绝。 */
+/** 把仓储层的拒绝统一映射成 NOT_FOUND，避免泄露跟进是否存在。 */
+function rethrowFollowUpDeleteResult(deleted: boolean | { id: string }): void {
+  if (!deleted) {
+    throw new Error("NOT_FOUND");
+  }
+}
+
+/** 客户详情删除跟进；越权/不存在由仓储层统一拒绝。 */
 export async function deleteCustomerFollowUpAction(
   customerId: string,
   followUpId: string
 ) {
   const currentUser = await requireCurrentUser();
-  await deleteFollowUp(followUpId, currentUser);
+  let deleted;
+  try {
+    deleted = await deleteFollowUp(followUpId, currentUser);
+  } catch (error) {
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      throw new Error("NOT_FOUND");
+    }
+    throw error;
+  }
+  rethrowFollowUpDeleteResult(deleted);
   revalidatePath(`/customers/${customerId}`);
 }

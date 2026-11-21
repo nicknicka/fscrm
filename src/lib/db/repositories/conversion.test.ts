@@ -13,6 +13,8 @@ type TxMock = {
 const mocks = vi.hoisted(() => ({
   findLead: vi.fn(),
   transaction: vi.fn(),
+  getUserById: vi.fn(),
+  notifyUser: vi.fn(),
   tx: {
     customer: { create: vi.fn() },
     opportunity: { create: vi.fn() },
@@ -29,6 +31,14 @@ vi.mock("@/lib/db/client", () => ({
     lead: { findUnique: mocks.findLead },
     $transaction: mocks.transaction,
   },
+}));
+
+vi.mock("@/lib/db/repositories/user", () => ({
+  getUserById: mocks.getUserById,
+}));
+
+vi.mock("@/lib/feishu/message/notify", () => ({
+  notifyUser: mocks.notifyUser,
 }));
 
 import {
@@ -76,7 +86,15 @@ function happyPath() {
   );
   mocks.tx.lead.updateMany.mockResolvedValue({ count: 1 });
   mocks.tx.customer.create.mockResolvedValue(customer);
-  mocks.tx.opportunity.create.mockResolvedValue(opportunity);
+  mocks.tx.opportunity.create.mockResolvedValue({
+    ...opportunity,
+    ownerId: OWNER_ID,
+  });
+  mocks.getUserById.mockResolvedValue({
+    name: "张三",
+    feishuOpenId: "ou_owner",
+  });
+  mocks.notifyUser.mockResolvedValue({ sent: true });
 }
 
 beforeEach(() => {
@@ -121,6 +139,35 @@ describe("线索转化服务（prisma.$transaction 接缝）", () => {
       opportunity,
       leadId: lead.id,
     });
+  });
+
+  it("转化成功后按商机的实际负责人发送 opportunity_created 通知", async () => {
+    mocks.tx.opportunity.create.mockResolvedValue({
+      ...opportunity,
+      ownerId: OTHER_ID,
+    });
+
+    await convertLeadToCustomerAndOpportunity(lead.id, admin, {
+      ownerId: OTHER_ID,
+    });
+
+    expect(mocks.getUserById).toHaveBeenCalledWith(OTHER_ID);
+    expect(mocks.notifyUser).toHaveBeenCalledWith(
+      { name: "张三", feishuOpenId: "ou_owner" },
+      "opportunity_created",
+      {
+        opportunityName: opportunity.name,
+        customerName: customer.name,
+      }
+    );
+  });
+
+  it("通知失败不影响转化结果", async () => {
+    mocks.notifyUser.mockRejectedValue(new Error("FEISHU_DOWN"));
+
+    await expect(
+      convertLeadToCustomerAndOpportunity(lead.id, owner)
+    ).resolves.toEqual({ customer, opportunity, leadId: lead.id });
   });
 
   it("每次转化都新建客户，不按名称查找或复用已有客户", async () => {

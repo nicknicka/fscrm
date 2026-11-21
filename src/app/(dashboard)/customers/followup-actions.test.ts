@@ -107,13 +107,23 @@ describe("客户详情跟进 Server Actions", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/customers/customer_1");
   });
 
-  it("越权删除被仓储层拒绝时不刷新页面", async () => {
+  it("越权删除被仓储层拒绝时不刷新页面，并统一映射为 NOT_FOUND", async () => {
     mocks.deleteFollowUp.mockRejectedValue(new Error("FORBIDDEN"));
 
     await expect(
       deleteCustomerFollowUpAction("foreign_customer", "foreign_follow_up")
-    ).rejects.toThrow("FORBIDDEN");
+    ).rejects.toThrow("NOT_FOUND");
     expect(mocks.deleteFollowUp).toHaveBeenCalledWith("foreign_follow_up", owner);
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("跟进不存在时仓储层返回 false，不刷新页面且统一映射为 NOT_FOUND", async () => {
+    mocks.deleteFollowUp.mockResolvedValue(false);
+
+    await expect(
+      deleteCustomerFollowUpAction("customer_1", "missing_follow_up")
+    ).rejects.toThrow("NOT_FOUND");
+    expect(mocks.deleteFollowUp).toHaveBeenCalledWith("missing_follow_up", owner);
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 

@@ -18,8 +18,12 @@ import type { CurrentUser } from "@/lib/auth/session";
 const NAV_ITEMS = [
   { href: "/", label: "概览", icon: "▦" },
   { href: "/customers", label: "客户", icon: "◉" },
+  { href: "/customers/public-pool", label: "公海", icon: "◎" },
   { href: "/leads", label: "线索", icon: "◇" },
   { href: "/opportunities", label: "商机", icon: "◆" },
+  { href: "/contracts", label: "合同", icon: "▤" },
+  { href: "/orders", label: "订单", icon: "▣" },
+  { href: "/funnel", label: "销售漏斗", icon: "▽" },
   { href: "/settings", label: "设置", icon: "⚙" },
 ];
 

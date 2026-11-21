@@ -10,6 +10,8 @@ import {
 } from "../actions";
 import { getOpportunityForCurrentUser } from "../scope";
 import { OpportunityDetailForm } from "./opportunity-detail-form";
+import { listQuotationsForCurrentUser } from "./quotations/actions";
+import { QuotationsManager } from "./quotations/quotations-manager";
 
 const followUpModeLabel: Record<string, string> = {
   [FollowUpMode.CALL]: "电话",
@@ -46,6 +48,7 @@ export default async function OpportunityDetailPage({
           name: candidate.name,
         }))
       : [];
+  const quotations = await listQuotationsForCurrentUser(id);
 
   return (
     <div>
@@ -206,6 +209,21 @@ export default async function OpportunityDetailPage({
             </ul>
           )}
         </section>
+
+        <QuotationsManager
+          opportunityId={id}
+          quotations={quotations.map((quotation) => ({
+            id: quotation.id,
+            status: quotation.status,
+            amount: quotation.amount,
+            items: quotation.items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+            })),
+          }))}
+        />
       </div>
     </div>
   );

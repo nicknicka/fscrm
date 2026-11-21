@@ -19,6 +19,12 @@ enum CustomerLevel {
   LOW
 }
 
+/// CRM 用户角色：普通负责人或管理员。
+enum UserRole {
+  OWNER // 普通负责人，仅能访问自己负责的业务对象
+  ADMIN // 管理员，可访问与管理全部业务对象
+}
+
 /// 销售阶段：商机在成交路径上所处的阶段。
 enum OpportunityStage {
   CONTACT // 初步接触
@@ -78,6 +84,8 @@ model User {
   feishuOpenId  String?  @unique
   feishuUnionId String?
   feishuUserId  String?
+  /// 角色：普通负责人或管理员；新用户默认按普通负责人处理。
+  role         UserRole @default(OWNER)
   /// 所属部门。
   departmentId  String?
   department    Department? @relation(fields: [departmentId], references: [id])

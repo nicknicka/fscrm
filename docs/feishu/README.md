@@ -1,6 +1,8 @@
 # 飞书权限批量导入说明
 
-本目录的 [scopes.json](./scopes.json) 是 fscrm 所需的**最小权限集**，已按飞书开放平台「批量导入/导出权限」的格式整理。
+本目录的 [scopes.json](./scopes.json) 记录了 fscrm 所需的权限范围，并按飞书开放平台「批量导入/导出权限」的 `tenant` / `user` 结构分组。
+
+> **导入范围**：批量导入只用于下面的 `tenant`（应用身份）数组；`user`（用户身份/OAuth）数组不能通过该tenant批量导入代替，必须按后文步骤在开放平台的**用户身份权限**中单独开通。`scopes.json` 中的 `user` 数组不是可导入列表。
 
 ## 导入步骤
 
@@ -8,7 +10,7 @@
    https://open.feishu.cn/app/cli_aa75a1d995f8dd24
 2. 左侧导航：**开发配置 → 权限管理**。
 3. 点击 **「批量导入/导出权限」** 按钮。
-4. 切换到「导入」页签，把 [scopes.json](./scopes.json) 的**全部内容**粘贴进去（替换原有示例）。
+4. 切换到「导入」页签，把 [scopes.json](./scopes.json) 中 `tenant` 数组的内容粘贴进去（替换原有示例；不要粘贴整个文件或 `user` 数组）。
 5. 点击 **「下一步，确认新增权限」**。
 6. 点击 **「申请开通」**，等待企业管理员审批（若你本人是管理员通常即时生效）。
 7. 权限开通后，还需**发布应用版本**才在生产环境生效：左侧「版本管理与发布」→ 创建版本 → 发布。
@@ -32,18 +34,42 @@
 > 发消息能力已由 `im:message` 与 `im:message:send_as_bot` 覆盖，无需导入 `im:message:send`。
 > 依据：https://open.larkoffice.com/document/server-docs/im-v1/message/reply?lang=zh-CN
 
-### user（用户身份权限，OAuth 场景，当前留空）
+### user（用户身份权限，OAuth 场景）
 
-当前项目主要使用应用身份权限，OAuth 用户授权尚未真正接入，因此 `user` 数组留空。
-后续接入飞书登录时，再按需补充用户身份 scope（如 `contact:user.base:readonly` 的 user 版本）。
+飞书登录使用用户身份（OAuth）权限，与上面的 `tenant`（应用身份）权限分开配置：tenant 权限供消息卡片、事件长连接与通讯录同步使用；user 权限供登录授权码换取用户身份使用。二者即使 scope 名称相同，也不能互相替代。
 
-## 导入后还需配置（JSON 无法覆盖）
+当前登录链路用 `code` 换取 `user_access_token`，再用该令牌调用 `authen.userInfo.get` 取得 `open_id`，并按 `open_id` 匹配 CRM 用户的 `feishuOpenId` 字段。因此开放平台需要开通用户身份 scope `contact:user.id:readonly`（见 [scopes.json](./scopes.json) 的 `user` 数组），并在 `.env.local` 的 `FEISHU_OAUTH_SCOPE` 中以空格分隔填写同一组值；不要把 tenant 权限当作 user 权限配置。
+
+> 飞书 OAuth 登录已由 #11–#13 工单接入，`scopes.json` 的 `user` 数组只作配置记录，不能通过 tenant 批量导入开通。若后台尚未开通该 user scope，需要先在开放平台的用户身份权限中开通并发布版本，否则登录会因授权失败返回错误页。
+
+## 飞书登录（OAuth）配置
+
+### 1. 开放平台后台
+
+1. 左侧 **开发配置 → 安全设置 → 重定向 URL**，添加**与运行地址完全一致**的回调地址：
+   - 本地：`http://localhost:3000/api/auth/feishu/callback`
+   - 生产：`https://<你的域名>/api/auth/feishu/callback`
+   - 路径固定为 `/api/auth/feishu/callback`；不要沿用旧文档里的 `/api/auth/callback`。
+2. 左侧 **开发配置 → 权限管理**，开通用户身份权限 `contact:user.id:readonly`（即 `scopes.json` 的 `user` 数组所记录的值，**不要**用上面的 tenant 批量导入结果代替）。
+3. 创建并发布应用版本，使重定向 URL 与 user scope 生效。
+
+### 2. 环境变量（只写 `.env.local`，切勿提交真实值）
+
+| 变量 | 用途与要求 |
+| --- | --- |
+| `FEISHU_APP_ID` / `FEISHU_APP_SECRET` | 飞书应用凭证；先从 `.env.example` 占位复制，真实值只放入 gitignore 的 `.env.local`。 |
+| `FEISHU_APP_DOMAIN` | 授权页域名；飞书为 `https://open.feishu.cn`，Lark 为 `https://open.larksuite.com`。 |
+| `FEISHU_OAUTH_REDIRECT_URI` | 应用发起授权时传给飞书的 `redirect_uri`，必须与后台登记的重定向 URL **逐字一致**。本地示例：`http://localhost:3000/api/auth/feishu/callback`。 |
+| `FEISHU_OAUTH_SCOPE` | 授权请求携带的 user scope，空格分隔；需与后台已开通的用户身份 scope 对齐，例如 `contact:user.id:readonly`。不要填 tenant scope。 |
+| `SESSION_SECRET` | 服务端会话签名密钥，至少 32 字符的独立随机值；可用 `openssl rand -base64 32` 生成。是敏感配置，真实值只写入 `.env.local`，不得复用飞书应用凭证。 |
+
+仓库里的 [.env.example](../../.env.example) 只提供键名与占位/示例，不含任何真实密钥。真实值只写入 `.env.local`。
 
 批量导入只能配置权限 scope，以下配置需在开放平台页面手动完成：
 
 1. **事件订阅**：左侧「事件订阅」→ 订阅方式选「使用长连接接收事件」→ 添加事件 `im.message.receive_v1`（接收消息）。
 2. **机器人能力**：左侧「应用能力」→ 添加「机器人」能力（发送消息与事件接收的前提）。
-3. **OAuth 重定向 URL**（如需用户身份打通）：左侧「安全设置」→ 重定向 URL 添加 `http://localhost:3000/api/auth/callback`（开发环境）及生产域名回调地址。
+3. **OAuth 重定向 URL**：左侧「开发配置 → 安全设置 → 重定向 URL」登记 `http://localhost:3000/api/auth/feishu/callback`（开发）以及生产域名下的 `/api/auth/feishu/callback`（生产）。同时开通用户身份 scope 并配置 `FEISHU_OAUTH_REDIRECT_URI` / `FEISHU_OAUTH_SCOPE`；细节见上文「飞书登录（OAuth）配置」。
 
 ## 验证方法
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,7 +18,7 @@ const NAV_ITEMS = [
   { href: "/settings", label: "设置", icon: "⚙" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ userMenu }: { userMenu?: ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -52,9 +53,11 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-zinc-200 p-4 text-xs text-zinc-400">
-        飞书 CRM
-      </div>
+      {userMenu ?? (
+        <div className="border-t border-zinc-200 p-4 text-xs text-zinc-400">
+          飞书 CRM
+        </div>
+      )}
     </aside>
   );
 }

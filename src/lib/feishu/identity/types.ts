@@ -54,10 +54,12 @@ export interface UserMatchResult {
   profile: FeishuUserProfile;
 }
 
-/** 匹配结果中引用的 CRM 人员（仅保留匹配所需的最小字段）。 */
+/** 匹配结果中引用的 CRM 人员（仅保留身份与权限上下文所需的最小字段）。 */
 export interface CrmPersonRef {
   id: string;
   name?: string;
+  /** 当前负责人角色；缺省按普通负责人处理。 */
+  role?: "OWNER" | "ADMIN";
 }
 
 /** 构造授权 URL 的参数。 */

@@ -1,5 +1,8 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { listLeads } from "@/lib/db/repositories/sales";
+import { accessScopeFor } from "@/lib/auth/scope";
+import { getCurrentUser } from "@/lib/auth/session";
 import { LeadStatus } from "@/generated/prisma/enums";
 import { LeadForm } from "./lead-form";
 import { deleteLeadAction, updateLeadStatusAction } from "./actions";
@@ -16,14 +19,22 @@ const statusMeta: Record<
 
 /** 线索列表页。 */
 export default async function LeadsPage() {
-  const leads = await listLeads();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return <EmptyState message="请先登录后再查看线索。" />;
+  }
+  const scope = accessScopeFor(currentUser);
+  const [leads, users] = await Promise.all([
+    listLeads({}, scope),
+    listAssignableUsers(currentUser),
+  ]);
 
   return (
     <div>
       <PageHeader
         title="线索"
         description={`共 ${leads.length} 条线索`}
-        action={<LeadForm />}
+        action={<LeadForm users={users} currentUserId={currentUser.id} />}
       />
 
       {leads.length === 0 ? (

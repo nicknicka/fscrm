@@ -49,7 +49,14 @@ describe("mapUser", () => {
       name: "张三",
       email: "zhangsan@example.com",
       departmentId: "od_1",
+      role: "OWNER",
     });
+  });
+
+  it("通讯录同步的新用户默认按普通负责人处理", () => {
+    const person = mapUser(user, "od_1");
+    expect(person?.role).toBe("OWNER");
+    expect(person?.role).not.toBe("ADMIN");
   });
 
   it("缺少开放 ID 时返回 null", () => {

@@ -102,6 +102,7 @@ export const UserScalarFieldEnum = {
   feishuOpenId: "feishuOpenId",
   feishuUnionId: "feishuUnionId",
   feishuUserId: "feishuUserId",
+  role: "role",
   departmentId: "departmentId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",

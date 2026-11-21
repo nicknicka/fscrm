@@ -16,6 +16,13 @@ export const CustomerLevel = {
 
 export type CustomerLevel = (typeof CustomerLevel)[keyof typeof CustomerLevel];
 
+export const UserRole = {
+  OWNER: "OWNER",
+  ADMIN: "ADMIN",
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
 export const OpportunityStage = {
   CONTACT: "CONTACT",
   NEED_CONFIRM: "NEED_CONFIRM",

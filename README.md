@@ -17,7 +17,7 @@ npm install
 
 # 2. 配置飞书凭证（复制后填入真实值，切勿提交真实凭证）
 cp .env.example .env.local
-# 编辑 .env.local，填入 FEISHU_APP_ID / FEISHU_APP_SECRET
+# 编辑 .env.local，填入 FEISHU_APP_ID / FEISHU_APP_SECRET 与 SESSION_SECRET
 
 # 3. 本地开发
 npm run dev
@@ -35,6 +35,15 @@ npm run start
   - `FEISHU_APP_DOMAIN`：飞书用 `https://open.feishu.cn`（默认）；Lark 用 `https://open.larksuite.com`
 - 客户端封装位于 `src/lib/feishu/client.ts`，进程内单例，自动复用令牌缓存。
 - 调用飞书接口前请先检查 `isFeishuConfigured`，凭证缺失时避免直接调用。
+
+## 服务端会话设置
+
+- `SESSION_SECRET` 必须配置为至少 32 个字符的独立随机值，可用 `openssl rand -base64 32` 生成；不要复用飞书应用凭证。
+- 会话签名与校验位于 `src/lib/auth/session.ts`，当前负责人、姓名与角色通过签名载荷传递，受保护入口统一用 `getCurrentUser()` 读取。
+- 会话 Cookie 固定为 `HttpOnly` + `SameSite=Lax`，生产环境自动启用 `Secure`；退出登录调用 `clearSession()` 清除 Cookie。
+- 飞书 OAuth 登录回调已接入：未登录访问业务页面会跳转登录页，飞书授权成功后按 `open_id` 匹配 CRM 负责人并签发签名会话；未绑定用户会看到明确提示。
+- 业务数据按负责人/角色过滤已实现：管理员可查看和处理全部客户、线索、商机，普通负责人只能处理本人负责的数据；客户、线索、商机的新建与写操作均由 Server Action 从会话重新鉴权。
+- 手动通讯录同步同样受会话保护；登录所需的用户身份 scope 与后台权限配置见 [docs/feishu/README.md](docs/feishu/README.md)。
 
 ## 目录结构
 

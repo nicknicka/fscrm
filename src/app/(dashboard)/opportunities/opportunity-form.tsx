@@ -8,9 +8,11 @@ import { createOpportunityAction } from "./actions";
 export function OpportunityForm({
   customers,
   users,
+  defaultOwnerId,
 }: {
   customers: { id: string; name: string }[];
   users: { id: string; name: string }[];
+  defaultOwnerId: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -89,9 +91,9 @@ export function OpportunityForm({
           </label>
           <select
             name="ownerId"
+            defaultValue={defaultOwnerId}
             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
-            <option value="">暂不分配</option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.name}

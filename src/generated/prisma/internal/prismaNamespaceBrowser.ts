@@ -64,6 +64,7 @@ export const ModelName = {
   Quotation: "Quotation",
   QuotationItem: "QuotationItem",
   Contract: "Contract",
+  Order: "Order",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -233,6 +234,20 @@ export const ContractScalarFieldEnum = {
 
 export type ContractScalarFieldEnum =
   (typeof ContractScalarFieldEnum)[keyof typeof ContractScalarFieldEnum];
+
+export const OrderScalarFieldEnum = {
+  id: "id",
+  customerId: "customerId",
+  opportunityId: "opportunityId",
+  sourceContractId: "sourceContractId",
+  status: "status",
+  amount: "amount",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type OrderScalarFieldEnum =
+  (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",

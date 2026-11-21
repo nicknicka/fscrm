@@ -81,3 +81,12 @@ export const ContractStatus = {
 
 export type ContractStatus =
   (typeof ContractStatus)[keyof typeof ContractStatus];
+
+export const OrderStatus = {
+  PENDING: "PENDING",
+  FULFILLING: "FULFILLING",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];

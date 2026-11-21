@@ -66,3 +66,8 @@ export type QuotationItem = Prisma.QuotationItemModel;
  * 合同：由已确认报价转化而来，关联客户、商机与来源报价。
  */
 export type Contract = Prisma.ContractModel;
+/**
+ * Model Order
+ * 订单：由合同转化而来，关联客户、商机与来源合同，进入履约阶段。
+ */
+export type Order = Prisma.OrderModel;

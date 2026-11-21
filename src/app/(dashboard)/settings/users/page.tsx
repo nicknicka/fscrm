@@ -1,5 +1,5 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { requireAdmin } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/session";
 import { listUsers } from "@/lib/db/repositories/user";
 import { grantAdminAction, revokeAdminAction } from "./actions";
 
@@ -10,7 +10,16 @@ import { grantAdminAction, revokeAdminAction } from "./actions";
  * 会在服务端被拒绝。角色变更由 Server Action 再次校验权限。
  */
 export default async function AdminUsersPage() {
-  await requireAdmin();
+  // 非管理员直接访问该路由时展示说明页，而不是抛出 500 错误页。
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    return (
+      <div>
+        <PageHeader title="用户与角色" description="仅管理员可访问" />
+        <EmptyState message="你没有访问权限：用户与角色管理仅对管理员开放。" />
+      </div>
+    );
+  }
 
   const users = await listUsers();
 
@@ -37,9 +46,7 @@ export default async function AdminUsersPage() {
               {users.map((user) => (
                 <tr key={user.id} className="py-3">
                   <td className="py-3">
-                    <div className="font-medium text-zinc-900">
-                      {user.name}
-                    </div>
+                    <div className="font-medium text-zinc-900">{user.name}</div>
                     {user.email && (
                       <div className="mt-0.5 text-xs text-zinc-500">
                         {user.email}

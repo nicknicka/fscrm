@@ -196,3 +196,15 @@ export async function requireCurrentUser(): Promise<CurrentUser> {
   }
   return user;
 }
+
+/**
+ * 管理员守卫：复用当前签名会话，非管理员直接拒绝。
+ * 供用户与角色管理等管理员专属 Server Action / 页面使用。
+ */
+export async function requireAdmin(): Promise<CurrentUser> {
+  const user = await requireCurrentUser();
+  if (user.role !== "ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+  return user;
+}

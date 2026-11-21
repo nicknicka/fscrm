@@ -45,6 +45,17 @@ npm run start
 - 业务数据按负责人/角色过滤已实现：管理员可查看和处理全部客户、线索、商机，普通负责人只能处理本人负责的数据；客户、线索、商机的新建与写操作均由 Server Action 从会话重新鉴权。
 - 手动通讯录同步同样受会话保护；登录所需的用户身份 scope 与后台权限配置见 [docs/feishu/README.md](docs/feishu/README.md)。
 
+### 首次任命管理员
+
+新部署完成并配置 `.env.local`、数据库初始化后，先同步通讯录创建用户，再任命首位管理员；`open_id` 从飞书通讯录获取，不要写进仓库：
+
+```bash
+npm run feishu:sync-contacts
+npm run admin -- grant --open-id <飞书用户open_id>
+```
+
+也可以用 `npm run admin -- grant --id <用户内部ID>` 按 CRM 用户内部 ID 任命。任命后该用户通过飞书 OAuth 登录，即可在「设置 → 用户与角色」任免其他管理员。
+
 ## 目录结构
 
 ```

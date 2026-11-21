@@ -1,9 +1,23 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { getCurrentUser } from "@/lib/auth/session";
-import { OpportunityStage } from "@/generated/prisma/enums";
+import { requireCurrentUser } from "@/lib/auth/session";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
+import { FollowUpMode, OpportunityStage } from "@/generated/prisma/enums";
+import {
+  createOpportunityFollowUpAction,
+  deleteOpportunityFollowUpAction,
+} from "../actions";
 import { getOpportunityForCurrentUser } from "../scope";
+import { OpportunityDetailForm } from "./opportunity-detail-form";
+
+const followUpModeLabel: Record<string, string> = {
+  [FollowUpMode.CALL]: "电话",
+  [FollowUpMode.MEETING]: "面谈",
+  [FollowUpMode.EMAIL]: "邮件",
+  [FollowUpMode.IM]: "即时消息",
+  [FollowUpMode.OTHER]: "其他",
+};
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -21,10 +35,17 @@ export default async function OpportunityDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const createFollowUp = createOpportunityFollowUpAction.bind(null, id);
+  const user = await requireCurrentUser();
   const opportunity = await getOpportunityForCurrentUser(id, user);
   if (!opportunity) notFound();
+  const users =
+    user.role === "ADMIN"
+      ? (await listAssignableUsers(user)).map((candidate) => ({
+          id: candidate.id,
+          name: candidate.name,
+        }))
+      : [];
 
   return (
     <div>
@@ -78,23 +99,106 @@ export default async function OpportunityDetailPage({
               <div className="text-zinc-700">{opportunity.remark}</div>
             </div>
           )}
+          <OpportunityDetailForm
+            opportunityId={opportunity.id}
+            name={opportunity.name}
+            amount={opportunity.amount}
+            expectedCloseDate={opportunity.expectedCloseDate}
+            remark={opportunity.remark}
+            ownerId={opportunity.ownerId}
+            canReassignOwner={user.role === "ADMIN"}
+            users={users}
+          />
         </section>
 
         <section className="rounded-xl border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-base font-semibold">
             跟进记录（{opportunity.followUps.length}）
           </h2>
+          <form
+            action={createFollowUp}
+            className="mb-4 space-y-3 border-b border-zinc-100 pb-4"
+          >
+            <div className="text-sm font-medium">新增跟进</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="text-sm">
+                <span className="mb-1 block text-zinc-600">方式</span>
+                <select
+                  name="mode"
+                  defaultValue={FollowUpMode.CALL}
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                >
+                  {Object.values(FollowUpMode).map((mode) => (
+                    <option key={mode} value={mode}>
+                      {followUpModeLabel[mode] ?? mode}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                <span className="mb-1 block text-zinc-600">
+                  下一步计划跟进时间
+                </span>
+                <input
+                  name="nextFollowUpAt"
+                  type="datetime-local"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                />
+              </label>
+            </div>
+            <label className="block text-sm">
+              <span className="mb-1 block text-zinc-600">内容</span>
+              <textarea
+                name="content"
+                required
+                rows={3}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                placeholder="记录本次沟通内容"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              保存跟进
+            </button>
+          </form>
           {opportunity.followUps.length === 0 ? (
             <p className="text-sm text-zinc-500">暂无跟进记录</p>
           ) : (
             <ul className="divide-y divide-zinc-100">
               {opportunity.followUps.map((f) => (
                 <li key={f.id} className="py-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <Badge tone="zinc">{f.mode}</Badge>
-                    <span className="text-xs text-zinc-400">
-                      {f.createdAt.toLocaleString("zh-CN")}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge tone="zinc">
+                        {followUpModeLabel[f.mode] ?? f.mode}
+                      </Badge>
+                      {f.nextFollowUpAt && (
+                        <span className="text-xs text-zinc-500">
+                          下次跟进：{f.nextFollowUpAt.toLocaleString("zh-CN")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-400">
+                        {f.createdAt.toLocaleString("zh-CN")}
+                      </span>
+                      <form
+                        action={deleteOpportunityFollowUpAction.bind(
+                          null,
+                          id,
+                          f.id
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          删除
+                        </button>
+                      </form>
+                    </div>
                   </div>
                   <div className="mt-1 text-zinc-700">{f.content}</div>
                 </li>

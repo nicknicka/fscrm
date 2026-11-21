@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { listLeads } from "@/lib/db/repositories/sales";
@@ -5,7 +6,11 @@ import { accessScopeFor } from "@/lib/auth/scope";
 import { getCurrentUser } from "@/lib/auth/session";
 import { LeadStatus } from "@/generated/prisma/enums";
 import { LeadForm } from "./lead-form";
-import { deleteLeadAction, updateLeadStatusAction } from "./actions";
+import {
+  convertLeadAction,
+  deleteLeadAction,
+  updateLeadStatusAction,
+} from "./actions";
 
 const statusMeta: Record<
   string,
@@ -87,14 +92,49 @@ export default async function LeadsPage() {
                       </form>
                     </td>
                     <td className="px-4 py-3">
-                      <form action={deleteLeadAction.bind(null, lead.id)}>
-                        <button
-                          type="submit"
-                          className="text-sm text-red-600 hover:underline"
-                        >
-                          删除
-                        </button>
-                      </form>
+                      <div className="flex flex-col items-start gap-2">
+                        {lead.status !== LeadStatus.CONVERTED ? (
+                          <form
+                            action={convertLeadAction.bind(null, lead.id)}
+                            className="flex items-center gap-2"
+                          >
+                            {currentUser.role === "ADMIN" && (
+                              <select
+                                name="ownerId"
+                                defaultValue={lead.ownerId ?? currentUser.id}
+                                className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+                              >
+                                {users.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.name}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                            <button
+                              type="submit"
+                              className="rounded-lg bg-blue-50 px-2 py-1 text-sm text-blue-700 hover:bg-blue-100"
+                            >
+                              转化为商机
+                            </button>
+                          </form>
+                        ) : (
+                          <Link
+                            href="/opportunities"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            查看商机
+                          </Link>
+                        )}
+                        <form action={deleteLeadAction.bind(null, lead.id)}>
+                          <button
+                            type="submit"
+                            className="text-sm text-red-600 hover:underline"
+                          >
+                            删除
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 );

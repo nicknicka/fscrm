@@ -45,6 +45,18 @@ npm run start
 - 业务数据按负责人/角色过滤已实现：管理员可查看和处理全部客户、线索、商机，普通负责人只能处理本人负责的数据；客户、线索、商机的新建与写操作均由 Server Action 从会话重新鉴权。
 - 手动通讯录同步同样受会话保护；登录所需的用户身份 scope 与后台权限配置见 [docs/feishu/README.md](docs/feishu/README.md)。
 
+### 数据库初始化与升级
+
+数据库结构由 `prisma/schema.prisma` 定义，变更以 `prisma/migrations/` 下的版本化迁移承载：
+
+```bash
+npm run db:deploy   # 生产 / 预发：按顺序应用尚未执行的迁移
+npm run db:migrate  # 本地开发：改完 schema 后生成并应用一个新迁移
+npm run db:push     # 可选：直接把 schema 推到库，不产生迁移文件
+```
+
+首次基线迁移为 `prisma/migrations/20261121120000_init`。迁移与 `db push` 的区别、生产上线步骤，以及已有库（用 `db push` 建起来的）如何过渡到迁移，见 [docs/DATABASE.md](docs/DATABASE.md)。
+
 ### 首次任命管理员
 
 新部署完成并配置 `.env.local`、数据库初始化后，先同步通讯录创建用户，再任命首位管理员；`open_id` 从飞书通讯录获取，不要写进仓库：

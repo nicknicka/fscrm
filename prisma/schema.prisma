@@ -118,6 +118,7 @@ model Customer {
   contacts   Contact[]
   opportunities Opportunity[]
   followUps  FollowUp[]
+  quotations Quotation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -179,6 +180,7 @@ model Opportunity {
   remark            String?
 
   followUps         FollowUp[]
+  quotations        Quotation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -207,4 +209,44 @@ model FollowUp {
   updatedAt DateTime @updatedAt
 
   @@map("follow_ups")
+}
+
+/// 报价状态：报价在确认路径上所处的状态。
+enum QuotationStatus {
+  DRAFT // 草稿
+  CONFIRMED // 已确认
+  CANCELLED // 已取消
+}
+
+/// 报价：针对商机向客户提出的价格方案；金额由报价条目汇总。
+model Quotation {
+  id            String          @id @default(uuid())
+  customerId    String
+  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId String
+  opportunity   Opportunity     @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  status        QuotationStatus @default(DRAFT)
+  /// 金额：始终由 items 的数量乘以单价汇总维护。
+  amount        Float           @default(0)
+  items         QuotationItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("quotations")
+}
+
+/// 报价条目：报价中的单项名称、数量与单价。
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  name        String
+  quantity    Int
+  unitPrice   Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("quotation_items")
 }

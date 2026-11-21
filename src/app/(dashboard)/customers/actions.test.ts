@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   redirect: vi.fn(),
   resolveAssignableOwnerId: vi.fn(),
+  CustomerAccessError: class CustomerAccessError extends Error {},
 }));
 
 vi.mock("@/lib/db/repositories/customer", () => ({

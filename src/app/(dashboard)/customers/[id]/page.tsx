@@ -184,6 +184,7 @@ export default async function CustomerDetailPage({
             跟进记录（{customer.followUps.length}）
           </h2>
           <form
+            data-guide="followup-form"
             action={createFollowUp}
             className="mb-4 space-y-3 border-b border-zinc-100 pb-4"
           >

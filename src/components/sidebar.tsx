@@ -14,16 +14,30 @@ import { usePathname } from "next/navigation";
  */
 
 import type { CurrentUser } from "@/lib/auth/session";
+import { GuideLauncher } from "./guide/guide-launcher";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  /** 供操作引导定位的锚点。 */
+  guide?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "概览", icon: "▦" },
-  { href: "/customers", label: "客户", icon: "◉" },
+  { href: "/customers", label: "客户", icon: "◉", guide: "nav-customers" },
   { href: "/customers/public-pool", label: "公海", icon: "◎" },
   { href: "/leads", label: "线索", icon: "◇" },
-  { href: "/opportunities", label: "商机", icon: "◆" },
+  {
+    href: "/opportunities",
+    label: "商机",
+    icon: "◆",
+    guide: "nav-opportunities",
+  },
   { href: "/contracts", label: "合同", icon: "▤" },
-  { href: "/orders", label: "订单", icon: "▣" },
-  { href: "/funnel", label: "销售漏斗", icon: "▽" },
+  { href: "/orders", label: "订单", icon: "▣", guide: "nav-orders" },
+  { href: "/funnel", label: "销售漏斗", icon: "▽", guide: "nav-funnel" },
   { href: "/settings", label: "设置", icon: "⚙" },
 ];
 
@@ -68,6 +82,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              data-guide={item.guide}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
                   ? "bg-blue-50 text-blue-700"
@@ -81,6 +96,10 @@ export function Sidebar({
         })}
         {currentUser?.role === "ADMIN" && <AdminNavItem />}
       </nav>
+
+      <div className="border-t border-zinc-200 p-3">
+        <GuideLauncher />
+      </div>
 
       {userMenu ?? (
         <div className="border-t border-zinc-200 p-4 text-xs text-zinc-400">

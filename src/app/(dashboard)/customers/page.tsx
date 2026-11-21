@@ -46,9 +46,11 @@ export default async function CustomersPage({
         title="客户"
         description={`共 ${customers.length} 个客户`}
         action={
-          <CustomerForm
-            users={users.map((u) => ({ id: u.id, name: u.name }))}
-          />
+          <div data-guide="create-customer">
+            <CustomerForm
+              users={users.map((u) => ({ id: u.id, name: u.name }))}
+            />
+          </div>
         }
       />
 
@@ -85,8 +87,12 @@ export default async function CustomersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
-              {customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-zinc-50">
+              {customers.map((customer, idx) => (
+                <tr
+                  key={customer.id}
+                  className="hover:bg-zinc-50"
+                  {...(idx === 0 ? { "data-guide": "customer-row" } : {})}
+                >
                   <td className="px-4 py-3">
                     <Link
                       href={`/customers/${customer.id}`}

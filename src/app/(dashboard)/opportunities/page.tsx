@@ -41,11 +41,13 @@ export default async function OpportunitiesPage({
         title="商机"
         description={`共 ${opportunities.length} 个商机`}
         action={
-          <OpportunityForm
-            customers={customers}
-            users={users}
-            defaultOwnerId={user.id}
-          />
+          <div data-guide="create-opportunity">
+            <OpportunityForm
+              customers={customers}
+              users={users}
+              defaultOwnerId={user.id}
+            />
+          </div>
         }
       />
 

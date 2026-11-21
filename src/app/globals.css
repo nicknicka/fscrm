@@ -24,3 +24,44 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 操作引导：脉冲光圈与气泡入场动画 */
+@keyframes guide-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.guide-pulse {
+  animation: guide-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes guide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.guide-fade-in {
+  animation: guide-fade-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-pulse {
+    animation: none;
+  }
+  .guide-fade-in {
+    animation: none;
+  }
+}

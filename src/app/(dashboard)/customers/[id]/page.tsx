@@ -6,6 +6,8 @@ import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
 import { OpportunityStage, FollowUpMode } from "@/generated/prisma/enums";
 import { ContactsManager } from "./contacts/contacts-manager";
+import { CustomerDetailForm } from "./customer-detail-form";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import {
   createCustomerFollowUpAction,
   deleteCustomerFollowUpAction,
@@ -41,6 +43,13 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+  const users =
+    currentUser.role === "ADMIN"
+      ? (await listAssignableUsers(currentUser)).map((user) => ({
+          id: user.id,
+          name: user.name,
+        }))
+      : [];
 
   return (
     <div>
@@ -75,6 +84,18 @@ export default async function CustomerDetailPage({
               <div className="text-zinc-700">{customer.remark}</div>
             </div>
           )}
+          <CustomerDetailForm
+            customerId={customer.id}
+            level={customer.level}
+            industry={customer.industry}
+            phone={customer.phone}
+            email={customer.email}
+            address={customer.address}
+            remark={customer.remark}
+            ownerId={customer.ownerId}
+            canReassignOwner={currentUser.role === "ADMIN"}
+            users={users}
+          />
         </section>
 
         {/* 联系人：新增/编辑/删除入口与表单 */}

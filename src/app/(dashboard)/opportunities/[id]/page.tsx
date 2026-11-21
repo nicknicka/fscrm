@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUser } from "@/lib/auth/session";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { FollowUpMode, OpportunityStage } from "@/generated/prisma/enums";
 import {
   createOpportunityFollowUpAction,
   deleteOpportunityFollowUpAction,
 } from "../actions";
 import { getOpportunityForCurrentUser } from "../scope";
+import { OpportunityDetailForm } from "./opportunity-detail-form";
 
 const followUpModeLabel: Record<string, string> = {
   [FollowUpMode.CALL]: "电话",
@@ -34,10 +36,16 @@ export default async function OpportunityDetailPage({
 }) {
   const { id } = await params;
   const createFollowUp = createOpportunityFollowUpAction.bind(null, id);
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const user = await requireCurrentUser();
   const opportunity = await getOpportunityForCurrentUser(id, user);
   if (!opportunity) notFound();
+  const users =
+    user.role === "ADMIN"
+      ? (await listAssignableUsers(user)).map((candidate) => ({
+          id: candidate.id,
+          name: candidate.name,
+        }))
+      : [];
 
   return (
     <div>
@@ -91,13 +99,26 @@ export default async function OpportunityDetailPage({
               <div className="text-zinc-700">{opportunity.remark}</div>
             </div>
           )}
+          <OpportunityDetailForm
+            opportunityId={opportunity.id}
+            name={opportunity.name}
+            amount={opportunity.amount}
+            expectedCloseDate={opportunity.expectedCloseDate}
+            remark={opportunity.remark}
+            ownerId={opportunity.ownerId}
+            canReassignOwner={user.role === "ADMIN"}
+            users={users}
+          />
         </section>
 
         <section className="rounded-xl border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-base font-semibold">
             跟进记录（{opportunity.followUps.length}）
           </h2>
-          <form action={createFollowUp} className="mb-4 space-y-3 border-b border-zinc-100 pb-4">
+          <form
+            action={createFollowUp}
+            className="mb-4 space-y-3 border-b border-zinc-100 pb-4"
+          >
             <div className="text-sm font-medium">新增跟进</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="text-sm">
@@ -115,7 +136,9 @@ export default async function OpportunityDetailPage({
                 </select>
               </label>
               <label className="text-sm">
-                <span className="mb-1 block text-zinc-600">下一步计划跟进时间</span>
+                <span className="mb-1 block text-zinc-600">
+                  下一步计划跟进时间
+                </span>
                 <input
                   name="nextFollowUpAt"
                   type="datetime-local"

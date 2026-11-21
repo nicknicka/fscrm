@@ -57,7 +57,8 @@ export async function createContact(
 }
 
 /**
- * 更新联系人：先按联系人所属客户校验范围。
+ * 更新联系人：把「客户属于当前范围」的条件直接写进 updateMany 的 where，
+ * 使鉴权与写入在同一条语句完成；count 为 0 时统一返回 NOT_FOUND。
  * 成功结果带上 customerId，供 Server Action 精确刷新详情页。
  */
 export async function updateContact(
@@ -65,32 +66,47 @@ export async function updateContact(
   data: ContactInput,
   scope: AccessScope
 ) {
+  const updated = await prisma.contact.updateMany({
+    where: {
+      id: contactId,
+      customer: { ...ownerWhere(scope) },
+    },
+    data,
+  });
+  if (updated.count === 0) {
+    return CONTACT_NOT_FOUND;
+  }
   const contact = await prisma.contact.findUnique({
     where: { id: contactId },
     select: { customerId: true },
   });
-  if (!contact || !(await canAccessCustomer(contact.customerId, scope))) {
+  if (!contact) {
     return CONTACT_NOT_FOUND;
   }
-  const updated = await prisma.contact.update({
-    where: { id: contactId },
-    data,
-  });
-  return { ok: true as const, customerId: contact.customerId, contact: updated };
+  return { ok: true as const, customerId: contact.customerId, contact };
 }
 
 /**
- * 删除联系人：先按联系人所属客户校验范围。
- * 成功结果带上 customerId，供 Server Action 精确刷新详情页。
+ * 删除联系人：把「客户属于当前范围」的条件直接写进 deleteMany 的 where，
+ * 使鉴权与写入在同一条语句完成；count 为 0 时统一返回 NOT_FOUND。
+ * 成功结果沿用写入前读取的 customerId，供 Server Action 精确刷新详情页。
  */
 export async function deleteContact(contactId: string, scope: AccessScope) {
-  const contact = await prisma.contact.findUnique({
+  const before = await prisma.contact.findUnique({
     where: { id: contactId },
     select: { customerId: true },
   });
-  if (!contact || !(await canAccessCustomer(contact.customerId, scope))) {
+  if (!before) {
     return CONTACT_NOT_FOUND;
   }
-  await prisma.contact.delete({ where: { id: contactId } });
-  return { ok: true as const, customerId: contact.customerId };
+  const deleted = await prisma.contact.deleteMany({
+    where: {
+      id: contactId,
+      customer: { ...ownerWhere(scope) },
+    },
+  });
+  if (deleted.count === 0) {
+    return CONTACT_NOT_FOUND;
+  }
+  return { ok: true as const, customerId: before.customerId };
 }

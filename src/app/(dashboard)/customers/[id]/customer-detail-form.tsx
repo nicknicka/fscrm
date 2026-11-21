@@ -23,11 +23,11 @@ export function CustomerDetailForm({
 }: {
   customerId: string;
   level: CustomerLevel;
-  industry: string | null;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  remark: string | null;
+  industry?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  remark?: string | null;
   ownerId: string | null;
   canReassignOwner: boolean;
   users: { id: string; name: string }[];

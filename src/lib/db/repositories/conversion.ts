@@ -2,6 +2,8 @@ import { prisma } from "../client";
 import { resolveAssignableOwnerId, type AccessScope } from "@/lib/auth/scope";
 import { LeadStatus } from "@/generated/prisma/enums";
 import type { Customer, Opportunity } from "../../../generated/prisma/client";
+import { getUserById } from "./user";
+import { notifyUser } from "@/lib/feishu/message/notify";
 
 /**
  * 线索转化服务。
@@ -64,7 +66,7 @@ export async function convertLeadToCustomerAndOpportunity(
     throw new LeadConversionError("FORBIDDEN");
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const claimed = await tx.lead.updateMany({
       where: {
         id: leadId,
@@ -97,4 +99,20 @@ export async function convertLeadToCustomerAndOpportunity(
 
     return { customer, opportunity, leadId };
   });
+
+  // 与商机创建保持一致：转化成功后通知实际负责人。通知失败不影响转化结果。
+  const ownerIdForNotice = result.opportunity.ownerId ?? null;
+  if (ownerIdForNotice) {
+    const owner = await getUserById(ownerIdForNotice);
+    await notifyUser(
+      owner ? { name: owner.name, feishuOpenId: owner.feishuOpenId } : null,
+      "opportunity_created",
+      {
+        opportunityName: result.opportunity.name,
+        customerName: result.customer.name,
+      }
+    ).catch(() => undefined);
+  }
+
+  return result;
 }

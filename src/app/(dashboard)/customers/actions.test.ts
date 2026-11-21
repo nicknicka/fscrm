@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   createCustomer: vi.fn(),
   updateCustomer: vi.fn(),
+  getCustomer: vi.fn(),
   deleteCustomer: vi.fn(),
   getUserById: vi.fn(),
   notifyUser: vi.fn(),
@@ -15,6 +16,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/db/repositories/customer", () => ({
   createCustomer: mocks.createCustomer,
   updateCustomer: mocks.updateCustomer,
+  getCustomer: mocks.getCustomer,
   deleteCustomer: mocks.deleteCustomer,
   CustomerAccessError: class CustomerAccessError extends Error {},
 }));
@@ -170,6 +172,19 @@ describe("customer Server Actions authorization", () => {
 });
 
 describe("customer detail edit", () => {
+  beforeEach(() => {
+    mocks.requireCurrentUser.mockResolvedValue(owner);
+    mocks.getCustomer.mockResolvedValue({
+      id: "customer_1",
+      level: "LOW",
+      industry: "原行业",
+      phone: "13900000000",
+      email: "old@example.com",
+      address: "北京",
+      remark: "原备注",
+    });
+  });
+
   it("lets an owner edit their own customer and refresh the detail page", async () => {
     mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
 
@@ -210,7 +225,7 @@ describe("customer detail edit", () => {
 
     expect(mocks.updateCustomer).toHaveBeenCalledWith(
       "customer_1",
-      expect.not.objectContaining({ owner: expect.anything() }),
+      { remark: "仍归我负责" },
       { userId: owner.id, role: owner.role }
     );
   });
@@ -229,6 +244,47 @@ describe("customer detail edit", () => {
       expect.objectContaining({ owner: { connect: { id: owner.id } } }),
       { userId: admin.id, role: admin.role }
     );
+  });
+
+  it("preserves the existing level when an administrator only reassigns the owner", async () => {
+    mocks.requireCurrentUser.mockResolvedValue(admin);
+    mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
+
+    await updateCustomerDetailAction(
+      "customer_1",
+      form({ ownerId: owner.id })
+    );
+
+    expect(mocks.updateCustomer).toHaveBeenCalledWith(
+      "customer_1",
+      { owner: { connect: { id: owner.id } } },
+      { userId: admin.id, role: admin.role }
+    );
+  });
+
+  it("persists an ordinary owner's level and remark edit", async () => {
+    mocks.updateCustomer.mockResolvedValue({ id: "customer_1" });
+
+    await updateCustomerDetailAction(
+      "customer_1",
+      form({ level: "HIGH", remark: "重点跟进" })
+    );
+
+    expect(mocks.updateCustomer).toHaveBeenCalledWith(
+      "customer_1",
+      { level: "HIGH", remark: "重点跟进" },
+      { userId: owner.id, role: owner.role }
+    );
+  });
+
+  it("maps a missing customer to NOT_FOUND without writing", async () => {
+    mocks.getCustomer.mockResolvedValue(null);
+
+    await expect(
+      updateCustomerDetailAction("missing", form({ remark: "不存在" }))
+    ).rejects.toThrow("NOT_FOUND");
+    expect(mocks.updateCustomer).not.toHaveBeenCalled();
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
   it("maps a cross-owner customer edit to the unified NOT_FOUND result", async () => {

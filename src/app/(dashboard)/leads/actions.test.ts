@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
+  getUserById: vi.fn(),
   createLead: vi.fn(),
   updateLead: vi.fn(),
   deleteLead: vi.fn(),
@@ -11,6 +12,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/auth/session", () => ({
   getCurrentUser: mocks.getCurrentUser,
+}));
+
+vi.mock("@/lib/db/repositories/user", () => ({
+  getUserById: mocks.getUserById,
 }));
 
 vi.mock("@/lib/db/repositories/sales", () => ({
@@ -49,6 +54,7 @@ beforeEach(() => {
     name: "张三",
     role: "OWNER",
   });
+  mocks.getUserById.mockResolvedValue({ id: "user_owner", name: "张三" });
   mocks.createLead.mockResolvedValue({ id: "lead_1" });
   mocks.updateLead.mockResolvedValue({ id: "lead_1" });
   mocks.deleteLead.mockResolvedValue({ id: "lead_1" });
@@ -85,10 +91,50 @@ describe("线索 Server Actions 权限", () => {
         contactPhone: null,
         contactEmail: null,
         remark: null,
+        owner: { connect: { id: "user_owner" } },
       },
       { userId: "user_owner", role: "OWNER" }
     );
+    expect(mocks.getUserById).toHaveBeenCalledWith("user_owner");
     expect(mocks.redirect).toHaveBeenCalledWith("/leads");
+  });
+
+  it("管理员可以为新建线索指定任意有效负责人", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      id: "user_admin",
+      name: "管理员",
+      role: "ADMIN",
+    });
+    mocks.getUserById.mockResolvedValue({
+      id: "user_target",
+      name: "目标负责人",
+    });
+
+    await createLeadAction(
+      form({ name: "线索-B", status: "NEW", ownerId: "user_target" })
+    );
+
+    expect(mocks.createLead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "线索-B",
+        owner: { connect: { id: "user_target" } },
+      }),
+      { userId: "user_admin", role: "ADMIN" }
+    );
+  });
+
+  it("管理员指定不存在的负责人时拒绝写入", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      id: "user_admin",
+      name: "管理员",
+      role: "ADMIN",
+    });
+    mocks.getUserById.mockResolvedValue(null);
+
+    await expect(
+      createLeadAction(form({ name: "线索-C", ownerId: "missing" }))
+    ).rejects.toThrow("INVALID_OWNER");
+    expect(mocks.createLead).not.toHaveBeenCalled();
   });
 
   it("越权更新或删除线索时返回不泄露存在性的错误", async () => {

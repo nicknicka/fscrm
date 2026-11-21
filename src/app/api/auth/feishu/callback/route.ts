@@ -7,6 +7,7 @@ import {
   sessionCookieOptions,
   signSession,
 } from "@/lib/auth/session";
+import { normalizeSafeRedirectPath } from "@/lib/auth/redirect";
 
 /**
  * 飞书 OAuth 回调入口：一次性校验 state，兑换授权码并匹配 CRM 负责人。
@@ -44,17 +45,6 @@ function loginRedirect(request: NextRequest, error: string) {
   return NextResponse.redirect(url);
 }
 
-function isSafePath(value: string | undefined): boolean {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return false;
-  }
-  try {
-    return new URL(value, "https://crm.invalid").origin === "https://crm.invalid";
-  } catch {
-    return false;
-  }
-}
-
 function clearCookie(response: NextResponse, name: string) {
   response.cookies.set({
     name,
@@ -68,8 +58,7 @@ function clearCookie(response: NextResponse, name: string) {
 }
 
 function safeNext(request: NextRequest): string {
-  const value = request.cookies.get(OAUTH_NEXT_COOKIE_NAME)?.value;
-  return isSafePath(value) ? value! : "/";
+  return normalizeSafeRedirectPath(request.cookies.get(OAUTH_NEXT_COOKIE_NAME)?.value) ?? "/";
 }
 
 function isSessionConfigured(): boolean {

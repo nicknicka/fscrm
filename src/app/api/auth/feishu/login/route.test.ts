@@ -90,11 +90,15 @@ describe("Feishu OAuth login route", () => {
     );
   });
 
-  it("rejects a cross-origin next destination", async () => {
+  it.each([
+    ["a fully qualified URL", "https%3A%2F%2Fevil.example"],
+    ["a protocol-relative URL", "%2F%2Fevil.example"],
+    ["a backslash-normalized URL", "%2F%5Cevil.example"],
+  ])("rejects %s as a next destination", async (_label, encodedNext) => {
     mocks.isFeishuConfigured.mockReturnValue(true);
     mocks.randomBytes.mockReturnValue(Buffer.from("a".repeat(32), "utf8"));
 
-    const response = await GET(loginRequest("?next=https%3A%2F%2Fevil.example"));
+    const response = await GET(loginRequest(`?next=${encodedNext}`));
 
     expect(response.status).toBe(307);
     expect(decodeURIComponent(cookieValue(response, "fscrm_oauth_next") ?? "")).toBe("/");

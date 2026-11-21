@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { isFeishuConfigured } from "@/lib/feishu/client";
 import { buildAuthorizeUrl } from "@/lib/feishu/identity/oauth";
+import { normalizeSafeRedirectPath } from "@/lib/auth/redirect";
 
 /** OAuth 入口生成的一次性 state Cookie 名称。 */
 export const OAUTH_STATE_COOKIE_NAME = "fscrm_oauth_state";
@@ -11,14 +12,6 @@ const OAUTH_STATE_MAX_AGE_SECONDS = 10 * 60;
 
 function loginError(status: number, error: string, message: string) {
   return NextResponse.json({ error, message }, { status });
-}
-
-function validRedirectPath(value: string | null): string | null {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return null;
-  }
-  const parsed = new URL(value, "https://crm.invalid");
-  return parsed.origin === "https://crm.invalid" ? parsed.pathname + parsed.search : null;
 }
 
 /**
@@ -64,7 +57,7 @@ export async function GET(request: NextRequest) {
   });
 
   const requestedNext = request.nextUrl.searchParams.get("next");
-  const nextPath = validRedirectPath(requestedNext) ?? "/";
+  const nextPath = normalizeSafeRedirectPath(requestedNext) ?? "/";
   response.cookies.set({
     name: "fscrm_oauth_next",
     value: nextPath,

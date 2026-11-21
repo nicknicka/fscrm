@@ -1,4 +1,4 @@
-import { listAssignableUsersForScope } from "@/lib/db/repositories/user";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { prisma } from "@/lib/db/client";
 import type { CurrentUser } from "@/lib/auth/session";
 
@@ -13,5 +13,5 @@ export async function loadOpportunityFormCustomers(scope: CurrentUser) {
 }
 
 export async function loadOpportunityFormUsers(scope: CurrentUser) {
-  return listAssignableUsersForScope(scope);
+  return listAssignableUsers(scope);
 }

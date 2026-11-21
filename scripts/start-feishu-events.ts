@@ -7,8 +7,8 @@
  * 接收事件（当前订阅 im.message.receive_v1）并按注册的事件处理器分发。
  * 需要在飞书开放平台配置「使用长连接接收事件」并订阅对应事件。
  */
-import { config } from "dotenv";
-config({ path: ".env.local" });
+// 必须最先求值：加载 .env.local 后，后续 import 的客户端模块才能拿到环境变量。
+import "./env-bootstrap";
 
 import { startFeishuEvents } from "../src/lib/feishu/events/connection";
 import { prisma } from "../src/lib/db/client";

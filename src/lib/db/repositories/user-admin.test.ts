@@ -5,6 +5,7 @@ const prismaMock = vi.hoisted(() => ({
     findUnique: vi.fn(),
     findMany: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
     count: vi.fn(),
     create: vi.fn(),
   },
@@ -32,10 +33,12 @@ beforeEach(() => {
   for (const fn of Object.values(prismaMock.user)) fn.mockReset();
   prismaMock.$transaction.mockReset();
   prismaMock.$transaction.mockImplementation(runTransaction);
+  prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+  prismaMock.user.count.mockResolvedValue(2);
 });
 
-describe("管理员任免服务", () => {
-  it("按内部 ID 找到已有负责人并任命为管理员，不创建用户", async () => {
+describe("用户（普通负责人 / 管理员）任免服务", () => {
+  it("按内部 ID 找到已有普通负责人并任命为管理员，不创建用户", async () => {
     prismaMock.user.findUnique.mockResolvedValueOnce(owner);
     prismaMock.user.update.mockResolvedValueOnce({ ...owner, role: "ADMIN" });
 
@@ -54,7 +57,7 @@ describe("管理员任免服务", () => {
     expect(prismaMock.user.create).not.toHaveBeenCalled();
   });
 
-  it("按飞书 open_id 找到已有负责人并任命为管理员", async () => {
+  it("按飞书 open_id 找到已有普通负责人并任命为管理员", async () => {
     prismaMock.user.findUnique.mockResolvedValueOnce(owner);
     prismaMock.user.update.mockResolvedValueOnce({ ...owner, role: "ADMIN" });
 
@@ -75,7 +78,6 @@ describe("管理员任免服务", () => {
   });
 
   it("撤销管理员后角色回落到普通负责人", async () => {
-    prismaMock.user.count.mockResolvedValueOnce(2);
     prismaMock.user.findUnique.mockResolvedValueOnce(admin);
     prismaMock.user.update.mockResolvedValueOnce({ ...admin, role: "OWNER" });
 
@@ -84,6 +86,17 @@ describe("管理员任免服务", () => {
       role: "OWNER",
     });
 
+    expect(prismaMock.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { isolationLevel: "Serializable" }
+    );
+    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
+      where: { id: admin.id, role: "ADMIN" },
+      data: { role: "OWNER" },
+    });
+    expect(prismaMock.user.count).toHaveBeenCalledWith({
+      where: { role: "ADMIN" },
+    });
     expect(prismaMock.user.update).toHaveBeenCalledWith({
       where: { id: admin.id },
       data: { role: "OWNER" },
@@ -91,7 +104,6 @@ describe("管理员任免服务", () => {
   });
 
   it("按飞书 open_id 撤销管理员同样生效", async () => {
-    prismaMock.user.count.mockResolvedValueOnce(2);
     prismaMock.user.findUnique.mockResolvedValueOnce(admin);
     prismaMock.user.update.mockResolvedValueOnce({ ...admin, role: "OWNER" });
 
@@ -105,11 +117,47 @@ describe("管理员任免服务", () => {
   });
 
   it("拒绝撤销最后一个管理员并保持角色不变", async () => {
-    prismaMock.user.count.mockResolvedValueOnce(1);
-    prismaMock.user.findUnique.mockResolvedValueOnce(admin);
+    prismaMock.user.findUnique.mockResolvedValue(admin);
+    prismaMock.user.count.mockResolvedValue(1);
 
     await expect(revokeAdmin({ id: admin.id })).rejects.toThrow(LAST_ADMIN);
+    expect(prismaMock.user.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.user.count).toHaveBeenCalledWith({
+      where: { role: "ADMIN" },
+    });
     expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it("并发撤销：序列化冲突重做后确认只剩 1 名管理员，拒绝提交", async () => {
+    // 第一次尝试：另一事务提交后当前事务在提交阶段发生序列化失败。
+    prismaMock.user.findUnique.mockResolvedValue(admin);
+    prismaMock.user.count.mockResolvedValue(2);
+    prismaMock.$transaction.mockRejectedValueOnce(
+      Object.assign(new Error("could not serialize access due to concurrent update"), {
+        code: "40001",
+      })
+    );
+
+    // 后续重做都看到只剩 1 名管理员；达到重试上限后不能留下 0 名管理员。
+    prismaMock.user.count.mockResolvedValue(1);
+
+    await expect(revokeAdmin({ id: admin.id })).rejects.toThrow(LAST_ADMIN);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(3);
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it("目标已被并发改为普通负责人时重做事务，不覆盖其他角色变更", async () => {
+    prismaMock.user.findUnique
+      .mockResolvedValueOnce(admin)
+      .mockResolvedValueOnce(admin);
+    prismaMock.user.updateMany.mockResolvedValueOnce({ count: 0 });
+    prismaMock.user.update.mockResolvedValueOnce({ ...admin, role: "OWNER" });
+
+    await expect(revokeAdmin({ id: admin.id })).resolves.toMatchObject({
+      id: admin.id,
+      role: "OWNER",
+    });
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(2);
   });
 
   it("未知用户任命失败且不创建用户", async () => {
@@ -120,12 +168,11 @@ describe("管理员任免服务", () => {
   });
 
   it("未知用户撤销失败且不更新任何用户", async () => {
-    prismaMock.user.count.mockResolvedValueOnce(2);
     prismaMock.user.findUnique.mockResolvedValueOnce(null);
 
     await expect(revokeAdmin({ openId: "ou_missing" })).rejects.toThrow(
       USER_NOT_FOUND
     );
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(prismaMock.user.updateMany).not.toHaveBeenCalled();
   });
 });

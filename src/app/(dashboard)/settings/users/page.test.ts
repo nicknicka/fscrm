@@ -20,8 +20,7 @@ describe("用户与角色管理页面", () => {
   });
 
   it("用户与角色页面再次校验管理员会话并列出角色", () => {
-    expect(adminPageSource).toContain("requireCurrentUser()");
-    expect(adminPageSource).toContain('currentUser.role !== "ADMIN"');
+    expect(adminPageSource).toContain("requireAdmin()");
     expect(adminPageSource).toContain("listUsers()");
     expect(adminPageSource).toContain('grantAdminAction');
     expect(adminPageSource).toContain('revokeAdminAction');

@@ -3,8 +3,8 @@
  *
  * 运行：npm run feishu:sync-contacts
  */
-import { config } from "dotenv";
-config({ path: ".env.local" });
+// 必须最先求值：加载 .env.local 后，后续 import 的客户端模块才能拿到环境变量。
+import "./env-bootstrap";
 
 import { runContactSync } from "../src/lib/services/contact-sync";
 import { prisma } from "../src/lib/db/client";

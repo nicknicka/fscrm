@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
-import { accessScopeFor } from "@/lib/auth/scope";
-import { listCustomers } from "@/lib/db/repositories/customer";
+import { accessScopeFor } from "@/lib/auth/scope";import { listCustomers } from "@/lib/db/repositories/customer";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { CustomerForm } from "./customer-form";
 import { deleteCustomerAction } from "./actions";
+import { setCustomerOwnerAction } from "./public-pool-actions";
 
 /**
  * 客户列表页。
@@ -20,9 +20,10 @@ export default async function CustomersPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const currentUser = await requireCurrentUser();
+  const scope = accessScopeFor(currentUser);
   const { q } = await searchParams;
   const [customers, users] = await Promise.all([
-    listCustomers({ search: q }, accessScopeFor(currentUser)),
+    listCustomers({ search: q }, scope),
     listAssignableUsers(currentUser),
   ]);
 
@@ -116,14 +117,41 @@ export default async function CustomersPage({
                     )._count?.opportunities ?? 0}
                   </td>
                   <td className="px-4 py-3">
-                    <form action={deleteCustomerAction.bind(null, customer.id)}>
-                      <button
-                        type="submit"
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        删除
-                      </button>
-                    </form>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <form action={deleteCustomerAction.bind(null, customer.id)}>
+                        <button
+                          type="submit"
+                          className="text-sm text-red-600 hover:underline"
+                        >
+                          删除
+                        </button>
+                      </form>
+                      {scope.role === "ADMIN" && (
+                        <form
+                          className="flex gap-2"
+                          action={setCustomerOwnerAction.bind(null, customer.id)}
+                        >
+                          <select
+                            name="ownerId"
+                            className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+                            defaultValue={customer.ownerId ?? ""}
+                          >
+                            <option value="">移入公海</option>
+                            {users.map((user) => (
+                              <option key={user.id} value={user.id}>
+                                指定给 {user.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50"
+                          >
+                            保存负责人
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

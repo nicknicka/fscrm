@@ -19,6 +19,8 @@ export interface ListCustomersParams {
   search?: string;
   /** 管理员可按负责人筛选；普通负责人传入的值会被忽略。 */
   ownerId?: string;
+  /** 公海：只查询尚无负责人的客户。 */
+  unassignedOnly?: boolean;
   /** 分页：跳过条数。 */
   skip?: number;
   /** 分页：取多少条。 */
@@ -27,6 +29,14 @@ export interface ListCustomersParams {
 
 /** 越权或对象不存在时抛出的统一错误，避免泄露对象存在性。 */
 export class CustomerAccessError extends Error {
+  constructor() {
+    super("CUSTOMER_NOT_FOUND_OR_FORBIDDEN");
+    this.name = "CustomerAccessError";
+  }
+}
+
+/** 认领或调整负责人失败时抛出的统一错误，避免泄露客户存在性或归属。 */
+export class CustomerClaimError extends Error {
   constructor() {
     super("CUSTOMER_NOT_FOUND_OR_FORBIDDEN");
     this.name = "CustomerAccessError";
@@ -48,6 +58,10 @@ export async function listCustomers(
   }
   if (scope.role === "ADMIN" && params.ownerId) {
     where.ownerId = params.ownerId;
+  }
+  if (params.unassignedOnly) {
+    // 公海客户不属于任何负责人，不能沿用普通负责人的 ownerWhere 过滤。
+    where.ownerId = null;
   }
   return prisma.customer.findMany({
     where,
@@ -131,6 +145,56 @@ export async function updateCustomer(
   const updated = await prisma.customer.findUnique({ where: { id } });
   if (!updated) {
     throw new CustomerAccessError();
+  }
+  return updated;
+}
+
+/**
+ * 认领公海客户：只有当前仍无负责人时才会写入，防止重复认领。
+ *
+ * 条件更新在一个原子操作内完成；越权、不存在或已被抢先认领统一拒绝。
+ */
+export async function claimPublicCustomer(
+  id: string,
+  scope: AccessScope
+): Promise<Customer> {
+  if (scope.role === "ADMIN") {
+    throw new CustomerClaimError();
+  }
+  const result = await prisma.customer.updateMany({
+    where: { id, ownerId: null },
+    data: { ownerId: scope.userId },
+  });
+  if (result.count !== 1) {
+    throw new CustomerClaimError();
+  }
+  const claimed = await prisma.customer.findUnique({ where: { id } });
+  if (!claimed || claimed.ownerId !== scope.userId) {
+    throw new CustomerClaimError();
+  }
+  return claimed;
+}
+
+/**
+ * 管理员移入公海或指定负责人；普通负责人只能保持自己的归属。
+ * 任何越权或不存在都统一拒绝，不泄露客户当前归属。
+ */
+export async function setCustomerOwner(
+  id: string,
+  ownerId: string | null,
+  scope: AccessScope
+): Promise<Customer> {
+  const allowedOwnerId = resolveAssignableOwnerId(scope, ownerId);
+  const result = await prisma.customer.updateMany({
+    where: { id, ...ownerWhere(scope) },
+    data: { ownerId: allowedOwnerId },
+  });
+  if (result.count !== 1) {
+    throw new CustomerClaimError();
+  }
+  const updated = await prisma.customer.findUnique({ where: { id } });
+  if (!updated || updated.ownerId !== allowedOwnerId) {
+    throw new CustomerClaimError();
   }
   return updated;
 }

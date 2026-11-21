@@ -59,6 +59,16 @@ describe("customer repository access scope", () => {
     );
   });
 
+  it("lets an administrator list the public pool of customers without an owner", async () => {
+    prismaMock.customer.findMany.mockResolvedValueOnce([]);
+
+    await listCustomers({ unassignedOnly: true }, admin);
+
+    expect(prismaMock.customer.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { ownerId: null } })
+    );
+  });
+
   it("queries customer details with the owner constraint and hides unrelated opportunities", async () => {
     prismaMock.customer.findFirst.mockResolvedValueOnce(null);
 

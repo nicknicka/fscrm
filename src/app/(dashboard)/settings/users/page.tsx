@@ -1,19 +1,16 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { listUsers } from "@/lib/db/repositories/user";
 import { grantAdminAction, revokeAdminAction } from "./actions";
 
 /**
  * 管理员可见的用户与角色页面。
  *
- * 页面只读取当前会话角色为管理员的用户列表；普通负责人即使直接访问路由也
+ * 页面通过签名会话的管理员守卫读取用户列表；普通负责人即使直接访问路由也
  * 会在服务端被拒绝。角色变更由 Server Action 再次校验权限。
  */
 export default async function AdminUsersPage() {
-  const currentUser = await requireCurrentUser();
-  if (currentUser.role !== "ADMIN") {
-    throw new Error("FORBIDDEN");
-  }
+  await requireAdmin();
 
   const users = await listUsers();
 

@@ -53,6 +53,13 @@ npm run feishu:sync-contacts
 
 > 注：若应用未被授予部门可见范围，部门数可能为 0，但用户仍可同步（脚本会自动降级为拉取全部用户）。
 
+新部署首次任命管理员：先执行上面的通讯录同步创建用户，再按飞书用户的 open_id 任命。命令行会自动读取 `.env.local`：
+
+```bash
+npm run admin -- grant --open-id <飞书用户open_id>
+# 或按 CRM 用户内部 ID：npm run admin -- grant --id <用户内部ID>
+```
+
 ## 人工真机验证
 
 下面的清单只列出待操作项，不构成已经验证通过的结论。按真实飞书账号、真实权限与真实数据库重跑时，请使用 [`docs/feishu/E2E-CHECKLIST.md`](./E2E-CHECKLIST.md) 中带时间、环境、结果、错误码和勾选框的记录模板：

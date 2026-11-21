@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  requireCurrentUser: vi.fn(),
+  requireAdmin: vi.fn(),
   grantAdmin: vi.fn(),
   revokeAdmin: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/session", () => ({
-  requireCurrentUser: mocks.requireCurrentUser,
+  requireAdmin: mocks.requireAdmin,
 }));
 
 vi.mock("@/lib/db/repositories/user", () => ({
@@ -28,9 +28,9 @@ const owner = {
   name: "张三",
   role: "OWNER" as const,
 };
-const admin = {
+const adminUser = {
   id: "user_admin",
-  name: "管理员",
+  name: "系统管理员",
   role: "ADMIN" as const,
 };
 
@@ -44,16 +44,16 @@ function form(values: Record<string, string>): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireCurrentUser.mockResolvedValue(admin);
+  mocks.requireAdmin.mockResolvedValue(adminUser);
   mocks.grantAdmin.mockResolvedValue({ ...owner, role: "ADMIN" });
-  mocks.revokeAdmin.mockResolvedValue({ ...admin, role: "OWNER" });
+  mocks.revokeAdmin.mockResolvedValue({ ...adminUser, role: "OWNER" });
 });
 
 describe("用户角色管理 Server Actions", () => {
   it("管理员任命负责人为管理员后刷新用户与角色页面", async () => {
     await grantAdminAction(form({ userId: "user_owner" }));
 
-    expect(mocks.requireCurrentUser).toHaveBeenCalledTimes(1);
+    expect(mocks.requireAdmin).toHaveBeenCalledTimes(1);
     expect(mocks.grantAdmin).toHaveBeenCalledWith({ id: "user_owner" });
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/settings/users");
   });
@@ -61,13 +61,13 @@ describe("用户角色管理 Server Actions", () => {
   it("管理员撤销管理员角色后刷新用户与角色页面", async () => {
     await revokeAdminAction(form({ userId: "user_admin" }));
 
-    expect(mocks.requireCurrentUser).toHaveBeenCalledTimes(1);
+    expect(mocks.requireAdmin).toHaveBeenCalledTimes(1);
     expect(mocks.revokeAdmin).toHaveBeenCalledWith({ id: "user_admin" });
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/settings/users");
   });
 
   it("普通负责人即使直接调用角色变更动作也被拒绝", async () => {
-    mocks.requireCurrentUser.mockResolvedValue(owner);
+    mocks.requireAdmin.mockRejectedValue(new Error("FORBIDDEN"));
 
     await expect(
       grantAdminAction(form({ userId: "user_owner" }))
@@ -82,7 +82,7 @@ describe("用户角色管理 Server Actions", () => {
   });
 
   it("未登录时角色变更动作在鉴权处被拒绝", async () => {
-    mocks.requireCurrentUser.mockRejectedValue(new Error("UNAUTHENTICATED"));
+    mocks.requireAdmin.mockRejectedValue(new Error("UNAUTHENTICATED"));
 
     await expect(
       grantAdminAction(form({ userId: "user_owner" }))

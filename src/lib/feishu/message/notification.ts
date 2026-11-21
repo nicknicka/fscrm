@@ -40,6 +40,12 @@ const TEMPLATES: Record<FeishuNotificationScenario, NotificationTemplate> = {
     title: "新客户分配",
     body: "有新客户「{{customerName}}」已创建，负责人是您，请及时跟进。",
   },
+  customer_claimed: {
+    receiveIdType: "open_id",
+    kind: "card",
+    title: "客户认领",
+    body: "您已认领客户「{{customerName}}」，请及时跟进。",
+  },
   opportunity_created: {
     receiveIdType: "open_id",
     kind: "card",

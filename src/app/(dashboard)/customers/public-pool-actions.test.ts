@@ -13,12 +13,19 @@ const mocks = vi.hoisted(() => ({
       this.name = "CustomerAccessError";
     }
   },
+  CustomerClaimError: class CustomerClaimError extends Error {
+    constructor() {
+      super("CUSTOMER_NOT_FOUND_OR_FORBIDDEN");
+      this.name = "CustomerClaimError";
+    }
+  },
 }));
 
 vi.mock("@/lib/db/repositories/customer", () => ({
   claimPublicCustomer: mocks.claimPublicCustomer,
   setCustomerOwner: mocks.setCustomerOwner,
   CustomerAccessError: mocks.CustomerAccessError,
+  CustomerClaimError: mocks.CustomerClaimError,
 }));
 
 vi.mock("@/lib/db/repositories/user", () => ({
@@ -87,7 +94,7 @@ describe("public pool Server Actions", () => {
     expect(mocks.getUserById).toHaveBeenCalledWith(owner.id);
     expect(mocks.notifyUser).toHaveBeenCalledWith(
       { name: "张三", feishuOpenId: "ou_owner" },
-      "customer_created",
+      "customer_claimed",
       { customerName: "Acme" }
     );
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/customers/public-pool");
@@ -95,33 +102,47 @@ describe("public pool Server Actions", () => {
   });
 
   it("rejects a double claim without revalidating or notifying", async () => {
-    mocks.claimPublicCustomer.mockRejectedValueOnce(
-      new Error("CUSTOMER_ALREADY_CLAIMED")
-    );
+    const { CustomerClaimError } =
+      await import("@/lib/db/repositories/customer");
+    mocks.claimPublicCustomer.mockRejectedValueOnce(new CustomerClaimError());
 
-    await expect(claimPublicCustomerAction("customer_1")).rejects.toThrow(
-      "NOT_FOUND"
-    );
+    await expect(claimPublicCustomerAction("customer_1")).resolves.toEqual({
+      ok: false,
+      error: "NOT_FOUND",
+    });
 
     expect(mocks.notifyUser).not.toHaveBeenCalled();
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
-  it("hides cross-scope claim attempts behind NOT_FOUND", async () => {
+  it("hides cross-scope claim attempts behind the same NOT_FOUND shape", async () => {
     const { CustomerAccessError } =
       await import("@/lib/db/repositories/customer");
     mocks.claimPublicCustomer.mockRejectedValueOnce(new CustomerAccessError());
 
-    await expect(claimPublicCustomerAction("customer_1")).rejects.toThrow(
-      "NOT_FOUND"
-    );
+    await expect(claimPublicCustomerAction("customer_1")).resolves.toEqual({
+      ok: false,
+      error: "NOT_FOUND",
+    });
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("uses the claim notification scenario rather than the new-customer one", async () => {
+    await claimPublicCustomerAction("customer_1");
+
+    expect(mocks.notifyUser).toHaveBeenCalledWith(
+      expect.anything(),
+      "customer_claimed",
+      { customerName: "Acme" }
+    );
   });
 
   it("still claims when notification fails", async () => {
     mocks.notifyUser.mockRejectedValueOnce(new Error("feishu unavailable"));
 
-    await expect(claimPublicCustomerAction("customer_1")).resolves.toBeUndefined();
+    await expect(claimPublicCustomerAction("customer_1")).resolves.toEqual({
+      ok: true,
+    });
     expect(mocks.claimPublicCustomer).toHaveBeenCalledOnce();
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/customers/public-pool");
   });
@@ -169,7 +190,7 @@ describe("public pool Server Actions", () => {
 
     await expect(
       setCustomerOwnerAction("customer_1", form({ ownerId: admin.id }))
-    ).rejects.toThrow("NOT_FOUND");
+    ).resolves.toEqual({ ok: false, error: "NOT_FOUND" });
     expect(mocks.setCustomerOwner).toHaveBeenCalledWith(
       "customer_1",
       owner.id,

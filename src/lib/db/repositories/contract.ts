@@ -47,6 +47,10 @@ function scopedWhere(
  *
  * 先在事务内按权限读取报价；草稿报价在同一事务内标记为已确认，随后创建合同，
  * 保留客户、商机与来源报价三条关联。来源报价唯一，避免重复转换产生孤儿数据。
+ *
+ * 重复转换（同一报价已产生合同）与越权、不存在一样统一返回 NOT_FOUND：
+ * 事务内先按 `sourceQuotationId` 查重，避免把 Prisma P2002 直接抛给调用方；
+ * 数据库的唯一约束仍是并发下最后的兜底。
  */
 export async function convertQuotationToContract(
   quotationId: string,
@@ -64,6 +68,14 @@ export async function convertQuotationToContract(
       },
     });
     if (!quotation || quotation.status === QuotationStatus.CANCELLED) {
+      throw new ContractNotFoundError();
+    }
+
+    const existing = await tx.contract.findUnique({
+      where: { sourceQuotationId: quotation.id },
+      select: { id: true },
+    });
+    if (existing) {
       throw new ContractNotFoundError();
     }
 

@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
-import { listCustomers } from "@/lib/db/repositories/customer";
+import { listPublicPoolCustomers } from "@/lib/db/repositories/customer";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
+import type { PublicPoolCustomerSummary } from "@/lib/db/repositories/customer";
+import { voidAction } from "@/lib/form-action";
 import {
   claimPublicCustomerAction,
   setCustomerOwnerAction,
@@ -14,12 +16,14 @@ import {
  * 公海列表页：展示所有尚无负责人的客户。
  *
  * 认领按钮对所有负责人可见；管理员可在客户详情中指定或清空负责人。
+ * 普通负责人在认领前只看到名称、等级、行业这些最小信息（ADR-0003 的有意例外），
+ * 联系人/商机数量等关联统计仅管理员可见。
  */
 export default async function PublicPoolPage() {
   const currentUser = await requireCurrentUser();
   const scope = accessScopeFor(currentUser);
   const [customers, users] = await Promise.all([
-    listCustomers({ unassignedOnly: true }, scope),
+    listPublicPoolCustomers(scope),
     listAssignableUsers(currentUser),
   ]);
 
@@ -51,20 +55,29 @@ export default async function PublicPoolPage() {
                 <th className="px-4 py-3 font-medium">客户名称</th>
                 <th className="px-4 py-3 font-medium">等级</th>
                 <th className="px-4 py-3 font-medium">行业</th>
-                <th className="px-4 py-3 font-medium">联系人/商机</th>
+                {scope.role === "ADMIN" && (
+                  <th className="px-4 py-3 font-medium">联系人/商机</th>
+                )}
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
-              {customers.map((customer) => (
+              {customers.map((customer: PublicPoolCustomerSummary) => (
                 <tr key={customer.id} className="hover:bg-zinc-50">
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/customers/${customer.id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {customer.name}
-                    </Link>
+                    {scope.role === "ADMIN" ? (
+                      <Link
+                        href={`/customers/${customer.id}`}
+                        className="font-medium text-blue-600 hover:underline"
+                      >
+                        {customer.name}
+                      </Link>
+                    ) : (
+                      // 普通负责人认领前只能看到最小信息，详情页仍受负责人范围限制。
+                      <span className="font-medium text-zinc-900">
+                        {customer.name}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge tone={levelTone[customer.level]}>
@@ -74,13 +87,17 @@ export default async function PublicPoolPage() {
                   <td className="px-4 py-3 text-zinc-600">
                     {customer.industry ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
-                    {customer._count.contacts} / {customer._count.opportunities}
-                  </td>
+                  {scope.role === "ADMIN" && (
+                    <td className="px-4 py-3 text-zinc-600">
+                      {"_count" in customer
+                        ? `${(customer as { _count: { contacts: number; opportunities: number } })._count.contacts} / ${(customer as { _count: { contacts: number; opportunities: number } })._count.opportunities}`
+                        : "—"}
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     {scope.role === "OWNER" && (
                       <form
-                        action={claimPublicCustomerAction.bind(null, customer.id)}
+                        action={voidAction(claimPublicCustomerAction.bind(null, customer.id))}
                       >
                         <button
                           type="submit"
@@ -93,7 +110,7 @@ export default async function PublicPoolPage() {
                     {scope.role === "ADMIN" && (
                       <form
                         className="flex gap-2"
-                        action={setCustomerOwnerAction.bind(null, customer.id)}
+                        action={voidAction(setCustomerOwnerAction.bind(null, customer.id))}
                       >
                         <select
                           name="ownerId"

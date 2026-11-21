@@ -168,6 +168,29 @@ describe("商机 Server Actions", () => {
     );
   });
 
+  it("已转化商机可通过阶段更新推进到赢单，并刷新列表与详情", async () => {
+    const actions = await import("./actions");
+    mocks.updateOpportunity.mockResolvedValue({
+      id: "opp_from_lead",
+      stage: "WON",
+    });
+
+    await actions.updateOpportunityStageAction(
+      "opp_from_lead",
+      createFormData({ stage: "WON" })
+    );
+
+    expect(mocks.updateOpportunity).toHaveBeenCalledWith(
+      "opp_from_lead",
+      { stage: "WON" },
+      owner
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/opportunities");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith(
+      "/opportunities/opp_from_lead"
+    );
+  });
+
   it("越权阶段更新与删除动作被拒绝且不调用仓储写入", async () => {
     const actions = await import("./actions");
     mocks.updateOpportunity.mockRejectedValue(new Error("FORBIDDEN"));

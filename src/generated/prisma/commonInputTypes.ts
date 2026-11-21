@@ -459,6 +459,38 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>;
 };
 
+export type EnumContractStatusFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.ContractStatus
+    | Prisma.EnumContractStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumContractStatusFilter<$PrismaModel> | $Enums.ContractStatus;
+};
+
+export type EnumContractStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.ContractStatus
+    | Prisma.EnumContractStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  not?:
+    | Prisma.NestedEnumContractStatusWithAggregatesFilter<$PrismaModel>
+    | $Enums.ContractStatus;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumContractStatusFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumContractStatusFilter<$PrismaModel>;
+};
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>;
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>;
@@ -904,3 +936,36 @@ export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   _min?: Prisma.NestedIntFilter<$PrismaModel>;
   _max?: Prisma.NestedIntFilter<$PrismaModel>;
 };
+
+export type NestedEnumContractStatusFilter<$PrismaModel = never> = {
+  equals?:
+    | $Enums.ContractStatus
+    | Prisma.EnumContractStatusFieldRefInput<$PrismaModel>;
+  in?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  notIn?:
+    | $Enums.ContractStatus[]
+    | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumContractStatusFilter<$PrismaModel> | $Enums.ContractStatus;
+};
+
+export type NestedEnumContractStatusWithAggregatesFilter<$PrismaModel = never> =
+  {
+    equals?:
+      | $Enums.ContractStatus
+      | Prisma.EnumContractStatusFieldRefInput<$PrismaModel>;
+    in?:
+      | $Enums.ContractStatus[]
+      | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+    notIn?:
+      | $Enums.ContractStatus[]
+      | Prisma.ListEnumContractStatusFieldRefInput<$PrismaModel>;
+    not?:
+      | Prisma.NestedEnumContractStatusWithAggregatesFilter<$PrismaModel>
+      | $Enums.ContractStatus;
+    _count?: Prisma.NestedIntFilter<$PrismaModel>;
+    _min?: Prisma.NestedEnumContractStatusFilter<$PrismaModel>;
+    _max?: Prisma.NestedEnumContractStatusFilter<$PrismaModel>;
+  };

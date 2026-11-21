@@ -63,6 +63,7 @@ export const ModelName = {
   FollowUp: "FollowUp",
   Quotation: "Quotation",
   QuotationItem: "QuotationItem",
+  Contract: "Contract",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -218,6 +219,20 @@ export const QuotationItemScalarFieldEnum = {
 
 export type QuotationItemScalarFieldEnum =
   (typeof QuotationItemScalarFieldEnum)[keyof typeof QuotationItemScalarFieldEnum];
+
+export const ContractScalarFieldEnum = {
+  id: "id",
+  customerId: "customerId",
+  opportunityId: "opportunityId",
+  sourceQuotationId: "sourceQuotationId",
+  status: "status",
+  amount: "amount",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type ContractScalarFieldEnum =
+  (typeof ContractScalarFieldEnum)[keyof typeof ContractScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",

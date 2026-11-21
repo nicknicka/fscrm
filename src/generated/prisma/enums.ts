@@ -72,3 +72,12 @@ export const QuotationStatus = {
 
 export type QuotationStatus =
   (typeof QuotationStatus)[keyof typeof QuotationStatus];
+
+export const ContractStatus = {
+  DRAFT: "DRAFT",
+  EFFECTIVE: "EFFECTIVE",
+  VOID: "VOID",
+} as const;
+
+export type ContractStatus =
+  (typeof ContractStatus)[keyof typeof ContractStatus];

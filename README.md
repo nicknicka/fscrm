@@ -27,6 +27,8 @@ npm run build
 npm run start
 ```
 
+生产部署需要同时常驻 **Web 服务**与**飞书事件长连接进程**（`npm run feishu:events`）两个进程，常驻方式、重启策略、日志查看、环境变量清单与首次管理员任命见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+
 ## 飞书接入说明
 
 - 在[飞书开放平台](https://open.feishu.cn)创建**企业自建应用**，获取 `App ID` / `App Secret`。
@@ -44,6 +46,18 @@ npm run start
 - 飞书 OAuth 登录回调已接入：未登录访问业务页面会跳转登录页，飞书授权成功后按 `open_id` 匹配 CRM 负责人并签发签名会话；未绑定用户会看到明确提示。
 - 业务数据按负责人/角色过滤已实现：管理员可查看和处理全部客户、线索、商机，普通负责人只能处理本人负责的数据；客户、线索、商机的新建与写操作均由 Server Action 从会话重新鉴权。
 - 手动通讯录同步同样受会话保护；登录所需的用户身份 scope 与后台权限配置见 [docs/feishu/README.md](docs/feishu/README.md)。
+
+### 数据库初始化与升级
+
+数据库结构由 `prisma/schema.prisma` 定义，变更以 `prisma/migrations/` 下的版本化迁移承载：
+
+```bash
+npm run db:deploy   # 生产 / 预发：按顺序应用尚未执行的迁移
+npm run db:migrate  # 本地开发：改完 schema 后生成并应用一个新迁移
+npm run db:push     # 可选：直接把 schema 推到库，不产生迁移文件
+```
+
+首次基线迁移为 `prisma/migrations/20261121120000_init`。迁移与 `db push` 的区别、生产上线步骤，以及已有库（用 `db push` 建起来的）如何过渡到迁移，见 [docs/DATABASE.md](docs/DATABASE.md)。
 
 ### 首次任命管理员
 
@@ -66,5 +80,6 @@ src/
 
 ## 工程约定
 
+- 每次 push 与 PR 都会触发 CI 质量门（`npm test` → `npm run typecheck` → `npm run lint` → `npm run build`），不依赖任何真实凭证；本地等价命令与排查方法见 [docs/CI.md](docs/CI.md)。
 - 领域词汇见根目录 [GLOSSARY.md](GLOSSARY.md)，输出中提及领域概念须使用其规范术语。
 - 工程技能配置（issue 跟踪、分诊标签、领域文档）见 [AGENTS.md](AGENTS.md) 与 `docs/agents/`。

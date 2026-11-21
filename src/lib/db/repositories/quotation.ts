@@ -1,6 +1,11 @@
 import { prisma } from "../client";
 import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
+import { customerOwnerWhere } from "./scoped";
+import { QuotationNotFoundError } from "./not-found";
 import { QuotationStatus, type Quotation } from "../../../generated/prisma/client";
+
+// 报价与合同/订单/回款共用同一种越权/不存在错误（NOT_FOUND），实体定义在 ./not-found。
+export { QuotationNotFoundError };
 
 /**
  * 报价数据访问层（#34）。
@@ -8,14 +13,6 @@ import { QuotationStatus, type Quotation } from "../../../generated/prisma/clien
  * 报价没有独立的负责人字段：普通负责人的权限完全由报价关联客户的负责人决定，
  * 管理员可访问全部。报价金额不是独立输入，始终由条目数量乘单价汇总写入。
  */
-
-/** 越权或不存在时统一返回该错误，避免泄露报价存在性。 */
-export class QuotationNotFoundError extends Error {
-  constructor() {
-    super("NOT_FOUND");
-    this.name = "QuotationNotFoundError";
-  }
-}
 
 /** 报价条目的可写字段。 */
 export interface QuotationItemInput {
@@ -45,26 +42,12 @@ function sumItems(items: QuotationItemInput[]): number {
   );
 }
 
-/** 把权限范围转成报价的 Prisma where 条件。 */
-function quotationWhere(
-  scope: AccessScope,
-  id?: string
-): { id?: string; customer?: { ownerId: string } } {
-  const where: { id?: string; customer?: { ownerId: string } } = {};
-  if (id) where.id = id;
-  const customerScope = ownerWhere(scope) as { ownerId?: string };
-  if (customerScope.ownerId) {
-    where.customer = { ownerId: customerScope.ownerId };
-  }
-  return where;
-}
-
 /** 查询商机下的报价列表；普通负责人仅见本人客户的相关报价。 */
 export async function listQuotations(
   scope: AccessScope,
   opportunityId?: string
 ) {
-  const where = quotationWhere(scope);
+  const where = customerOwnerWhere<{ id?: string }>(scope);
   if (opportunityId) {
     return prisma.quotation.findMany({
       where: { ...where, opportunityId },
@@ -89,7 +72,7 @@ export async function listQuotations(
 /** 按 ID 查询报价详情；越权与不存在都返回 null。 */
 export async function getQuotation(id: string, scope: AccessScope) {
   return prisma.quotation.findFirst({
-    where: quotationWhere(scope, id),
+    where: customerOwnerWhere<{ id?: string }>(scope, id),
     include: {
       customer: true,
       opportunity: true,
@@ -144,7 +127,7 @@ export async function updateQuotation(
   scope: AccessScope
 ): Promise<Quotation> {
   const existing = await prisma.quotation.findFirst({
-    where: quotationWhere(scope, id),
+    where: customerOwnerWhere<{ id?: string }>(scope, id),
     select: { id: true },
   });
   if (!existing) {

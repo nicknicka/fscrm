@@ -107,5 +107,5 @@ npm run feishu:sync-contacts   # 手动同步通讯录
 ## 待续（可选）
 
 - 若需要部门数据：在飞书后台通讯录权限的「可访问范围」设为全员，再同步。
-- 若部署 Vercel：补 `src/app/api/cron/sync-contacts/route.ts`（带 CRON_SECRET 校验）。
+- 若部署 Vercel / 云端：按 [`SCHEDULE.md`](./SCHEDULE.md) 配置 `CRON_SECRET` 与定时任务，调用 `POST /api/cron/sync-contacts`（`Authorization: Bearer <CRON_SECRET>`）。
 - OAuth 用户授权（飞书登录）已由自动化测试覆盖；真实飞书登录未在本次会话重跑，详见上文「权限与登录回归」。

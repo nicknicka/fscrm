@@ -2,6 +2,8 @@
  * 飞书通讯录与 CRM 人员模型的类型定义。
  */
 
+import type { UserRole } from "@/generated/prisma/enums";
+
 /** 飞书部门（通讯录）。 */
 export interface FeishuDepartment {
   /** 部门 ID（如 `od-xxx`）。 */
@@ -53,9 +55,10 @@ export interface CrmDepartment {
 /**
  * CRM 用户角色。
  *
- * 与 Prisma `UserRole` 对齐；通讯录同步的新用户只使用普通负责人。
+ * 直接别名生成的 Prisma `UserRole`，不再本地重复声明；通讯录同步的新用户
+ * 只使用普通负责人。
  */
-export type CrmUserRole = "OWNER" | "ADMIN";
+export type CrmUserRole = UserRole;
 
 /** CRM 人员（由飞书用户映射而来，可作为负责人数据源）。 */
 export interface CrmPerson {

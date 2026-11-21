@@ -338,3 +338,20 @@ model Payment {
 
   @@map("payments")
 }
+
+/// 飞书 OAuth state 的一次性记录：登录时登记，回调时原子消费。
+///
+/// 存放在数据库而非进程内 Map，使一次性校验在多实例部署与进程重启后仍然生效。
+/// 过期记录在每次消费时顺手回收（见 src/lib/auth/oauth-state.ts）。
+model OAuthState {
+  id     String @id @default(uuid())
+  /// OAuth state 原文；唯一约束保证同一 state 只能登记一次。
+  state  String @unique
+  /// 过期时间；超过后不再可消费，并会被回收。
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("oauth_states")
+}

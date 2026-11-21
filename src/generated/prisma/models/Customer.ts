@@ -1567,7 +1567,8 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     name: string
     level: $Enums.CustomerLevel
     /**
-     * 客户生命周期阶段；新客户默认处于线索阶段。
+     * 客户生命周期阶段：**人工维护**的销售阶段，新客户默认处于线索阶段。
+     * 不由 Lead.status 或 Opportunity.stage 自动派生；是否需要推进由负责人自行判断。
      */
     lifecycle: $Enums.CustomerLifecycle
     industry: string | null

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { QuotationStatus } from "@/generated/prisma/enums";
+import { quotationStatusLabel } from "@/lib/document-status";
 import {
   createQuotationAction,
   updateQuotationAction,
@@ -31,12 +32,6 @@ export interface QuotationView {
 
 const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500";
-
-const statusLabel: Record<string, string> = {
-  [QuotationStatus.DRAFT]: "草稿",
-  [QuotationStatus.CONFIRMED]: "已确认",
-  [QuotationStatus.CANCELLED]: "已取消",
-};
 
 const submitClass =
   "rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700";
@@ -119,7 +114,7 @@ export function QuotationsManager({
                     >
                       {Object.values(QuotationStatus).map((status) => (
                         <option key={status} value={status}>
-                          {statusLabel[status] ?? status}
+                          {quotationStatusLabel[status]}
                         </option>
                       ))}
                     </select>
@@ -146,7 +141,7 @@ export function QuotationsManager({
                         ¥{quotation.amount.toLocaleString("zh-CN")}
                       </span>
                       <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-                        {statusLabel[quotation.status] ?? quotation.status}
+                        {quotationStatusLabel[quotation.status]}
                       </span>
                     </div>
                     <div className="mt-1 text-xs text-zinc-500">

@@ -9,6 +9,10 @@ import {
   BusinessObjectNotFoundError,
 } from "@/lib/db/repositories/sales";
 import { accessScopeFor, resolveAssignableOwnerId } from "@/lib/auth/scope";
+import {
+  convertLeadToCustomerAndOpportunity,
+  LeadConversionError,
+} from "@/lib/db/repositories/conversion";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/session";
 import { getUserById } from "@/lib/db/repositories/user";
 import { LeadStatus } from "@/generated/prisma/enums";
@@ -75,6 +79,30 @@ export async function updateLeadStatusAction(id: string, formData: FormData) {
     leadAccessError(error);
   }
   revalidatePath("/leads");
+}
+
+/** 把线索转化为客户与商机，并刷新线索与商机列表。 */
+export async function convertLeadAction(id: string, formData: FormData) {
+  const currentUser = await requireScope();
+  const scope = accessScopeFor(currentUser);
+
+  const requestedOwnerId = String(formData.get("ownerId") ?? "").trim() || null;
+  const ownerId =
+    resolveAssignableOwnerId(scope, requestedOwnerId) ?? currentUser.id;
+  if (ownerId && !(await getUserById(ownerId))) {
+    throw new Error("INVALID_OWNER");
+  }
+
+  try {
+    await convertLeadToCustomerAndOpportunity(id, scope, { ownerId });
+    revalidatePath("/leads");
+    revalidatePath("/opportunities");
+  } catch (error) {
+    if (error instanceof LeadConversionError) {
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 }
 
 export async function deleteLeadAction(id: string) {

@@ -9,36 +9,16 @@ import {
 } from "@/lib/auth/session";
 import { UserRole } from "@/generated/prisma/enums";
 import { normalizeSafeRedirectPath } from "@/lib/auth/redirect";
+import { consumeOAuthState } from "@/lib/auth/oauth-state";
 
 /**
- * 飞书 OAuth 回调入口：一次性校验 state，兑换授权码并匹配 CRM 负责人。
+ * 飞书 OAuth 回调入口：一次性校验 state（共享存储，见 #46），兑换授权码并匹配 CRM 负责人。
  *
  * 只有匹配成功后才签发服务端会话；任何失败都跳转回登录页并带明确错误码。
  */
 
 const OAUTH_STATE_COOKIE_NAME = "fscrm_oauth_state";
 const OAUTH_NEXT_COOKIE_NAME = "fscrm_oauth_next";
-
-// 短时、进程内的已消费 state 记录。浏览器 Cookie 是主要一次性防护，
-// 这里额外保证即便攻击者重放同一 state 也不能再次完成登录。
-const consumedStates = new Map<string, number>();
-const CONSUMED_STATE_TTL_MS = 10 * 60 * 1000;
-
-function hasConsumedState(state: string): boolean {
-  const expiresAt = consumedStates.get(state);
-  if (!expiresAt) {
-    return false;
-  }
-  if (expiresAt <= Date.now()) {
-    consumedStates.delete(state);
-    return false;
-  }
-  return true;
-}
-
-function consumeState(state: string) {
-  consumedStates.set(state, Date.now() + CONSUMED_STATE_TTL_MS);
-}
 
 function loginRedirect(request: NextRequest, error: string) {
   const url = new URL("/login", request.url);
@@ -96,18 +76,19 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  if (
-    !stateFromCookie ||
-    !stateFromQuery ||
-    stateFromCookie !== stateFromQuery ||
-    hasConsumedState(stateFromQuery)
-  ) {
+  if (!stateFromCookie || !stateFromQuery || stateFromCookie !== stateFromQuery) {
     const response = loginRedirect(request, "invalid_state");
     clearCookie(response, OAUTH_STATE_COOKIE_NAME);
     return response;
   }
 
-  consumeState(stateFromQuery);
+  // 一次性消费走共享存储（#46）：多实例部署下重放同一 state 同样被拒绝，
+  // 进程重启也不会让旧 state 重新可用。
+  if (!(await consumeOAuthState(stateFromQuery))) {
+    const response = loginRedirect(request, "invalid_state");
+    clearCookie(response, OAUTH_STATE_COOKIE_NAME);
+    return response;
+  }
 
   if (!isFeishuConfigured() || !isSessionConfigured()) {
     const response = loginRedirect(request, "config_missing");

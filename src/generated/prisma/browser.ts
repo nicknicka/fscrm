@@ -77,3 +77,11 @@ export type Order = Prisma.OrderModel
  * 回款：客户为订单实际支付的款项，一笔订单可登记多笔回款。
  */
 export type Payment = Prisma.PaymentModel
+/**
+ * Model OAuthState
+ * 飞书 OAuth state 的一次性记录：登录时登记，回调时原子消费。
+ * 
+ * 存放在数据库而非进程内 Map，使一次性校验在多实例部署与进程重启后仍然生效。
+ * 过期记录在每次消费时顺手回收（见 src/lib/auth/oauth-state.ts）。
+ */
+export type OAuthState = Prisma.OAuthStateModel

@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { isFeishuConfigured } from "@/lib/feishu/client";
 import { buildAuthorizeUrl } from "@/lib/feishu/identity/oauth";
 import { normalizeSafeRedirectPath } from "@/lib/auth/redirect";
+import { issueOAuthState } from "@/lib/auth/oauth-state";
 
 /** OAuth 入口生成的一次性 state Cookie 名称。 */
 export const OAUTH_STATE_COOKIE_NAME = "fscrm_oauth_state";
@@ -37,6 +38,19 @@ export async function GET(request: NextRequest) {
   }
 
   const state = randomBytes(32).toString("base64url");
+
+  try {
+    // 登记到共享存储（#46）：回调时原子消费，保证多实例下也只能成功一次。
+    await issueOAuthState(state);
+  } catch (error) {
+    console.error("[auth:feishu] 登记 OAuth state 失败", error);
+    return loginError(
+      500,
+      "state_store_failed",
+      "服务端无法登记登录状态，请稍后重试。"
+    );
+  }
+
   const authorizeUrl = buildAuthorizeUrl({
     appId,
     redirectUri,

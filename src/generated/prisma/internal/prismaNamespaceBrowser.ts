@@ -62,7 +62,8 @@ export const ModelName = {
   QuotationItem: 'QuotationItem',
   Contract: 'Contract',
   Order: 'Order',
-  Payment: 'Payment'
+  Payment: 'Payment',
+  OAuthState: 'OAuthState'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -257,6 +258,16 @@ export const PaymentScalarFieldEnum = {
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const OAuthStateScalarFieldEnum = {
+  id: 'id',
+  state: 'state',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OAuthStateScalarFieldEnum = (typeof OAuthStateScalarFieldEnum)[keyof typeof OAuthStateScalarFieldEnum]
 
 
 export const SortOrder = {

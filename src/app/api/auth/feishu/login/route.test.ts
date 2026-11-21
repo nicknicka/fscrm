@@ -4,10 +4,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   isFeishuConfigured: vi.fn(),
   randomBytes: vi.fn(),
+  issueOAuthState: vi.fn(),
 }));
 
 vi.mock("@/lib/feishu/client", () => ({
   isFeishuConfigured: mocks.isFeishuConfigured,
+}));
+
+// OAuth state 一次性校验走共享存储（#46）。
+vi.mock("@/lib/auth/oauth-state", () => ({
+  OAUTH_STATE_TTL_MS: 10 * 60 * 1000,
+  issueOAuthState: mocks.issueOAuthState,
+  consumeOAuthState: vi.fn(),
 }));
 
 vi.mock("node:crypto", async () => {
@@ -37,6 +45,8 @@ describe("Feishu OAuth login route", () => {
   beforeEach(() => {
     mocks.isFeishuConfigured.mockReset();
     mocks.randomBytes.mockReset();
+    mocks.issueOAuthState.mockReset();
+    mocks.issueOAuthState.mockResolvedValue(undefined);
     vi.stubEnv("FEISHU_APP_ID", "cli_test");
     vi.stubEnv("FEISHU_APP_SECRET", "secret");
     vi.stubEnv("FEISHU_OAUTH_REDIRECT_URI", "https://crm.example.com/api/auth/feishu/callback");

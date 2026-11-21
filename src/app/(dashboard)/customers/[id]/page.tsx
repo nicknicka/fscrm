@@ -5,6 +5,7 @@ import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
 import { OpportunityStage, FollowUpMode } from "@/generated/prisma/enums";
+import { ContactsManager } from "./contacts/contacts-manager";
 import {
   createCustomerFollowUpAction,
   deleteCustomerFollowUpAction,
@@ -76,31 +77,19 @@ export default async function CustomerDetailPage({
           )}
         </section>
 
-        {/* 联系人 */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">
-            联系人（{customer.contacts.length}）
-          </h2>
-          {customer.contacts.length === 0 ? (
-            <p className="text-sm text-zinc-500">暂无联系人</p>
-          ) : (
-            <ul className="divide-y divide-zinc-100">
-              {customer.contacts.map((contact) => (
-                <li key={contact.id} className="py-2 text-sm">
-                  <span className="font-medium">{contact.name}</span>
-                  {contact.position && (
-                    <span className="ml-2 text-zinc-500">
-                      {contact.position}
-                    </span>
-                  )}
-                  <div className="text-xs text-zinc-400">
-                    {contact.phone ?? ""} {contact.email ?? ""}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {/* 联系人：新增/编辑/删除入口与表单 */}
+        <ContactsManager
+          customerId={customer.id}
+          contacts={customer.contacts.map((contact) => ({
+            id: contact.id,
+            customerId: contact.customerId,
+            name: contact.name,
+            position: contact.position,
+            phone: contact.phone,
+            email: contact.email,
+            remark: contact.remark,
+          }))}
+        />
 
         {/* 商机 */}
         <section className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -136,7 +125,10 @@ export default async function CustomerDetailPage({
           <h2 className="mb-4 text-base font-semibold">
             跟进记录（{customer.followUps.length}）
           </h2>
-          <form action={createFollowUp} className="mb-4 space-y-3 border-b border-zinc-100 pb-4">
+          <form
+            action={createFollowUp}
+            className="mb-4 space-y-3 border-b border-zinc-100 pb-4"
+          >
             <div className="text-sm font-medium">新增跟进</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="text-sm">
@@ -154,7 +146,9 @@ export default async function CustomerDetailPage({
                 </select>
               </label>
               <label className="text-sm">
-                <span className="mb-1 block text-zinc-600">下一步计划跟进时间</span>
+                <span className="mb-1 block text-zinc-600">
+                  下一步计划跟进时间
+                </span>
                 <input
                   name="nextFollowUpAt"
                   type="datetime-local"
@@ -192,7 +186,8 @@ export default async function CustomerDetailPage({
                       </Badge>
                       {followUp.nextFollowUpAt && (
                         <span className="text-xs text-zinc-500">
-                          下次跟进：{followUp.nextFollowUpAt.toLocaleString("zh-CN")}
+                          下次跟进：
+                          {followUp.nextFollowUpAt.toLocaleString("zh-CN")}
                         </span>
                       )}
                     </div>

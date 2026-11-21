@@ -34,4 +34,18 @@ describe("getNotificationTemplate", () => {
     expect(template.kind).toBe("card");
     expect(template.title).toContain("审批通知");
   });
+
+  it("客户认领使用独立的卡片模板，不复用新客户创建的措辞", () => {
+    const claimed = getNotificationTemplate("customer_claimed");
+    const created = getNotificationTemplate("customer_created");
+
+    expect(claimed.kind).toBe("card");
+    expect(claimed.title).toBe("客户认领");
+    expect(claimed.body).toBe("您已认领客户「{{customerName}}」，请及时跟进。");
+    expect(claimed.title).not.toBe(created.title);
+    expect(claimed.body).not.toBe(created.body);
+    expect(
+      fillTemplate(claimed.body, { customerName: "Acme" })
+    ).toBe("您已认领客户「Acme」，请及时跟进。");
+  });
 });

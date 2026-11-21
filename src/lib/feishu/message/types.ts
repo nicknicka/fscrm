@@ -48,6 +48,7 @@ export type FeishuNotificationScenario =
   | "follow_up_reminder" // 跟进提醒
   | "approval_notification" // 审批通知
   | "customer_created" // 客户新建
+  | "customer_claimed" // 公海客户被认领
   | "opportunity_created"; // 商机新建
 
 /** 通知入参：场景 + 接收者 + 可选变量。 */

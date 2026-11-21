@@ -24,6 +24,7 @@ import {
   deleteCustomer,
   getCustomer,
   listCustomers,
+  listPublicPoolCustomers,
   updateCustomer,
 } from "./customer";
 import { listAssignableUsers } from "./user";
@@ -67,6 +68,37 @@ describe("customer repository access scope", () => {
     expect(prismaMock.customer.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { ownerId: null } })
     );
+  });
+
+  it("gives an ordinary owner only the minimal public-pool fields, with no sensitive details or relations", async () => {
+    prismaMock.customer.findMany.mockResolvedValueOnce([]);
+
+    await listPublicPoolCustomers(owner);
+
+    const call = prismaMock.customer.findMany.mock.calls.at(-1)?.[0];
+    expect(call?.where).toEqual({ ownerId: null });
+    expect(call?.select).toEqual({
+      id: true,
+      name: true,
+      level: true,
+      industry: true,
+    });
+    expect(call).not.toHaveProperty("include");
+    const selected = Object.keys(call?.select ?? {});
+    for (const sensitive of ["phone", "email", "address", "remark", "owner"]) {
+      expect(selected).not.toContain(sensitive);
+    }
+  });
+
+  it("lets an administrator see the full public pool rows with relation counts", async () => {
+    prismaMock.customer.findMany.mockResolvedValueOnce([]);
+
+    await listPublicPoolCustomers(admin);
+
+    const call = prismaMock.customer.findMany.mock.calls.at(-1)?.[0];
+    expect(call?.where).toEqual({ ownerId: null });
+    expect(call).not.toHaveProperty("select");
+    expect(call).toHaveProperty("include");
   });
 
   it("queries customer details with the owner constraint and hides unrelated opportunities", async () => {

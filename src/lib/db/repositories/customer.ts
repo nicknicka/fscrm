@@ -5,6 +5,7 @@ import {
   type AccessScope,
 } from "../../auth/scope";
 import type { Customer, Prisma } from "../../../generated/prisma/client";
+import type { CustomerLevel } from "../../../generated/prisma/enums";
 
 /**
  * 客户数据访问层。
@@ -27,6 +28,12 @@ export interface ListCustomersParams {
   take?: number;
 }
 
+/**
+ * 客户数据的错误契约：越权、不存在、重复认领都抛这两个可判定的错误类，
+ * 由 Server Action 用 `instanceof` 统一映射为 NOT_FOUND（与单据类 action 一致），
+ * 不依赖 message/name 字符串匹配。
+ */
+
 /** 越权或对象不存在时抛出的统一错误，避免泄露对象存在性。 */
 export class CustomerAccessError extends Error {
   constructor() {
@@ -39,9 +46,29 @@ export class CustomerAccessError extends Error {
 export class CustomerClaimError extends Error {
   constructor() {
     super("CUSTOMER_NOT_FOUND_OR_FORBIDDEN");
-    this.name = "CustomerAccessError";
+    this.name = "CustomerClaimError";
   }
 }
+
+/**
+ * 公海列表对普通负责人只返回认领所需的最小字段（ADR-0003 的有意例外）：
+ * 认领前允许看到客户名称、等级、行业这类用于判断「值不值得认领」的展示字段，
+ * 但不返回联系电话、邮箱、地址、备注等敏感明细与关联记录。
+ */
+const PUBLIC_POOL_OWNER_SELECT = {
+  id: true,
+  name: true,
+  level: true,
+  industry: true,
+} as const;
+
+/** 普通负责人在公海上能看到的客户字段（认领所需的最小信息）。 */
+export type PublicPoolCustomerSummary = {
+  id: string;
+  name: string;
+  level: CustomerLevel;
+  industry: string | null;
+};
 
 /** 查询客户列表（含负责人与联系人数量）。 */
 export async function listCustomers(
@@ -61,6 +88,7 @@ export async function listCustomers(
   }
   if (params.unassignedOnly) {
     // 公海客户不属于任何负责人，不能沿用普通负责人的 ownerWhere 过滤。
+    // 普通负责人认领前只能看最小信息：请用 listPublicPoolCustomers。
     where.ownerId = null;
   }
   return prisma.customer.findMany({
@@ -72,6 +100,34 @@ export async function listCustomers(
     orderBy: { createdAt: "desc" },
     skip: params.skip ?? 0,
     take: params.take ?? 50,
+  });
+}
+
+/**
+ * 公海列表：普通负责人只拿到最小字段，管理员拿到带负责人与关联统计的完整行。
+ * 用重载表达两种返回类型，避免把最小投影混进客户列表的主类型。
+ */
+export async function listPublicPoolCustomers(
+  scope: AccessScope
+): Promise<
+  PublicPoolCustomerSummary[] | Array<Customer & { _count: { contacts: number; opportunities: number } }>
+>;
+export async function listPublicPoolCustomers(scope: AccessScope) {
+  const where: Prisma.CustomerWhereInput = { ownerId: null };
+  if (scope.role === "OWNER") {
+    return prisma.customer.findMany({
+      where,
+      select: PUBLIC_POOL_OWNER_SELECT,
+      orderBy: { createdAt: "desc" },
+    });
+  }
+  return prisma.customer.findMany({
+    where,
+    include: {
+      owner: true,
+      _count: { select: { contacts: true, opportunities: true } },
+    },
+    orderBy: { createdAt: "desc" },
   });
 }
 

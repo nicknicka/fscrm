@@ -6,6 +6,7 @@ import { listCustomers } from "@/lib/db/repositories/customer";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
+import { voidAction } from "@/lib/form-action";
 import { CustomerForm } from "./customer-form";
 import { deleteCustomerAction } from "./actions";
 import { setCustomerOwnerAction } from "./public-pool-actions";
@@ -139,9 +140,8 @@ export default async function CustomersPage({
                       {scope.role === "ADMIN" && (
                         <form
                           className="flex gap-2"
-                          action={setCustomerOwnerAction.bind(
-                            null,
-                            customer.id
+                          action={voidAction(
+                            setCustomerOwnerAction.bind(null, customer.id)
                           )}
                         >
                           <select

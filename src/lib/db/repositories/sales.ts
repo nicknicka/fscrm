@@ -238,6 +238,12 @@ export async function countOpportunities(scope: CurrentUser): Promise<number> {
 /**
  * 实时按销售阶段聚合当前权限范围内的商机数量。
  * 管理员统计全部商机，普通负责人仅统计本人负责商机。
+ *
+ * 普通负责人的统计口径是 `Opportunity.ownerId`，与下钻列表
+ * `listOpportunities`（`opportunityWhere` 同样按 `ownerId` 收窄）一致，
+ * 因此漏斗数字与 `/opportunities?stage=` 的条数对得上。
+ * 这与单据类对象（报价/合同/订单/回款）按**客户负责人**收窄的口径是有意不同：
+ * 漏斗讲的是商机归属。
  */
 export async function countOpportunitiesByStage(
   scope: CurrentUser

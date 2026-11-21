@@ -114,7 +114,8 @@ model Customer {
   id         String        @id @default(uuid())
   name       String
   level      CustomerLevel @default(MEDIUM)
-  /// 客户生命周期阶段；新客户默认处于线索阶段。
+  /// 客户生命周期阶段：**人工维护**的销售阶段，新客户默认处于线索阶段。
+  /// 不由 Lead.status 或 Opportunity.stage 自动派生；是否需要推进由负责人自行判断。
   lifecycle  CustomerLifecycle @default(LEAD)
   industry   String?
   phone      String?

@@ -4,7 +4,8 @@
  * 公海与客户归属相关的 Server Actions。
  *
  * 认领和归属调整都在数据层以原子条件更新完成；页面只提供入口，
- * 不构成安全边界。所有越权、不存在与重复认领统一映射成 NOT_FOUND。
+ * 不构成安全边界。所有越权、不存在与重复认领统一映射成 NOT_FOUND，
+ * 失败返回 `{ ok: false, error: "NOT_FOUND" }`，与单据类 action 的形状一致。
  */
 
 import { revalidatePath } from "next/cache";
@@ -13,22 +14,18 @@ import { accessScopeFor, resolveAssignableOwnerId } from "@/lib/auth/scope";
 import {
   claimPublicCustomer,
   setCustomerOwner,
+  CustomerAccessError,
+  CustomerClaimError,
 } from "@/lib/db/repositories/customer";
 import { getUserById } from "@/lib/db/repositories/user";
 import { notifyUser } from "@/lib/feishu/message/notify";
 
-function rethrowCustomerAccessError(error: unknown): never {
-  if (error instanceof Error && error.name === "CustomerAccessError") {
-    throw new Error("NOT_FOUND");
-  }
-  if (
-    error instanceof Error &&
-    (error.message === "CUSTOMER_NOT_FOUND_OR_FORBIDDEN" ||
-      error.message === "CUSTOMER_ALREADY_CLAIMED")
-  ) {
-    throw new Error("NOT_FOUND");
-  }
-  throw error;
+/** 与单据类 action 一致的失败返回形状。 */
+const NOT_FOUND = { ok: false, error: "NOT_FOUND" } as const;
+
+/** 客户仓储的越权/不存在/重复认领统一映射为 NOT_FOUND，其他错误照常抛出。 */
+function isCustomerAccessError(error: unknown): boolean {
+  return error instanceof CustomerAccessError || error instanceof CustomerClaimError;
 }
 
 function revalidateCustomerViews(id: string): void {
@@ -44,14 +41,18 @@ export async function claimPublicCustomerAction(id: string) {
   try {
     claimed = await claimPublicCustomer(id, accessScopeFor(currentUser));
   } catch (error) {
-    rethrowCustomerAccessError(error);
+    if (isCustomerAccessError(error)) {
+      // 与单据类 action 同一失败形状；只返回结果、不刷新，页面重新读取时仍是认领前的状态。
+      return NOT_FOUND;
+    }
+    throw error;
   }
 
   const owner = await getUserById(currentUser.id);
   try {
     await notifyUser(
       owner ? { name: owner.name, feishuOpenId: owner.feishuOpenId } : null,
-      "customer_created",
+      "customer_claimed",
       { customerName: claimed.name }
     );
   } catch {
@@ -59,6 +60,7 @@ export async function claimPublicCustomerAction(id: string) {
   }
 
   revalidateCustomerViews(id);
+  return { ok: true as const };
 }
 
 /** 管理员移入公海或指定负责人；普通负责人提交的值一律归为自己。 */
@@ -74,8 +76,10 @@ export async function setCustomerOwnerAction(id: string, formData: FormData) {
   try {
     await setCustomerOwner(id, ownerId, accessScopeFor(currentUser));
   } catch (error) {
-    rethrowCustomerAccessError(error);
+    if (isCustomerAccessError(error)) return NOT_FOUND;
+    throw error;
   }
 
   revalidateCustomerViews(id);
+  return { ok: true as const };
 }

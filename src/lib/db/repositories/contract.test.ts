@@ -10,7 +10,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const txMock = vi.hoisted(() => ({
   quotation: { findFirst: vi.fn(), updateMany: vi.fn() },
-  contract: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn() },
+  contract: {
+    create: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+  },
 }));
 
 const prismaMock = vi.hoisted(() => ({
@@ -68,6 +73,7 @@ function happyPath() {
   txMock.contract.create.mockResolvedValue(contract);
   txMock.contract.findMany.mockResolvedValue([]);
   txMock.contract.findFirst.mockResolvedValue(null);
+  txMock.contract.findUnique.mockResolvedValue(null);
 }
 
 beforeEach(() => {
@@ -119,11 +125,30 @@ describe("报价转合同服务（prisma.$transaction 接缝）", () => {
     expect(result).toEqual(expect.objectContaining({ id: contract.id }));
   });
 
-  it("报价已是已确认时仍可转合同，事务内不再修改报价状态", async () => {
+  it("报价已是已确认且尚未转过合同时仍可转合同，事务内不再修改报价状态", async () => {
     await convertQuotationToContract(quotation.id, scope(owner));
 
     expect(txMock.quotation.updateMany).not.toHaveBeenCalled();
     expect(txMock.contract.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("同一报价重复转换统一拒绝，不再创建第二份合同", async () => {
+    txMock.contract.findUnique.mockResolvedValue({ id: contract.id });
+
+    await expect(
+      convertQuotationToContract(quotation.id, scope(owner))
+    ).rejects.toBeInstanceOf(ContractNotFoundError);
+    await expect(
+      convertQuotationToContract(quotation.id, scope(admin))
+    ).rejects.toThrow("NOT_FOUND");
+
+    expect(txMock.contract.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { sourceQuotationId: quotation.id },
+      })
+    );
+    expect(txMock.contract.create).not.toHaveBeenCalled();
+    expect(txMock.quotation.updateMany).not.toHaveBeenCalled();
   });
 
   it("跨负责人或报价不存在统一拒绝，且不执行任何写入", async () => {

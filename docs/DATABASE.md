@@ -21,7 +21,9 @@ prisma/
 ├── schema.prisma               # 结构的唯一事实来源
 └── migrations/
     ├── migration_lock.toml     # 锁定 provider = "postgresql"，勿手改
-    └── 20261121120000_init/    # 首次基线迁移，覆盖当前全部模型与枚举
+    ├── 20261121120000_init/    # 首次基线迁移，覆盖当前全部模型与枚举
+    │   └── migration.sql
+    └── 20261122090000_add_oauth_state/  # OAuth state 一次性存储表（#46）
         └── migration.sql
 ```
 
@@ -36,6 +38,13 @@ prisma/
 `departments`、`users`、`customers`、`contacts`、`leads`、`opportunities`、`follow_ups`、`quotations`、`quotation_items`、`contracts`、`orders`、`payments`。
 
 枚举：`CustomerLevel`、`CustomerLifecycle`、`UserRole`、`OpportunityStage`、`LeadStatus`、`FollowUpMode`、`QuotationStatus`、`ContractStatus`、`OrderStatus`。
+
+### 增量迁移
+
+| 迁移 | 内容 | 说明 |
+| --- | --- | --- |
+| `20261121120000_init` | 9 个枚举 + 12 张业务表 | 基线，等价于当前 schema 从空库建起 |
+| `20261122090000_add_oauth_state` | 新建 `oauth_states` 表（`state` 唯一、`expiresAt` 索引） | 飞书登录的一次性 state 校验从进程内 `Map` 改为共享存储，多实例部署下重放同样被拒（#46）；过期行在每次消费时回收，部署约束见 [docs/DEPLOYMENT.md](DEPLOYMENT.md) 第 9.4 节 |
 
 生成方式（离线也可用，不需要连数据库）：在 schema 未改动的前提下，基线 SQL 由空库到 schema 的差异脚本产生。Prisma 7 中对应的命令是：
 

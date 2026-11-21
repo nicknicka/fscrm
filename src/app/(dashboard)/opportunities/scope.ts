@@ -9,8 +9,11 @@ import { getOpportunity, listOpportunities } from "@/lib/db/repositories/sales";
  * 规则后续收敛（#17），只需改这一处。
  */
 
-export async function listOpportunitiesForCurrentUser(scope: CurrentUser) {
-  return listOpportunities({}, scope);
+export async function listOpportunitiesForCurrentUser(
+  scope: CurrentUser,
+  filters: { stage?: string } = {}
+) {
+  return listOpportunities(filters, scope);
 }
 
 export async function getOpportunityForCurrentUser(

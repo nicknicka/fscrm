@@ -130,6 +130,7 @@ model Customer {
   followUps  FollowUp[]
   quotations Quotation[]
   contracts  Contract[]
+  orders     Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -193,6 +194,7 @@ model Opportunity {
   followUps         FollowUp[]
   quotations        Quotation[]
   contracts         Contract[]
+  orders            Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -283,9 +285,37 @@ model Contract {
   status            ContractStatus @default(DRAFT)
   /// 金额从来源报价继承，不由表单提交。
   amount            Float
+  orders            Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("contracts")
+}
+
+/// 订单状态：订单在履约路径上所处的状态。
+enum OrderStatus {
+  PENDING // 待履约
+  FULFILLING // 履约中
+  COMPLETED // 已完成
+  CANCELLED // 已取消
+}
+
+/// 订单：由合同转化而来，关联客户、商机与来源合同，进入履约阶段。
+model Order {
+  id               String      @id @default(uuid())
+  customerId       String
+  customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  opportunityId    String
+  opportunity      Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  sourceContractId String      @unique
+  sourceContract   Contract    @relation(fields: [sourceContractId], references: [id])
+  status           OrderStatus @default(PENDING)
+  /// 金额从来源合同继承，不由表单提交。
+  amount           Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
 }

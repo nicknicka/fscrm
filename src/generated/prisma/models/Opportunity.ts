@@ -273,6 +273,7 @@ export type OpportunityWhereInput = {
   followUps?: Prisma.FollowUpListRelationFilter;
   quotations?: Prisma.QuotationListRelationFilter;
   contracts?: Prisma.ContractListRelationFilter;
+  orders?: Prisma.OrderListRelationFilter;
 };
 
 export type OpportunityOrderByWithRelationInput = {
@@ -291,6 +292,7 @@ export type OpportunityOrderByWithRelationInput = {
   followUps?: Prisma.FollowUpOrderByRelationAggregateInput;
   quotations?: Prisma.QuotationOrderByRelationAggregateInput;
   contracts?: Prisma.ContractOrderByRelationAggregateInput;
+  orders?: Prisma.OrderOrderByRelationAggregateInput;
 };
 
 export type OpportunityWhereUniqueInput = Prisma.AtLeast<
@@ -322,6 +324,7 @@ export type OpportunityWhereUniqueInput = Prisma.AtLeast<
     followUps?: Prisma.FollowUpListRelationFilter;
     quotations?: Prisma.QuotationListRelationFilter;
     contracts?: Prisma.ContractListRelationFilter;
+    orders?: Prisma.OrderListRelationFilter;
   },
   "id"
 >;
@@ -389,6 +392,7 @@ export type OpportunityCreateInput = {
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateInput = {
@@ -405,6 +409,7 @@ export type OpportunityUncheckedCreateInput = {
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUpdateInput = {
@@ -424,6 +429,7 @@ export type OpportunityUpdateInput = {
   followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateInput = {
@@ -443,6 +449,7 @@ export type OpportunityUncheckedUpdateInput = {
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityCreateManyInput = {
@@ -847,6 +854,32 @@ export type OpportunityUpdateOneRequiredWithoutContractsNestedInput = {
   >;
 };
 
+export type OpportunityCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedCreateWithoutOrdersInput
+  >;
+  connectOrCreate?: Prisma.OpportunityCreateOrConnectWithoutOrdersInput;
+  connect?: Prisma.OpportunityWhereUniqueInput;
+};
+
+export type OpportunityUpdateOneRequiredWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedCreateWithoutOrdersInput
+  >;
+  connectOrCreate?: Prisma.OpportunityCreateOrConnectWithoutOrdersInput;
+  upsert?: Prisma.OpportunityUpsertWithoutOrdersInput;
+  connect?: Prisma.OpportunityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.OpportunityUpdateToOneWithWhereWithoutOrdersInput,
+      Prisma.OpportunityUpdateWithoutOrdersInput
+    >,
+    Prisma.OpportunityUncheckedUpdateWithoutOrdersInput
+  >;
+};
+
 export type OpportunityCreateWithoutOwnerInput = {
   id?: string;
   name: string;
@@ -860,6 +893,7 @@ export type OpportunityCreateWithoutOwnerInput = {
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutOwnerInput = {
@@ -875,6 +909,7 @@ export type OpportunityUncheckedCreateWithoutOwnerInput = {
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutOwnerInput = {
@@ -953,6 +988,7 @@ export type OpportunityCreateWithoutCustomerInput = {
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutCustomerInput = {
@@ -968,6 +1004,7 @@ export type OpportunityUncheckedCreateWithoutCustomerInput = {
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutCustomerInput = {
@@ -1026,6 +1063,7 @@ export type OpportunityCreateWithoutFollowUpsInput = {
   owner?: Prisma.UserCreateNestedOneWithoutOpportunitiesInput;
   quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutFollowUpsInput = {
@@ -1041,6 +1079,7 @@ export type OpportunityUncheckedCreateWithoutFollowUpsInput = {
   updatedAt?: Date | string;
   quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutFollowUpsInput = {
@@ -1087,6 +1126,7 @@ export type OpportunityUpdateWithoutFollowUpsInput = {
   owner?: Prisma.UserUpdateOneWithoutOpportunitiesNestedInput;
   quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutFollowUpsInput = {
@@ -1105,6 +1145,7 @@ export type OpportunityUncheckedUpdateWithoutFollowUpsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutQuotationsInput = {
@@ -1120,6 +1161,7 @@ export type OpportunityCreateWithoutQuotationsInput = {
   owner?: Prisma.UserCreateNestedOneWithoutOpportunitiesInput;
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutQuotationsInput = {
@@ -1135,6 +1177,7 @@ export type OpportunityUncheckedCreateWithoutQuotationsInput = {
   updatedAt?: Date | string;
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutQuotationsInput = {
@@ -1181,6 +1224,7 @@ export type OpportunityUpdateWithoutQuotationsInput = {
   owner?: Prisma.UserUpdateOneWithoutOpportunitiesNestedInput;
   followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutQuotationsInput = {
@@ -1199,6 +1243,7 @@ export type OpportunityUncheckedUpdateWithoutQuotationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutContractsInput = {
@@ -1214,6 +1259,7 @@ export type OpportunityCreateWithoutContractsInput = {
   owner?: Prisma.UserCreateNestedOneWithoutOpportunitiesInput;
   followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutContractsInput = {
@@ -1229,6 +1275,7 @@ export type OpportunityUncheckedCreateWithoutContractsInput = {
   updatedAt?: Date | string;
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
   quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutContractsInput = {
@@ -1275,6 +1322,7 @@ export type OpportunityUpdateWithoutContractsInput = {
   owner?: Prisma.UserUpdateOneWithoutOpportunitiesNestedInput;
   followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutContractsInput = {
@@ -1293,6 +1341,105 @@ export type OpportunityUncheckedUpdateWithoutContractsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
+};
+
+export type OpportunityCreateWithoutOrdersInput = {
+  id?: string;
+  name: string;
+  stage?: $Enums.OpportunityStage;
+  amount?: number | null;
+  expectedCloseDate?: Date | string | null;
+  remark?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  customer: Prisma.CustomerCreateNestedOneWithoutOpportunitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOpportunitiesInput;
+  followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
+  quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
+  contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+};
+
+export type OpportunityUncheckedCreateWithoutOrdersInput = {
+  id?: string;
+  customerId: string;
+  name: string;
+  stage?: $Enums.OpportunityStage;
+  amount?: number | null;
+  expectedCloseDate?: Date | string | null;
+  ownerId?: string | null;
+  remark?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
+  quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
+  contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+};
+
+export type OpportunityCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.OpportunityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedCreateWithoutOrdersInput
+  >;
+};
+
+export type OpportunityUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<
+    Prisma.OpportunityUpdateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedUpdateWithoutOrdersInput
+  >;
+  create: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedCreateWithoutOrdersInput
+  >;
+  where?: Prisma.OpportunityWhereInput;
+};
+
+export type OpportunityUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.OpportunityWhereInput;
+  data: Prisma.XOR<
+    Prisma.OpportunityUpdateWithoutOrdersInput,
+    Prisma.OpportunityUncheckedUpdateWithoutOrdersInput
+  >;
+};
+
+export type OpportunityUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  stage?:
+    | Prisma.EnumOpportunityStageFieldUpdateOperationsInput
+    | $Enums.OpportunityStage;
+  amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+  expectedCloseDate?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutOpportunitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOpportunitiesNestedInput;
+  followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
+  quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
+  contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+};
+
+export type OpportunityUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  stage?:
+    | Prisma.EnumOpportunityStageFieldUpdateOperationsInput
+    | $Enums.OpportunityStage;
+  amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+  expectedCloseDate?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
+  quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
+  contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityCreateManyOwnerInput = {
@@ -1323,6 +1470,7 @@ export type OpportunityUpdateWithoutOwnerInput = {
   followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutOwnerInput = {
@@ -1341,6 +1489,7 @@ export type OpportunityUncheckedUpdateWithoutOwnerInput = {
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateManyWithoutOwnerInput = {
@@ -1386,6 +1535,7 @@ export type OpportunityUpdateWithoutCustomerInput = {
   followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutCustomerInput = {
@@ -1404,6 +1554,7 @@ export type OpportunityUncheckedUpdateWithoutCustomerInput = {
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
   quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateManyWithoutCustomerInput = {
@@ -1429,6 +1580,7 @@ export type OpportunityCountOutputType = {
   followUps: number;
   quotations: number;
   contracts: number;
+  orders: number;
 };
 
 export type OpportunityCountOutputTypeSelect<
@@ -1438,6 +1590,7 @@ export type OpportunityCountOutputTypeSelect<
   followUps?: boolean | OpportunityCountOutputTypeCountFollowUpsArgs;
   quotations?: boolean | OpportunityCountOutputTypeCountQuotationsArgs;
   contracts?: boolean | OpportunityCountOutputTypeCountContractsArgs;
+  orders?: boolean | OpportunityCountOutputTypeCountOrdersArgs;
 };
 
 /**
@@ -1483,6 +1636,16 @@ export type OpportunityCountOutputTypeCountContractsArgs<
   where?: Prisma.ContractWhereInput;
 };
 
+/**
+ * OpportunityCountOutputType without action
+ */
+export type OpportunityCountOutputTypeCountOrdersArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.OrderWhereInput;
+};
+
 export type OpportunitySelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -1503,6 +1666,7 @@ export type OpportunitySelect<
     followUps?: boolean | Prisma.Opportunity$followUpsArgs<ExtArgs>;
     quotations?: boolean | Prisma.Opportunity$quotationsArgs<ExtArgs>;
     contracts?: boolean | Prisma.Opportunity$contractsArgs<ExtArgs>;
+    orders?: boolean | Prisma.Opportunity$ordersArgs<ExtArgs>;
     _count?: boolean | Prisma.OpportunityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["opportunity"]
@@ -1588,6 +1752,7 @@ export type OpportunityInclude<
   followUps?: boolean | Prisma.Opportunity$followUpsArgs<ExtArgs>;
   quotations?: boolean | Prisma.Opportunity$quotationsArgs<ExtArgs>;
   contracts?: boolean | Prisma.Opportunity$contractsArgs<ExtArgs>;
+  orders?: boolean | Prisma.Opportunity$ordersArgs<ExtArgs>;
   _count?: boolean | Prisma.OpportunityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type OpportunityIncludeCreateManyAndReturn<
@@ -1616,6 +1781,7 @@ export type $OpportunityPayload<
     followUps: Prisma.$FollowUpPayload<ExtArgs>[];
     quotations: Prisma.$QuotationPayload<ExtArgs>[];
     contracts: Prisma.$ContractPayload<ExtArgs>[];
+    orders: Prisma.$OrderPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -2251,6 +2417,17 @@ export interface Prisma__OpportunityClient<
       >
     | Null
   >;
+  orders<T extends Prisma.Opportunity$ordersArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Opportunity$ordersArgs<ExtArgs>>
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$OrderPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2873,6 +3050,35 @@ export type Opportunity$contractsArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.ContractScalarFieldEnum | Prisma.ContractScalarFieldEnum[];
+};
+
+/**
+ * Opportunity.orders
+ */
+export type Opportunity$ordersArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null;
+  where?: Prisma.OrderWhereInput;
+  orderBy?:
+    | Prisma.OrderOrderByWithRelationInput
+    | Prisma.OrderOrderByWithRelationInput[];
+  cursor?: Prisma.OrderWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[];
 };
 
 /**

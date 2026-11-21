@@ -17,4 +17,5 @@ export type * from "./models/FollowUp";
 export type * from "./models/Quotation";
 export type * from "./models/QuotationItem";
 export type * from "./models/Contract";
+export type * from "./models/Order";
 export type * from "./commonInputTypes";

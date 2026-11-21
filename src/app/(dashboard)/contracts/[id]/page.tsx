@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { ContractStatus, QuotationStatus } from "@/generated/prisma/enums";
+import { ContractStatus } from "@/generated/prisma/enums";
 import { getContractForCurrentUser } from "../actions";
+import { convertContractToOrderAction } from "../../orders/actions";
 
-/** 合同详情页；越权与不存在统一按 notFound 处理。 */
+/** 合同详情页：可把合同转为订单，越权与不存在统一按 notFound 处理。 */
 export default async function ContractDetailPage({
   params,
 }: {
@@ -13,6 +14,11 @@ export default async function ContractDetailPage({
   const { id } = await params;
   const contract = await getContractForCurrentUser(id);
   if (!contract) notFound();
+  const convertToOrder = convertContractToOrderAction.bind(
+    null,
+    contract.id,
+    contract.opportunityId
+  );
 
   return (
     <div>
@@ -23,7 +29,20 @@ export default async function ContractDetailPage({
         ← 返回合同列表
       </Link>
       <div className="mt-4">
-        <PageHeader title="合同详情" description={contract.customer.name} />
+        <PageHeader
+          title="合同详情"
+          description={contract.customer.name}
+          action={
+            <form action={() => convertToOrder().then(() => undefined)}>
+              <button
+                type="submit"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                转为订单
+              </button>
+            </form>
+          }
+        />
       </div>
 
       <section className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -85,9 +104,9 @@ const contractStatusLabel: Record<string, string> = {
 };
 
 const quotationStatusLabel: Record<string, string> = {
-  [QuotationStatus.DRAFT]: "草稿",
-  [QuotationStatus.CONFIRMED]: "已确认",
-  [QuotationStatus.CANCELLED]: "已取消",
+  DRAFT: "草稿",
+  CONFIRMED: "已确认",
+  CANCELLED: "已取消",
 };
 
 function Info({ label, value }: { label: string; value: string }) {

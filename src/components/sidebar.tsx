@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/leads", label: "线索", icon: "◇" },
   { href: "/opportunities", label: "商机", icon: "◆" },
   { href: "/contracts", label: "合同", icon: "▤" },
+  { href: "/orders", label: "订单", icon: "▣" },
   { href: "/funnel", label: "销售漏斗", icon: "▽" },
   { href: "/settings", label: "设置", icon: "⚙" },
 ];

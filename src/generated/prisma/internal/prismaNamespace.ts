@@ -437,6 +437,7 @@ export const ModelName = {
   Quotation: "Quotation",
   QuotationItem: "QuotationItem",
   Contract: "Contract",
+  Order: "Order",
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -468,7 +469,8 @@ export type TypeMap<
       | "followUp"
       | "quotation"
       | "quotationItem"
-      | "contract";
+      | "contract"
+      | "order";
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -1232,6 +1234,82 @@ export type TypeMap<
         };
       };
     };
+    Order: {
+      payload: Prisma.$OrderPayload<ExtArgs>;
+      fields: Prisma.OrderFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.OrderFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.OrderFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        findFirst: {
+          args: Prisma.OrderFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.OrderFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        findMany: {
+          args: Prisma.OrderFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>[];
+        };
+        create: {
+          args: Prisma.OrderCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        createMany: {
+          args: Prisma.OrderCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.OrderCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>[];
+        };
+        delete: {
+          args: Prisma.OrderDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        update: {
+          args: Prisma.OrderUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        deleteMany: {
+          args: Prisma.OrderDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.OrderUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.OrderUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>[];
+        };
+        upsert: {
+          args: Prisma.OrderUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrderPayload>;
+        };
+        aggregate: {
+          args: Prisma.OrderAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrder>;
+        };
+        groupBy: {
+          args: Prisma.OrderGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.OrderGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.OrderCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.OrderCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -1422,6 +1500,20 @@ export const ContractScalarFieldEnum = {
 
 export type ContractScalarFieldEnum =
   (typeof ContractScalarFieldEnum)[keyof typeof ContractScalarFieldEnum];
+
+export const OrderScalarFieldEnum = {
+  id: "id",
+  customerId: "customerId",
+  opportunityId: "opportunityId",
+  sourceContractId: "sourceContractId",
+  status: "status",
+  amount: "amount",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+} as const;
+
+export type OrderScalarFieldEnum =
+  (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum];
 
 export const SortOrder = {
   asc: "asc",
@@ -1629,6 +1721,22 @@ export type ListEnumContractStatusFieldRefInput<$PrismaModel> =
   FieldRefInputType<$PrismaModel, "ContractStatus[]">;
 
 /**
+ * Reference to a field of type 'OrderStatus'
+ */
+export type EnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "OrderStatus"
+>;
+
+/**
+ * Reference to a field of type 'OrderStatus[]'
+ */
+export type ListEnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  "OrderStatus[]"
+>;
+
+/**
  * Batch Payload for updateMany & deleteMany & createMany
  */
 export type BatchPayload = {
@@ -1795,6 +1903,7 @@ export type GlobalOmitConfig = {
   quotation?: Prisma.QuotationOmit;
   quotationItem?: Prisma.QuotationItemOmit;
   contract?: Prisma.ContractOmit;
+  order?: Prisma.OrderOmit;
 };
 
 /* Types for Logging */

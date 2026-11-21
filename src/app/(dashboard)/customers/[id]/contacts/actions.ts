@@ -93,3 +93,32 @@ export async function deleteContactAction(contactId: string) {
   }
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// 表单入口：`<form action>` 只接受 (formData) => void 的 Server Action。
+// 下面仅做参数绑定与返回类型适配，业务校验仍由上方同名 action 负责。
+// ---------------------------------------------------------------------------
+
+/** 新增联系人表单入口。 */
+export async function createContactFormAction(
+  customerId: string,
+  formData: FormData
+): Promise<void> {
+  await createContactAction(customerId, formData);
+}
+
+/** 编辑联系人表单入口。 */
+export async function updateContactFormAction(
+  contactId: string,
+  formData: FormData
+): Promise<void> {
+  await updateContactAction(contactId, formData);
+}
+
+/** 删除联系人表单入口。 */
+export async function deleteContactFormAction(
+  contactId: string,
+  _formData: FormData
+): Promise<void> {
+  await deleteContactAction(contactId);
+}

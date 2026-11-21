@@ -60,3 +60,15 @@ export async function getContractForCurrentUser(id: string) {
   const currentUser = await requireCurrentUser();
   return getContract(id, accessScopeFor(currentUser));
 }
+
+/**
+ * 转为合同表单入口：`<form action>` 需要 (formData) => void 的签名，
+ * 这里只做参数绑定与返回类型适配，转换逻辑仍在 convertQuotationToContract。
+ */
+export async function convertQuotationToContractFormAction(
+  quotationId: string,
+  opportunityId: string,
+  _formData: FormData
+): Promise<void> {
+  await convertQuotationToContractAction(quotationId, opportunityId);
+}

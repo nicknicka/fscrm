@@ -118,3 +118,25 @@ export async function listQuotationsForCurrentUser(opportunityId: string) {
   const currentUser = await requireCurrentUser();
   return listQuotations(accessScopeFor(currentUser), opportunityId);
 }
+
+// ---------------------------------------------------------------------------
+// 表单入口：`<form action>` 只接受 (formData) => void 的 Server Action，
+// 因此把需要额外参数的调用封装成只用 bind 传参的薄包装，不改变业务逻辑。
+// ---------------------------------------------------------------------------
+
+/** 新增报价表单入口。 */
+export async function createQuotationFormAction(
+  opportunityId: string,
+  formData: FormData
+): Promise<void> {
+  await createQuotationAction(opportunityId, formData);
+}
+
+/** 编辑报价表单入口。 */
+export async function updateQuotationFormAction(
+  quotationId: string,
+  opportunityId: string,
+  formData: FormData
+): Promise<void> {
+  await updateQuotationAction(quotationId, opportunityId, formData);
+}

@@ -4,10 +4,10 @@ import { useState } from "react";
 import { QuotationStatus } from "@/generated/prisma/enums";
 import { quotationStatusLabel } from "@/lib/document-status";
 import {
-  createQuotationAction,
-  updateQuotationAction,
+  createQuotationFormAction,
+  updateQuotationFormAction,
 } from "./actions";
-import { convertQuotationToContractAction } from "@/app/(dashboard)/contracts/actions";
+import { convertQuotationToContractFormAction } from "@/app/(dashboard)/contracts/actions";
 
 /**
  * 商机详情的报价管理界面（#34/#35）。
@@ -36,11 +36,6 @@ const inputClass =
 const submitClass =
   "rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700";
 
-/** React form action 要求 void 返回；结果由状态文本展示，权限仍在服务端校验。 */
-function submit(result: Promise<{ ok: boolean; error?: string }>) {
-  void result;
-}
-
 export function QuotationsManager({
   opportunityId,
   quotations,
@@ -50,6 +45,13 @@ export function QuotationsManager({
 }) {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Server Action 不能包在内联箭头函数里传给 <form action>，只能预绑定参数后传引用。
+  const createBound = createQuotationFormAction.bind(null, opportunityId);
+  const updateBound = (quotationId: string) =>
+    updateQuotationFormAction.bind(null, quotationId, opportunityId);
+  const convertBound = (quotationId: string) =>
+    convertQuotationToContractFormAction.bind(null, quotationId, opportunityId);
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -69,9 +71,7 @@ export function QuotationsManager({
 
       {creating && (
         <form
-          action={(formData) =>
-            submit(createQuotationAction(opportunityId, formData))
-          }
+          action={createBound}
           className="mb-5 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
         >
           <ItemFields />
@@ -91,18 +91,7 @@ export function QuotationsManager({
           {quotations.map((quotation) => (
             <li key={quotation.id} className="py-3 text-sm">
               {editingId === quotation.id ? (
-                <form
-                  action={(formData) =>
-                    submit(
-                      updateQuotationAction(
-                        quotation.id,
-                        opportunityId,
-                        formData
-                      )
-                    )
-                  }
-                  className="space-y-3"
-                >
+                <form action={updateBound(quotation.id)} className="space-y-3">
                   <label className="block">
                     <span className="mb-1 block text-xs text-zinc-600">
                       状态
@@ -166,14 +155,7 @@ export function QuotationsManager({
                     >
                       编辑
                     </button>
-                    <form
-                      action={() =>
-                        convertQuotationToContractAction(
-                          quotation.id,
-                          opportunityId
-                        ).then(() => undefined)
-                      }
-                    >
+                    <form action={convertBound(quotation.id)}>
                       <button
                         type="submit"
                         disabled={
@@ -205,36 +187,38 @@ function ItemFields({ items = [] }: { items?: QuotationItemView[] }) {
   return (
     <div className="space-y-2">
       <div className="text-xs text-zinc-600">报价条目</div>
-      {(items.length > 0 ? items : [{ id: "new", name: "", quantity: 1, unitPrice: 0 }])
-        .map((item) => (
-          <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2">
-            <input
-              name="itemName[]"
-              required
-              defaultValue={item.name}
-              placeholder="条目名称"
-              className={inputClass}
-            />
-            <input
-              name="itemQuantity[]"
-              required
-              type="number"
-              min="1"
-              step="1"
-              defaultValue={item.quantity}
-              className={inputClass}
-            />
-            <input
-              name="itemUnitPrice[]"
-              required
-              type="number"
-              min="0"
-              step="0.01"
-              defaultValue={item.unitPrice}
-              className={inputClass}
-            />
-          </div>
-        ))}
+      {(items.length > 0
+        ? items
+        : [{ id: "new", name: "", quantity: 1, unitPrice: 0 }]
+      ).map((item) => (
+        <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2">
+          <input
+            name="itemName[]"
+            required
+            defaultValue={item.name}
+            placeholder="条目名称"
+            className={inputClass}
+          />
+          <input
+            name="itemQuantity[]"
+            required
+            type="number"
+            min="1"
+            step="1"
+            defaultValue={item.quantity}
+            className={inputClass}
+          />
+          <input
+            name="itemUnitPrice[]"
+            required
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={item.unitPrice}
+            className={inputClass}
+          />
+        </div>
+      ))}
     </div>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import {
-  createContactAction,
-  deleteContactAction,
-  updateContactAction,
+  createContactFormAction,
+  updateContactFormAction,
+  deleteContactFormAction,
 } from "./actions";
 
 /**
@@ -37,17 +37,10 @@ export function ContactsManager({
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // React 的 form action 要求 void 返回；Server Action 的返回值仍保留给
-  // 直接调用方（与外部行为测试），这里只做提交适配。
-  const createBound = (formData: FormData) => {
-    void createContactAction(customerId, formData);
-  };
-  const deleteBound = (id: string) => () => {
-    void deleteContactAction(id);
-  };
-  const updateBound = (id: string) => (formData: FormData) => {
-    void updateContactAction(id, formData);
-  };
+  // Server Action 不能包在内联箭头函数里传给 <form action>，只能预绑定参数后传引用。
+  const createBound = createContactFormAction.bind(null, customerId);
+  const updateBound = (id: string) => updateContactFormAction.bind(null, id);
+  const deleteBound = (id: string) => deleteContactFormAction.bind(null, id);
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -160,9 +153,7 @@ export function ContactsManager({
                       </span>
                     )}
                     <div className="text-xs text-zinc-400">
-                      {[contact.phone, contact.email]
-                        .filter(Boolean)
-                        .join(" ")}
+                      {[contact.phone, contact.email].filter(Boolean).join(" ")}
                     </div>
                     {contact.remark && (
                       <div className="mt-1 text-xs text-zinc-500">

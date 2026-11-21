@@ -287,12 +287,16 @@ describe("Feishu OAuth callback route", () => {
     expect(JSON.stringify(setCookies(response))).not.toContain("u-refresh");
   });
 
-  it("rejects a cross-origin next cookie and falls back to the CRM home", async () => {
+  it.each([
+    ["a fully qualified URL", "https://evil.example"],
+    ["a protocol-relative URL", "//evil.example"],
+    ["a backslash-normalized URL", "/\\evil.example"],
+  ])("rejects a next cookie containing %s", async (_label, next) => {
     mocks.authenticateWithCode.mockResolvedValue(matchedResult());
     const state = await issueState();
 
     const response = await GET(
-      callbackRequest({ params: { code: "code-123", state }, next: "https://evil.example" })
+      callbackRequest({ params: { code: "code-123", state }, next })
     );
 
     expect(response.headers.get("location")).toBe("https://crm.example.com/");

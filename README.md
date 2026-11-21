@@ -41,7 +41,9 @@ npm run start
 - `SESSION_SECRET` 必须配置为至少 32 个字符的独立随机值，可用 `openssl rand -base64 32` 生成；不要复用飞书应用凭证。
 - 会话签名与校验位于 `src/lib/auth/session.ts`，当前负责人、姓名与角色通过签名载荷传递，受保护入口统一用 `getCurrentUser()` 读取。
 - 会话 Cookie 固定为 `HttpOnly` + `SameSite=Lax`，生产环境自动启用 `Secure`；退出登录调用 `clearSession()` 清除 Cookie。
-- 飞书 OAuth 回调页面与按负责人/角色的业务数据过滤尚未实现，将由后续工单接入现有会话边界。
+- 飞书 OAuth 登录回调已接入：未登录访问业务页面会跳转登录页，飞书授权成功后按 `open_id` 匹配 CRM 负责人并签发签名会话；未绑定用户会看到明确提示。
+- 业务数据按负责人/角色过滤已实现：管理员可查看和处理全部客户、线索、商机，普通负责人只能处理本人负责的数据；客户、线索、商机的新建与写操作均由 Server Action 从会话重新鉴权。
+- 手动通讯录同步同样受会话保护；登录所需的用户身份 scope 与后台权限配置见 [docs/feishu/README.md](docs/feishu/README.md)。
 
 ## 目录结构
 

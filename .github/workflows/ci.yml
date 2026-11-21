@@ -1,0 +1,47 @@
+name: CI
+
+# 质量门：每次 push 与 pull_request 都跑同一套 npm scripts（见 docs/CI.md）。
+# 不依赖真实凭证：不创建 .env.local，测试中需要数据库的冒烟用例会自动跳过。
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: 测试 / 类型检查 / Lint / 构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 与 package.json 的 engines.node（>=26）保持一致
+          node-version-file: "package.json"
+          cache: "npm"
+
+      - name: 安装依赖
+        run: npm ci --ignore-scripts
+
+      - name: 测试
+        run: npm test
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: 构建
+        run: npm run build

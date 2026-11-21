@@ -6,9 +6,10 @@ import {
   createQuotationAction,
   updateQuotationAction,
 } from "./actions";
+import { convertQuotationToContractAction } from "@/app/(dashboard)/contracts/actions";
 
 /**
- * 商机详情的报价管理界面（#34）。
+ * 商机详情的报价管理界面（#34/#35）。
  *
  * 新增表单默认收起；每条报价可展开行内编辑表单并修改状态与条目。
  * 条目的数量乘以单价由服务端汇总，界面展示的金额来自服务端返回的报价。
@@ -159,16 +160,41 @@ export function QuotationsManager({
                             .join("；")}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreating(false);
-                      setEditingId(quotation.id);
-                    }}
-                    className="shrink-0 text-sm text-blue-600 hover:underline"
-                  >
-                    编辑
-                  </button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCreating(false);
+                        setEditingId(quotation.id);
+                      }}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      编辑
+                    </button>
+                    <form
+                      action={() =>
+                        convertQuotationToContractAction(
+                          quotation.id,
+                          opportunityId
+                        ).then(() => undefined)
+                      }
+                    >
+                      <button
+                        type="submit"
+                        disabled={
+                          quotation.status !== QuotationStatus.CONFIRMED
+                        }
+                        title={
+                          quotation.status === QuotationStatus.CONFIRMED
+                            ? undefined
+                            : "报价已确认后才可转为合同"
+                        }
+                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                      >
+                        转为合同
+                      </button>
+                    </form>
+                  </div>
                 </div>
               )}
             </li>

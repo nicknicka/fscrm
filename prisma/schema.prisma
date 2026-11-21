@@ -19,6 +19,14 @@ enum CustomerLevel {
   LOW
 }
 
+/// 客户生命周期：客户从线索、成交到留存/流失的整体阶段。
+enum CustomerLifecycle {
+  LEAD // 线索
+  WON // 成交
+  RETAINED // 留存
+  CHURNED // 流失
+}
+
 /// CRM 用户角色：普通负责人或管理员。
 enum UserRole {
   OWNER // 普通负责人，仅能访问自己负责的业务对象
@@ -106,6 +114,8 @@ model Customer {
   id         String        @id @default(uuid())
   name       String
   level      CustomerLevel @default(MEDIUM)
+  /// 客户生命周期阶段；新客户默认处于线索阶段。
+  lifecycle  CustomerLifecycle @default(LEAD)
   industry   String?
   phone      String?
   email      String?

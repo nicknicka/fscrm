@@ -4,9 +4,15 @@ import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import { OpportunityStage, FollowUpMode } from "@/generated/prisma/enums";
+import {
+  OpportunityStage,
+  FollowUpMode,
+  CustomerLifecycle,
+} from "@/generated/prisma/enums";
+import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
 import { ContactsManager } from "./contacts/contacts-manager";
 import { CustomerDetailForm } from "./customer-detail-form";
+import { updateCustomerLifecycleAction } from "../lifecycle-actions";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import {
   createCustomerFollowUpAction,
@@ -69,6 +75,10 @@ export default async function CustomerDetailPage({
           <h2 className="mb-4 text-base font-semibold">基本信息</h2>
           <dl className="grid grid-cols-2 gap-4 text-sm">
             <Info label="客户等级" value={customer.level} />
+            <Info
+              label="客户生命周期"
+              value={customerLifecycleLabel[customer.lifecycle]}
+            />
             <Info label="负责人" value={customer.owner?.name ?? "未分配"} />
             <Info label="电话" value={customer.phone ?? "—"} />
             <Info label="邮箱" value={customer.email ?? "—"} />
@@ -96,6 +106,33 @@ export default async function CustomerDetailPage({
             canReassignOwner={currentUser.role === "ADMIN"}
             users={users}
           />
+          {currentUser.role === "ADMIN" && (
+            <form
+              action={updateCustomerLifecycleAction.bind(null, customer.id)}
+              className="mt-4 border-t border-zinc-100 pt-4"
+            >
+              <h3 className="mb-2 text-sm font-semibold">调整生命周期</h3>
+              <div className="flex items-center gap-2">
+                <select
+                  name="lifecycle"
+                  defaultValue={customer.lifecycle}
+                  className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+                >
+                  {Object.values(CustomerLifecycle).map((stage) => (
+                    <option key={stage} value={stage}>
+                      {customerLifecycleLabel[stage]}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+                >
+                  保存生命周期
+                </button>
+              </div>
+            </form>
+          )}
         </section>
 
         {/* 联系人：新增/编辑/删除入口与表单 */}

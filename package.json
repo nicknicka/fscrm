@@ -15,6 +15,7 @@
     "db:migrate": "prisma migrate dev",
     "feishu:events": "tsx scripts/start-feishu-events.ts",
     "feishu:sync-contacts": "tsx scripts/sync-contacts.ts",
+    "admin": "tsx scripts/admin.ts",
     "prepare": "husky"
   },
   "dependencies": {

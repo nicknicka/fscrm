@@ -83,6 +83,7 @@ export async function updateOpportunityAction(id: string, formData: FormData) {
 
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
+  revalidatePath("/funnel");
   return { ok: true as const };
 }
 
@@ -127,6 +128,7 @@ export async function createOpportunityAction(formData: FormData) {
   );
 
   revalidatePath("/opportunities");
+  revalidatePath("/funnel");
   redirect("/opportunities");
 }
 
@@ -139,12 +141,14 @@ export async function updateOpportunityStageAction(
   await updateOpportunity(id, { stage }, user);
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
+  revalidatePath("/funnel");
 }
 
 export async function deleteOpportunityAction(id: string) {
   const user = await requireCurrentUser();
   await deleteOpportunity(id, user);
   revalidatePath("/opportunities");
+  revalidatePath("/funnel");
 }
 
 /** 商机详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */

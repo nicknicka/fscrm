@@ -70,6 +70,16 @@ export default async function HomePage() {
       </div>
 
       <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="text-base font-semibold text-zinc-900">销售漏斗</h2>
+        <p className="mt-2 text-sm leading-6 text-zinc-600">
+          按销售阶段查看商机数量的实时分布，并可点击阶段下钻到商机列表。
+        </p>
+        <Link href="/funnel" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+          查看销售漏斗 →
+        </Link>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="text-base font-semibold text-zinc-900">快速开始</h2>
         <p className="mt-2 text-sm leading-6 text-zinc-600">
           这是 fscrm 的业务主页。当前已接入 Postgres 数据库与飞书集成层。

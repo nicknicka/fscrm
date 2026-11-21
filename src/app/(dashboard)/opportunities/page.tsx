@@ -1,40 +1,38 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { OpportunityStage } from "@/generated/prisma/enums";
 import { getCurrentUser } from "@/lib/auth/session";
-import { listOpportunitiesForCurrentUser } from "./scope";
+import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
 import { OpportunityForm } from "./opportunity-form";
+import { loadOpportunitiesPageData } from "./page-data";
 import {
   deleteOpportunityAction,
   updateOpportunityStageAction,
 } from "./actions";
-import {
-  loadOpportunityFormCustomers,
-  loadOpportunityFormUsers,
-} from "./form-options";
 
-const stageMeta: Record<
+const stageMeta = Object.fromEntries(
+  OPPORTUNITY_STAGES.map((stage) => [stage.value, stage])
+) as Record<
   string,
   { label: string; tone: "blue" | "amber" | "green" | "zinc" }
-> = {
-  [OpportunityStage.CONTACT]: { label: "初步接触", tone: "blue" },
-  [OpportunityStage.NEED_CONFIRM]: { label: "需求确认", tone: "blue" },
-  [OpportunityStage.QUOTE]: { label: "报价", tone: "amber" },
-  [OpportunityStage.NEGOTIATE]: { label: "谈判", tone: "blue" },
-  [OpportunityStage.WON]: { label: "赢单", tone: "green" },
-  [OpportunityStage.LOST]: { label: "输单", tone: "zinc" },
-};
+>;
 
 /** 商机列表页。 */
-export default async function OpportunitiesPage() {
+export default async function OpportunitiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const user = await getCurrentUser();
   if (!user) notFound();
 
-  const [opportunities, customers, users] = await Promise.all([
-    listOpportunitiesForCurrentUser(user),
-    loadOpportunityFormCustomers(user),
-    loadOpportunityFormUsers(user),
-  ]);
+  const params = await searchParams;
+  const stageParam = params.stage;
+  const stage = typeof stageParam === "string" ? stageParam : undefined;
+  const { opportunities, customers, users } = await loadOpportunitiesPageData(
+    user,
+    stage
+  );
 
   return (
     <div>
@@ -49,6 +47,32 @@ export default async function OpportunitiesPage() {
           />
         }
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+        <Link
+          href="/opportunities"
+          className={`rounded-full px-3 py-1 ${
+            !stage
+              ? "bg-zinc-900 text-white"
+              : "bg-white text-zinc-600 ring-1 ring-zinc-200"
+          }`}
+        >
+          全部阶段
+        </Link>
+        {OPPORTUNITY_STAGES.map((item) => (
+          <Link
+            key={item.value}
+            href={`/opportunities?stage=${item.value}`}
+            className={`rounded-full px-3 py-1 ${
+              stage === item.value
+                ? "bg-zinc-900 text-white"
+                : "bg-white text-zinc-600 ring-1 ring-zinc-200"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
 
       {opportunities.length === 0 ? (
         <EmptyState message="暂无商机数据，点击右上角「新建商机」开始添加。" />
@@ -69,7 +93,7 @@ export default async function OpportunitiesPage() {
             <tbody className="divide-y divide-zinc-100">
               {opportunities.map((opp) => {
                 const meta =
-                  stageMeta[opp.stage] ?? stageMeta[OpportunityStage.CONTACT];
+                  stageMeta[opp.stage] ?? stageMeta[OPPORTUNITY_STAGES[0].value];
                 return (
                   <tr key={opp.id} className="hover:bg-zinc-50">
                     <td className="px-4 py-3 font-medium">{opp.name}</td>
@@ -99,9 +123,9 @@ export default async function OpportunitiesPage() {
                           }
                           className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
                         >
-                          {Object.entries(stageMeta).map(([value, m]) => (
-                            <option key={value} value={value}>
-                              {m.label}
+                          {OPPORTUNITY_STAGES.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
                             </option>
                           ))}
                         </select>

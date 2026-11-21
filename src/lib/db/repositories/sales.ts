@@ -5,6 +5,7 @@ import type {
   FollowUp,
   Lead,
   Opportunity,
+  OpportunityStage,
   Prisma,
 } from "../../../generated/prisma/client";
 
@@ -232,6 +233,24 @@ export async function countOpportunities(scope: CurrentUser): Promise<number> {
   return prisma.opportunity.count({
     where: scope.role === "OWNER" ? { ownerId: scope.id } : {},
   });
+}
+
+/**
+ * 实时按销售阶段聚合当前权限范围内的商机数量。
+ * 管理员统计全部商机，普通负责人仅统计本人负责商机。
+ */
+export async function countOpportunitiesByStage(
+  scope: CurrentUser
+): Promise<Array<{ stage: OpportunityStage; count: number }>> {
+  const groups = await prisma.opportunity.groupBy({
+    by: ["stage"],
+    where: ownerWhere({ userId: scope.id, role: scope.role }),
+    _count: { _all: true },
+  });
+  return groups.map((group) => ({
+    stage: group.stage,
+    count: group._count._all,
+  }));
 }
 
 /** 商机表单可选的负责人：普通负责人仅本人，管理员可移交。 */

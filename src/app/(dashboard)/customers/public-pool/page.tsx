@@ -6,10 +6,9 @@ import { listPublicPoolCustomers } from "@/lib/db/repositories/customer";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import type { PublicPoolCustomerSummary } from "@/lib/db/repositories/customer";
-import { voidAction } from "@/lib/form-action";
 import {
-  claimPublicCustomerAction,
-  setCustomerOwnerAction,
+  claimPublicCustomerFormAction,
+  setCustomerOwnerFormAction,
 } from "../public-pool-actions";
 
 /**
@@ -97,7 +96,10 @@ export default async function PublicPoolPage() {
                   <td className="px-4 py-3">
                     {scope.role === "OWNER" && (
                       <form
-                        action={voidAction(claimPublicCustomerAction.bind(null, customer.id))}
+                        action={claimPublicCustomerFormAction.bind(
+                          null,
+                          customer.id
+                        )}
                       >
                         <button
                           type="submit"
@@ -110,7 +112,10 @@ export default async function PublicPoolPage() {
                     {scope.role === "ADMIN" && (
                       <form
                         className="flex gap-2"
-                        action={voidAction(setCustomerOwnerAction.bind(null, customer.id))}
+                        action={setCustomerOwnerFormAction.bind(
+                          null,
+                          customer.id
+                        )}
                       >
                         <select
                           name="ownerId"

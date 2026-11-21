@@ -5,7 +5,7 @@ import { OrderStatus } from "@/generated/prisma/enums";
 import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
 import { getOrderForCurrentUser } from "../actions";
 import {
-  addPaymentForCurrentUser,
+  addPaymentFormAction,
   listPaymentsForCurrentUser,
 } from "../payment-actions";
 
@@ -18,18 +18,13 @@ export default async function OrderDetailPage({
   const { id } = await params;
   const order = await getOrderForCurrentUser(id);
   if (!order) notFound();
-  const { payments, total, balance } = await listPaymentsForCurrentUser(order.id);
-  // form action 要求返回 void；结果通过服务端日志与成功后 revalidate 体现。
-  async function addPaymentAction(formData: FormData): Promise<void> {
-    await addPaymentForCurrentUser(formData);
-  }
+  const { payments, total, balance } = await listPaymentsForCurrentUser(
+    order.id
+  );
 
   return (
     <div>
-      <Link
-        href="/orders"
-        className="text-sm text-blue-600 hover:underline"
-      >
+      <Link href="/orders" className="text-sm text-blue-600 hover:underline">
         ← 返回订单列表
       </Link>
       <div className="mt-4">
@@ -43,7 +38,9 @@ export default async function OrderDetailPage({
           <div>
             <dt className="text-xs text-zinc-500">订单状态</dt>
             <dd className="mt-0.5">
-              <Badge tone={order.status === OrderStatus.CANCELLED ? "red" : "blue"}>
+              <Badge
+                tone={order.status === OrderStatus.CANCELLED ? "red" : "blue"}
+              >
                 {orderStatusLabel[order.status] ?? order.status}
               </Badge>
             </dd>
@@ -63,8 +60,14 @@ export default async function OrderDetailPage({
         <div className="mt-6 border-t border-zinc-100 pt-5">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700">回款</h3>
           <dl className="mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-            <Info label="回款合计" value={`¥${total.toLocaleString("zh-CN")}`} />
-            <Info label="未收差额" value={`¥${balance.toLocaleString("zh-CN")}`} />
+            <Info
+              label="回款合计"
+              value={`¥${total.toLocaleString("zh-CN")}`}
+            />
+            <Info
+              label="未收差额"
+              value={`¥${balance.toLocaleString("zh-CN")}`}
+            />
           </dl>
 
           <ul className="mb-4 space-y-2 text-sm">
@@ -85,7 +88,7 @@ export default async function OrderDetailPage({
             )}
           </ul>
 
-          <form action={addPaymentAction} className="flex flex-wrap gap-3">
+          <form action={addPaymentFormAction} className="flex flex-wrap gap-3">
             <input type="hidden" name="orderId" value={order.id} />
             <label className="flex-1 text-xs text-zinc-600">
               回款金额

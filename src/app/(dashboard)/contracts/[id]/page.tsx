@@ -2,9 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
 import { ContractStatus } from "@/generated/prisma/enums";
-import { contractStatusLabel, quotationStatusLabel } from "@/lib/document-status";
+import {
+  contractStatusLabel,
+  quotationStatusLabel,
+} from "@/lib/document-status";
 import { getContractForCurrentUser } from "../actions";
-import { convertContractToOrderAction } from "../../orders/actions";
+import { convertContractToOrderFormAction } from "../../orders/actions";
 
 /** 合同详情页：可把合同转为订单，越权与不存在统一按 notFound 处理。 */
 export default async function ContractDetailPage({
@@ -15,7 +18,7 @@ export default async function ContractDetailPage({
   const { id } = await params;
   const contract = await getContractForCurrentUser(id);
   if (!contract) notFound();
-  const convertToOrder = convertContractToOrderAction.bind(
+  const convertToOrder = convertContractToOrderFormAction.bind(
     null,
     contract.id,
     contract.opportunityId
@@ -23,10 +26,7 @@ export default async function ContractDetailPage({
 
   return (
     <div>
-      <Link
-        href="/contracts"
-        className="text-sm text-blue-600 hover:underline"
-      >
+      <Link href="/contracts" className="text-sm text-blue-600 hover:underline">
         ← 返回合同列表
       </Link>
       <div className="mt-4">
@@ -34,7 +34,7 @@ export default async function ContractDetailPage({
           title="合同详情"
           description={contract.customer.name}
           action={
-            <form action={() => convertToOrder().then(() => undefined)}>
+            <form action={convertToOrder}>
               <button
                 type="submit"
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -53,7 +53,9 @@ export default async function ContractDetailPage({
           <div>
             <dt className="text-xs text-zinc-500">合同状态</dt>
             <dd className="mt-0.5">
-              <Badge tone={contract.status === ContractStatus.VOID ? "red" : "blue"}>
+              <Badge
+                tone={contract.status === ContractStatus.VOID ? "red" : "blue"}
+              >
                 {contractStatusLabel[contract.status] ?? contract.status}
               </Badge>
             </dd>

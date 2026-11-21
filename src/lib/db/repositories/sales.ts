@@ -387,9 +387,21 @@ export async function createFollowUp(
 ): Promise<FollowUp> {
   await assertFollowUpCreationScope(data, user);
 
+  // 归属人一律取当前会话，忽略调用方传入的 owner。
   const { owner: _ignoredOwner, ...rest } = data;
+
+  // Prisma 不允许同时使用关系连接（customer/opportunity 嵌套）与外键标量（customerId 等）。
+  // 这里统一改用 unchecked 写法：把关系连接还原为外键 ID，再补 ownerId。
+  const asChecked = rest as Prisma.FollowUpCreateInput;
+  const asUnchecked = rest as Prisma.FollowUpUncheckedCreateInput;
   const nextData: Prisma.FollowUpUncheckedCreateInput = {
-    ...(rest as Prisma.FollowUpUncheckedCreateInput),
+    mode: asChecked.mode,
+    content: asChecked.content,
+    nextFollowUpAt: asChecked.nextFollowUpAt ?? null,
+    customerId:
+      asUnchecked.customerId ?? asChecked.customer?.connect?.id ?? null,
+    opportunityId:
+      asUnchecked.opportunityId ?? asChecked.opportunity?.connect?.id ?? null,
     ownerId: user.id,
   };
   return prisma.followUp.create({ data: nextData });

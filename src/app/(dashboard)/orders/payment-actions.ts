@@ -66,3 +66,11 @@ export async function listPaymentsForCurrentUser(orderId: string) {
   const currentUser = await requireCurrentUser();
   return listPayments(orderId, accessScopeFor(currentUser));
 }
+
+/**
+ * 登记回款的表单入口：`<form action>` 需要 (formData) => void 的 Server Action，
+ * 这里只适配返回类型，业务校验仍在 addPaymentForCurrentUser 内。
+ */
+export async function addPaymentFormAction(formData: FormData): Promise<void> {
+  await addPaymentForCurrentUser(formData);
+}

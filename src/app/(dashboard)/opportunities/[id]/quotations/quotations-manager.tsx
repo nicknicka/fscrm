@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { QuotationStatus } from "@/generated/prisma/enums";
 import { quotationStatusLabel } from "@/lib/document-status";
 import {
@@ -43,6 +44,9 @@ export function QuotationsManager({
   opportunityId: string;
   quotations: QuotationView[];
 }) {
+  const router = useRouter();
+  // Server Action 完成后 refresh 一次，让服务端 revalidate 的结果反映到界面。
+  const refreshAfterSubmit = () => setTimeout(() => router.refresh(), 350);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -72,6 +76,7 @@ export function QuotationsManager({
       {creating && (
         <form
           action={createBound}
+          onSubmit={refreshAfterSubmit}
           className="mb-5 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
         >
           <ItemFields />
@@ -91,7 +96,11 @@ export function QuotationsManager({
           {quotations.map((quotation) => (
             <li key={quotation.id} className="py-3 text-sm">
               {editingId === quotation.id ? (
-                <form action={updateBound(quotation.id)} className="space-y-3">
+                <form
+                  action={updateBound(quotation.id)}
+                  onSubmit={refreshAfterSubmit}
+                  className="space-y-3"
+                >
                   <label className="block">
                     <span className="mb-1 block text-xs text-zinc-600">
                       状态
@@ -155,7 +164,10 @@ export function QuotationsManager({
                     >
                       编辑
                     </button>
-                    <form action={convertBound(quotation.id)}>
+                    <form
+                      action={convertBound(quotation.id)}
+                      onSubmit={refreshAfterSubmit}
+                    >
                       <button
                         type="submit"
                         disabled={

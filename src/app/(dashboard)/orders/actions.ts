@@ -65,3 +65,12 @@ export async function getOrderForCurrentUser(id: string) {
   const currentUser = await requireCurrentUser();
   return getOrder(id, accessScopeFor(currentUser));
 }
+
+/** 转为订单的表单入口：`<form action>` 需要 (formData) => void 的 Server Action 引用。 */
+export async function convertContractToOrderFormAction(
+  contractId: string,
+  opportunityId: string,
+  _formData: FormData
+): Promise<void> {
+  await convertContractToOrderAction(contractId, opportunityId);
+}

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { AutoSubmitSelect } from "@/components/auto-submit-select";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth/session";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
@@ -93,10 +94,18 @@ export default async function OpportunitiesPage({
             <tbody className="divide-y divide-zinc-100">
               {opportunities.map((opp) => {
                 const meta =
-                  stageMeta[opp.stage] ?? stageMeta[OPPORTUNITY_STAGES[0].value];
+                  stageMeta[opp.stage] ??
+                  stageMeta[OPPORTUNITY_STAGES[0].value];
                 return (
                   <tr key={opp.id} className="hover:bg-zinc-50">
-                    <td className="px-4 py-3 font-medium">{opp.name}</td>
+                    <td className="px-4 py-3 font-medium">
+                      <Link
+                        href={`/opportunities/${opp.id}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {opp.name}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-zinc-600">
                       {opp.customer?.name ?? "—"}
                     </td>
@@ -115,20 +124,15 @@ export default async function OpportunitiesPage({
                       <form
                         action={updateOpportunityStageAction.bind(null, opp.id)}
                       >
-                        <select
+                        <AutoSubmitSelect
                           name="stage"
                           defaultValue={opp.stage}
-                          onChange={(e) =>
-                            e.currentTarget.form?.requestSubmit()
-                          }
+                          options={OPPORTUNITY_STAGES.map((item) => ({
+                            value: item.value,
+                            label: item.label,
+                          }))}
                           className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
-                        >
-                          {OPPORTUNITY_STAGES.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </form>
                     </td>
                     <td className="px-4 py-3">

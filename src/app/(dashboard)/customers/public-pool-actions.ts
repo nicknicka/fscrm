@@ -25,7 +25,9 @@ const NOT_FOUND = { ok: false, error: "NOT_FOUND" } as const;
 
 /** 客户仓储的越权/不存在/重复认领统一映射为 NOT_FOUND，其他错误照常抛出。 */
 function isCustomerAccessError(error: unknown): boolean {
-  return error instanceof CustomerAccessError || error instanceof CustomerClaimError;
+  return (
+    error instanceof CustomerAccessError || error instanceof CustomerClaimError
+  );
 }
 
 function revalidateCustomerViews(id: string): void {
@@ -66,8 +68,7 @@ export async function claimPublicCustomerAction(id: string) {
 /** 管理员移入公海或指定负责人；普通负责人提交的值一律归为自己。 */
 export async function setCustomerOwnerAction(id: string, formData: FormData) {
   const currentUser = await requireCurrentUser();
-  const requestedOwnerId =
-    String(formData.get("ownerId") ?? "").trim() || null;
+  const requestedOwnerId = String(formData.get("ownerId") ?? "").trim() || null;
   const ownerId = resolveAssignableOwnerId(
     accessScopeFor(currentUser),
     requestedOwnerId
@@ -82,4 +83,25 @@ export async function setCustomerOwnerAction(id: string, formData: FormData) {
 
   revalidateCustomerViews(id);
   return { ok: true as const };
+}
+
+// ---------------------------------------------------------------------------
+// 表单入口：`<form action>` 只能接收 Server Action 引用（或 bind 后的引用），
+// 不能用普通函数包装，因此这里提供返回 void 的专用入口。
+// ---------------------------------------------------------------------------
+
+/** 认领公海客户的表单入口。 */
+export async function claimPublicCustomerFormAction(
+  id: string,
+  _formData: FormData
+): Promise<void> {
+  await claimPublicCustomerAction(id);
+}
+
+/** 调整客户负责人/移入公海的表单入口。 */
+export async function setCustomerOwnerFormAction(
+  id: string,
+  formData: FormData
+): Promise<void> {
+  await setCustomerOwnerAction(id, formData);
 }

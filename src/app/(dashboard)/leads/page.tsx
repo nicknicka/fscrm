@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AutoSubmitSelect } from "@/components/auto-submit-select";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { listLeads } from "@/lib/db/repositories/sales";
@@ -75,20 +76,17 @@ export default async function LeadsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <form action={updateLeadStatusAction.bind(null, lead.id)}>
-                        <select
+                        <AutoSubmitSelect
                           name="status"
                           defaultValue={lead.status}
-                          onChange={(e) =>
-                            e.currentTarget.form?.requestSubmit()
-                          }
+                          options={Object.entries(statusMeta).map(
+                            ([value, m]) => ({
+                              value,
+                              label: m.label,
+                            })
+                          )}
                           className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
-                        >
-                          {Object.entries(statusMeta).map(([value, m]) => (
-                            <option key={value} value={value}>
-                              {m.label}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </form>
                     </td>
                     <td className="px-4 py-3">

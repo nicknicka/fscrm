@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   createContactFormAction,
   updateContactFormAction,
@@ -34,6 +35,9 @@ export function ContactsManager({
   customerId: string;
   contacts: ContactItem[];
 }) {
+  const router = useRouter();
+  // Server Action 完成后 refresh 一次，让服务端 revalidate 的结果反映到界面。
+  const refreshAfterSubmit = () => setTimeout(() => router.refresh(), 350);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -61,6 +65,7 @@ export function ContactsManager({
       {creating && (
         <form
           action={createBound}
+          onSubmit={refreshAfterSubmit}
           className="mb-5 grid grid-cols-1 gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2"
         >
           <Field label="姓名" name="name" required placeholder="联系人姓名" />
@@ -93,6 +98,7 @@ export function ContactsManager({
               {editingId === contact.id ? (
                 <form
                   action={updateBound(contact.id)}
+                  onSubmit={refreshAfterSubmit}
                   className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                 >
                   <Field
@@ -172,7 +178,10 @@ export function ContactsManager({
                     >
                       编辑
                     </button>
-                    <form action={deleteBound(contact.id)}>
+                    <form
+                      action={deleteBound(contact.id)}
+                      onSubmit={refreshAfterSubmit}
+                    >
                       <button
                         type="submit"
                         className="text-sm text-red-600 hover:underline"

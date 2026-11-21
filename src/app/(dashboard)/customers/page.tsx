@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
-import { accessScopeFor } from "@/lib/auth/scope";import { listCustomers } from "@/lib/db/repositories/customer";
+import { accessScopeFor } from "@/lib/auth/scope";
+import { listCustomers } from "@/lib/db/repositories/customer";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
+import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
 import { CustomerForm } from "./customer-form";
 import { deleteCustomerAction } from "./actions";
 import { setCustomerOwnerAction } from "./public-pool-actions";
@@ -75,6 +77,7 @@ export default async function CustomersPage({
               <tr>
                 <th className="px-4 py-3 font-medium">客户名称</th>
                 <th className="px-4 py-3 font-medium">等级</th>
+                <th className="px-4 py-3 font-medium">客户生命周期</th>
                 <th className="px-4 py-3 font-medium">行业</th>
                 <th className="px-4 py-3 font-medium">负责人</th>
                 <th className="px-4 py-3 font-medium">联系人/商机</th>
@@ -95,6 +98,11 @@ export default async function CustomersPage({
                   <td className="px-4 py-3">
                     <Badge tone={levelTone[customer.level]}>
                       {levelLabel[customer.level]}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone="blue">
+                      {customerLifecycleLabel[customer.lifecycle]}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-zinc-600">
@@ -118,7 +126,9 @@ export default async function CustomersPage({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      <form action={deleteCustomerAction.bind(null, customer.id)}>
+                      <form
+                        action={deleteCustomerAction.bind(null, customer.id)}
+                      >
                         <button
                           type="submit"
                           className="text-sm text-red-600 hover:underline"
@@ -129,7 +139,10 @@ export default async function CustomersPage({
                       {scope.role === "ADMIN" && (
                         <form
                           className="flex gap-2"
-                          action={setCustomerOwnerAction.bind(null, customer.id)}
+                          action={setCustomerOwnerAction.bind(
+                            null,
+                            customer.id
+                          )}
                         >
                           <select
                             name="ownerId"

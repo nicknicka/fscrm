@@ -30,7 +30,7 @@ export default async function DashboardLayout({
           <div className="w-56 shrink-0 border-r border-zinc-200 bg-white" />
         }
       >
-        <Sidebar userMenu={<UserMenu />} />
+        <Sidebar userMenu={<UserMenu />} currentUser={currentUser} />
       </Suspense>
       <main className="flex-1 overflow-auto">
         <div className="mx-auto max-w-6xl px-8 py-8">{children}</div>

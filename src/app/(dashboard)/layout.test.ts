@@ -18,9 +18,17 @@ describe("authenticated dashboard layout", () => {
   it("renders the current owner and a logout control inside the sidebar", () => {
     expect(layoutSource).toContain("<UserMenu");
     expect(layoutSource).toContain("currentUser");
+    expect(layoutSource).toContain("<Sidebar");
+    expect(layoutSource).toContain("currentUser={currentUser}");
     expect(sidebarSource).toContain("userMenu");
     expect(userMenuSource).toContain("user.name");
     expect(userMenuSource).toContain("action={logout}");
     expect(userMenuSource).toMatch(/>\s*退出\s*<\/button>/);
+  });
+
+  it("only renders the admin users entry for an admin session", () => {
+    expect(sidebarSource).toContain('href="/settings/users"');
+    expect(sidebarSource).toContain('currentUser?.role === "ADMIN"');
+    expect(layoutSource).toContain("currentUser={currentUser}");
   });
 });

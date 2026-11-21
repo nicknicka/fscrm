@@ -4,7 +4,19 @@ import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import { OpportunityStage } from "@/generated/prisma/enums";
+import { OpportunityStage, FollowUpMode } from "@/generated/prisma/enums";
+import {
+  createCustomerFollowUpAction,
+  deleteCustomerFollowUpAction,
+} from "../actions";
+
+const followUpModeLabel: Record<string, string> = {
+  [FollowUpMode.CALL]: "电话",
+  [FollowUpMode.MEETING]: "面谈",
+  [FollowUpMode.EMAIL]: "邮件",
+  [FollowUpMode.IM]: "即时消息",
+  [FollowUpMode.OTHER]: "其他",
+};
 
 const stageLabel: Record<string, string> = {
   [OpportunityStage.CONTACT]: "初步接触",
@@ -22,6 +34,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const createFollowUp = createCustomerFollowUpAction.bind(null, id);
   const currentUser = await requireCurrentUser();
   const customer = await getCustomer(id, accessScopeFor(currentUser));
   if (!customer) {
@@ -123,17 +136,85 @@ export default async function CustomerDetailPage({
           <h2 className="mb-4 text-base font-semibold">
             跟进记录（{customer.followUps.length}）
           </h2>
+          <form action={createFollowUp} className="mb-4 space-y-3 border-b border-zinc-100 pb-4">
+            <div className="text-sm font-medium">新增跟进</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="text-sm">
+                <span className="mb-1 block text-zinc-600">方式</span>
+                <select
+                  name="mode"
+                  defaultValue={FollowUpMode.CALL}
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                >
+                  {Object.values(FollowUpMode).map((mode) => (
+                    <option key={mode} value={mode}>
+                      {followUpModeLabel[mode] ?? mode}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                <span className="mb-1 block text-zinc-600">下一步计划跟进时间</span>
+                <input
+                  name="nextFollowUpAt"
+                  type="datetime-local"
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                />
+              </label>
+            </div>
+            <label className="block text-sm">
+              <span className="mb-1 block text-zinc-600">内容</span>
+              <textarea
+                name="content"
+                required
+                rows={3}
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                placeholder="记录本次沟通内容"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              保存跟进
+            </button>
+          </form>
           {customer.followUps.length === 0 ? (
             <p className="text-sm text-zinc-500">暂无跟进记录</p>
           ) : (
             <ul className="divide-y divide-zinc-100">
               {customer.followUps.map((followUp) => (
                 <li key={followUp.id} className="py-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <Badge tone="zinc">{followUp.mode}</Badge>
-                    <span className="text-xs text-zinc-400">
-                      {followUp.createdAt.toLocaleString("zh-CN")}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge tone="zinc">
+                        {followUpModeLabel[followUp.mode] ?? followUp.mode}
+                      </Badge>
+                      {followUp.nextFollowUpAt && (
+                        <span className="text-xs text-zinc-500">
+                          下次跟进：{followUp.nextFollowUpAt.toLocaleString("zh-CN")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-400">
+                        {followUp.createdAt.toLocaleString("zh-CN")}
+                      </span>
+                      <form
+                        action={deleteCustomerFollowUpAction.bind(
+                          null,
+                          id,
+                          followUp.id
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          删除
+                        </button>
+                      </form>
+                    </div>
                   </div>
                   <div className="mt-1 text-zinc-700">{followUp.content}</div>
                 </li>

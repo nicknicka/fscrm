@@ -1,6 +1,10 @@
 import { prisma } from "../client";
 import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
 import type { CurrentUser } from "@/lib/auth/session";
+import { BusinessObjectNotFoundError } from "./not-found";
+
+// 商机、线索与跟进记录沿用的统一越权/不存在错误，实体定义在 ./not-found。
+export { BusinessObjectNotFoundError };
 import type {
   FollowUp,
   Lead,
@@ -15,14 +19,6 @@ import type {
  * 商机相关查询与写入都接收当前负责人与角色：管理员可处理全部商机，
  * 普通负责人只能处理自己负责的商机；越权更新/删除表现为“记录不存在”。
  */
-
-/** 权限不足或对象不存在时统一返回该错误，避免泄露对象是否存在。 */
-export class BusinessObjectNotFoundError extends Error {
-  constructor() {
-    super("NOT_FOUND");
-    this.name = "BusinessObjectNotFoundError";
-  }
-}
 
 /** 把仓储层的 P2025 转换为不泄露对象存在性的拒绝结果。 */
 function rejectMissingRecord(error: unknown): never {

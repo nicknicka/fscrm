@@ -1,5 +1,7 @@
 import { prisma } from "../client";
-import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
+import type { AccessScope } from "@/lib/auth/scope";
+import { customerOwnerWhere } from "./scoped";
+import { PaymentNotFoundError } from "./not-found";
 
 /**
  * 订单回款服务（#37）。
@@ -9,13 +11,8 @@ import { ownerWhere, type AccessScope } from "@/lib/auth/scope";
  * 避免在响应中区分“存在但无权”与“不存在”。
  */
 
-/** 越权或订单不存在时使用同一种 NOT_FOUND 结果。 */
-export class PaymentNotFoundError extends Error {
-  constructor() {
-    super("NOT_FOUND");
-    this.name = "PaymentNotFoundError";
-  }
-}
+// 回款与报价/合同/订单共用同一种越权/不存在错误（NOT_FOUND），实体定义在 ./not-found。
+export { PaymentNotFoundError };
 
 /** 回款登记输入：金额与到账时间始终由服务端校验后写入。 */
 export interface PaymentInput {
@@ -30,17 +27,6 @@ export interface PaymentSummary {
   balance: number;
 }
 
-/** 由权限范围生成订单 where；普通负责人按客户 ownerId 收窄。 */
-function scopedOrderWhere(scope: AccessScope, id: string) {
-  const customerScope = ownerWhere(scope) as { ownerId?: string };
-  return {
-    id,
-    ...(customerScope.ownerId
-      ? { customer: { ownerId: customerScope.ownerId } }
-      : {}),
-  };
-}
-
 /** 登记一笔回款：先在同一事务内按权限确认订单存在，再写入回款。 */
 export async function addPayment(
   orderId: string,
@@ -49,7 +35,7 @@ export async function addPayment(
 ) {
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findFirst({
-      where: scopedOrderWhere(scope, orderId),
+      where: customerOwnerWhere<{ id: string }>(scope, orderId),
       select: { id: true },
     });
     if (!order) throw new PaymentNotFoundError();
@@ -70,7 +56,7 @@ export async function listPayments(
   scope: AccessScope
 ): Promise<PaymentSummary> {
   const order = await prisma.order.findFirst({
-    where: scopedOrderWhere(scope, orderId),
+    where: customerOwnerWhere<{ id: string }>(scope, orderId),
     select: { id: true, amount: true },
   });
   if (!order) throw new PaymentNotFoundError();

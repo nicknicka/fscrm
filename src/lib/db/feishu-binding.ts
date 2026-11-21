@@ -21,7 +21,8 @@ export function createDbPersonLookup(): PersonLookup {
         ? {
             id: user.id,
             name: user.name,
-            role: user.role ?? "OWNER",
+            // User.role 在库中非空，这里无需兜底；缺省语义由类型系统保证。
+            role: user.role,
           }
         : null;
     },

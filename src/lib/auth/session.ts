@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { UserRole as PrismaUserRole } from "@/generated/prisma/enums";
 
 /**
  * 服务端会话。
@@ -8,8 +9,14 @@ import { cookies } from "next/headers";
  * 取得统一的权限上下文。
  */
 
-/** 当前负责人角色：普通负责人或管理员。 */
-export type UserRole = "OWNER" | "ADMIN";
+/**
+ * 当前负责人角色：普通负责人或管理员。
+ *
+ * 唯一权威是生成的 Prisma `UserRole` 枚举，这里只把它作为类型再导出，
+ * 避免会话层另写一份字面量联合导致两处取值漂移。
+ */
+export type UserRole = PrismaUserRole;
+export const UserRole = PrismaUserRole;
 
 /** 会话中保存的当前负责人。 */
 export interface CurrentUser {
@@ -134,7 +141,7 @@ export async function verifySession(
     if (
       typeof payload.id !== "string" ||
       typeof payload.name !== "string" ||
-      (payload.role !== "OWNER" && payload.role !== "ADMIN") ||
+      (payload.role !== UserRole.OWNER && payload.role !== UserRole.ADMIN) ||
       typeof payload.exp !== "number" ||
       payload.exp <= Math.floor(Date.now() / 1000)
     ) {

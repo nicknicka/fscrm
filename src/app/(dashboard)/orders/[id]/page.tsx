@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
-import { ContractStatus, OrderStatus } from "@/generated/prisma/enums";
+import { OrderStatus } from "@/generated/prisma/enums";
+import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
 import { getOrderForCurrentUser } from "../actions";
 import {
   addPaymentForCurrentUser,
@@ -142,19 +143,6 @@ export default async function OrderDetailPage({
     </div>
   );
 }
-
-const orderStatusLabel: Record<string, string> = {
-  [OrderStatus.PENDING]: "待履约",
-  [OrderStatus.FULFILLING]: "履约中",
-  [OrderStatus.COMPLETED]: "已完成",
-  [OrderStatus.CANCELLED]: "已取消",
-};
-
-const contractStatusLabel: Record<string, string> = {
-  [ContractStatus.DRAFT]: "草稿",
-  [ContractStatus.EFFECTIVE]: "生效",
-  [ContractStatus.VOID]: "作废",
-};
 
 function Info({ label, value }: { label: string; value: string }) {
   return (

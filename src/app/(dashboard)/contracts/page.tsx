@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { ContractStatus, QuotationStatus } from "@/generated/prisma/enums";
+import { ContractStatus } from "@/generated/prisma/enums";
+import { contractStatusLabel, quotationStatusLabel } from "@/lib/document-status";
 import { listContractsForCurrentUser } from "./actions";
 
 /** 合同列表；读取权限在服务入口按当前用户收窄。 */
@@ -81,14 +82,3 @@ export default async function ContractsPage() {
   );
 }
 
-const contractStatusLabel: Record<string, string> = {
-  [ContractStatus.DRAFT]: "草稿",
-  [ContractStatus.EFFECTIVE]: "生效",
-  [ContractStatus.VOID]: "作废",
-};
-
-const quotationStatusLabel: Record<string, string> = {
-  [QuotationStatus.DRAFT]: "草稿",
-  [QuotationStatus.CONFIRMED]: "已确认",
-  [QuotationStatus.CANCELLED]: "已取消",
-};

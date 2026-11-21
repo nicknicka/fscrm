@@ -7,6 +7,7 @@ import {
   sessionCookieOptions,
   signSession,
 } from "@/lib/auth/session";
+import { UserRole } from "@/generated/prisma/enums";
 import { normalizeSafeRedirectPath } from "@/lib/auth/redirect";
 
 /**
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
     const token = await signSession({
       id: person.id,
       name: person.name ?? result.auth.user.name ?? "",
-      role: person.role ?? ("OWNER" as const),
+      role: person.role ?? UserRole.OWNER,
     });
 
     const destination = new URL(safeNext(request), request.url);

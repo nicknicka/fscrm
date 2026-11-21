@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
 import { ContractStatus, OrderStatus } from "@/generated/prisma/enums";
 import { getOrderForCurrentUser } from "../actions";
+import {
+  addPaymentForCurrentUser,
+  listPaymentsForCurrentUser,
+} from "../payment-actions";
 
 /** 订单详情页；越权与不存在统一按 notFound 处理。 */
 export default async function OrderDetailPage({
@@ -13,6 +17,11 @@ export default async function OrderDetailPage({
   const { id } = await params;
   const order = await getOrderForCurrentUser(id);
   if (!order) notFound();
+  const { payments, total, balance } = await listPaymentsForCurrentUser(order.id);
+  // form action 要求返回 void；结果通过服务端日志与成功后 revalidate 体现。
+  async function addPaymentAction(formData: FormData): Promise<void> {
+    await addPaymentForCurrentUser(formData);
+  }
 
   return (
     <div>
@@ -49,6 +58,62 @@ export default async function OrderDetailPage({
             value={order.createdAt.toLocaleString("zh-CN")}
           />
         </dl>
+
+        <div className="mt-6 border-t border-zinc-100 pt-5">
+          <h3 className="mb-3 text-sm font-semibold text-zinc-700">回款</h3>
+          <dl className="mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+            <Info label="回款合计" value={`¥${total.toLocaleString("zh-CN")}`} />
+            <Info label="未收差额" value={`¥${balance.toLocaleString("zh-CN")}`} />
+          </dl>
+
+          <ul className="mb-4 space-y-2 text-sm">
+            {payments.length === 0 ? (
+              <li className="text-zinc-500">暂无回款记录</li>
+            ) : (
+              payments.map((payment) => (
+                <li
+                  key={payment.id}
+                  className="flex justify-between rounded-lg bg-zinc-50 px-3 py-2"
+                >
+                  <span>{payment.receivedAt.toLocaleString("zh-CN")}</span>
+                  <span className="font-medium">
+                    ¥{payment.amount.toLocaleString("zh-CN")}
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
+
+          <form action={addPaymentAction} className="flex flex-wrap gap-3">
+            <input type="hidden" name="orderId" value={order.id} />
+            <label className="flex-1 text-xs text-zinc-600">
+              回款金额
+              <input
+                name="amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="flex-1 text-xs text-zinc-600">
+              到账时间
+              <input
+                name="receivedAt"
+                type="datetime-local"
+                required
+                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              登记回款
+            </button>
+          </form>
+        </div>
 
         <div className="mt-6 border-t border-zinc-100 pt-5">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700">来源合同</h3>

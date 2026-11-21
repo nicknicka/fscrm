@@ -314,8 +314,26 @@ model Order {
   /// 金额从来源合同继承，不由表单提交。
   amount           Float
 
+  payments      Payment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("orders")
+}
+
+/// 回款：客户为订单实际支付的款项，一笔订单可登记多笔回款。
+model Payment {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// 回款金额。
+  amount     Float
+  /// 到账时间。
+  receivedAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
 }

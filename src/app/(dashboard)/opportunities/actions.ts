@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireCurrentUser } from "@/lib/auth/session";
 import {
+  createFollowUp,
   createOpportunity,
+  deleteFollowUp,
   deleteOpportunity,
   updateOpportunity,
 } from "@/lib/db/repositories/sales";
@@ -12,7 +14,7 @@ import { getUserById } from "@/lib/db/repositories/user";
 import { getCustomer } from "@/lib/db/repositories/customer";
 import type { AccessScope } from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
-import { OpportunityStage } from "@/generated/prisma/enums";
+import { FollowUpMode, OpportunityStage } from "@/generated/prisma/enums";
 
 /** 商机相关的 Server Actions。每个入口都从会话重新认证并授权。 */
 
@@ -89,4 +91,56 @@ export async function deleteOpportunityAction(id: string) {
   const user = await requireCurrentUser();
   await deleteOpportunity(id, user);
   revalidatePath("/opportunities");
+}
+
+/** 把表单中的跟进方式收敛到 FollowUpMode，非法值回退为 OTHER。 */
+function parseFollowUpMode(value: FormDataEntryValue | null): FollowUpMode {
+  const raw = String(value ?? "");
+  return Object.values(FollowUpMode).includes(raw as FollowUpMode)
+    ? (raw as FollowUpMode)
+    : FollowUpMode.OTHER;
+}
+
+/** 解析表单中的下一步计划跟进时间；空值表示未计划。 */
+function parseNextFollowUpAt(
+  value: FormDataEntryValue | null
+): Date | undefined {
+  const raw = String(value ?? "").trim();
+  if (!raw) return undefined;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+/** 商机详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */
+export async function createOpportunityFollowUpAction(
+  opportunityId: string,
+  formData: FormData
+) {
+  const user = await requireCurrentUser();
+  const content = String(formData.get("content") ?? "").trim();
+  if (!content) {
+    throw new Error("跟进内容不能为空");
+  }
+
+  await createFollowUp(
+    {
+      opportunity: { connect: { id: opportunityId } },
+      mode: parseFollowUpMode(formData.get("mode")),
+      content,
+      nextFollowUpAt: parseNextFollowUpAt(formData.get("nextFollowUpAt")),
+    },
+    user
+  );
+
+  revalidatePath(`/opportunities/${opportunityId}`);
+}
+
+/** 商机详情删除跟进；越权删除由 deleteFollowUp 仓储层拒绝。 */
+export async function deleteOpportunityFollowUpAction(
+  opportunityId: string,
+  followUpId: string
+) {
+  const user = await requireCurrentUser();
+  await deleteFollowUp(followUpId, user);
+  revalidatePath(`/opportunities/${opportunityId}`);
 }

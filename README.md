@@ -27,6 +27,8 @@ npm run build
 npm run start
 ```
 
+生产部署需要同时常驻 **Web 服务**与**飞书事件长连接进程**（`npm run feishu:events`）两个进程，常驻方式、重启策略、日志查看、环境变量清单与首次管理员任命见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+
 ## 飞书接入说明
 
 - 在[飞书开放平台](https://open.feishu.cn)创建**企业自建应用**，获取 `App ID` / `App Secret`。

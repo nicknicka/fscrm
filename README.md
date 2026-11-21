@@ -66,5 +66,6 @@ src/
 
 ## 工程约定
 
+- 每次 push 与 PR 都会触发 CI 质量门（`npm test` → `npm run typecheck` → `npm run lint` → `npm run build`），不依赖任何真实凭证；本地等价命令与排查方法见 [docs/CI.md](docs/CI.md)。
 - 领域词汇见根目录 [GLOSSARY.md](GLOSSARY.md)，输出中提及领域概念须使用其规范术语。
 - 工程技能配置（issue 跟踪、分诊标签、领域文档）见 [AGENTS.md](AGENTS.md) 与 `docs/agents/`。

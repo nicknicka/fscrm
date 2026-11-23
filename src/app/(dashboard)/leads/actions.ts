@@ -14,6 +14,7 @@ import {
   LeadConversionError,
 } from "@/lib/db/repositories/conversion";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/session";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { getUserById } from "@/lib/db/repositories/user";
 import { LeadStatus } from "@/generated/prisma/enums";
 
@@ -52,7 +53,7 @@ export async function createLeadAction(formData: FormData) {
     throw new Error("INVALID_OWNER");
   }
 
-  await createLead(
+  const lead = await createLead(
     {
       name,
       status: parseStatus(formData.get("status")),
@@ -64,6 +65,7 @@ export async function createLeadAction(formData: FormData) {
     },
     scope
   );
+  await auditWrite(currentUser, "CREATE", "Lead", lead.id, `新建线索：${name}`);
 
   revalidatePath("/leads");
   redirect("/leads");
@@ -75,6 +77,13 @@ export async function updateLeadStatusAction(id: string, formData: FormData) {
   const status = parseStatus(formData.get("status"));
   try {
     await updateLead(id, { status }, scope);
+    await auditWrite(
+      currentUser,
+      "UPDATE",
+      "Lead",
+      id,
+      `线索状态更新为 ${status}`
+    );
   } catch (error) {
     leadAccessError(error);
   }
@@ -94,7 +103,30 @@ export async function convertLeadAction(id: string, formData: FormData) {
   }
 
   try {
-    await convertLeadToCustomerAndOpportunity(id, scope, { ownerId });
+    const conversion = await convertLeadToCustomerAndOpportunity(id, scope, {
+      ownerId,
+    });
+    await auditWrite(
+      currentUser,
+      "CONVERT",
+      "Lead",
+      conversion.leadId,
+      `线索转化为客户与商机`
+    );
+    await auditWrite(
+      currentUser,
+      "CREATE",
+      "Customer",
+      conversion.customer.id,
+      `线索转化创建客户：${conversion.customer.name}`
+    );
+    await auditWrite(
+      currentUser,
+      "CREATE",
+      "Opportunity",
+      conversion.opportunity.id,
+      `线索转化创建商机：${conversion.opportunity.name}`
+    );
     revalidatePath("/leads");
     revalidatePath("/opportunities");
   } catch (error) {
@@ -110,6 +142,7 @@ export async function deleteLeadAction(id: string) {
   const scope = accessScopeFor(currentUser);
   try {
     await deleteLead(id, scope);
+    await auditWrite(currentUser, "DELETE", "Lead", id, `删除线索 ${id}`);
   } catch (error) {
     leadAccessError(error);
   }

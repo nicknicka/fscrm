@@ -3,6 +3,7 @@ import { Enter } from "@/components/stagger";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listCustomers } from "@/lib/db/repositories/customer";
+import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { listOpportunities } from "@/lib/db/repositories/sales";
 import {
   createSalesTaskAction,
@@ -12,13 +13,30 @@ import {
 } from "./actions";
 
 /** 任务与日程页：承接跟进提醒与销售计划，按权限可见。 */
-export default async function TasksPage() {
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getCurrentUser();
   if (!user) return null;
-  const [tasks, customers, opportunities] = await Promise.all([
+  const query = await searchParams;
+  const first = (key: string) => {
+    const value = query[key];
+    return Array.isArray(value) ? value[0] : value;
+  };
+  const prefill = {
+    customerId: first("customerId") ?? "",
+    opportunityId: first("opportunityId") ?? "",
+    followUpId: first("followUpId") ?? "",
+    dueAt: first("dueAt") ?? "",
+    title: first("title") ?? "",
+  };
+  const [tasks, customers, opportunities, users] = await Promise.all([
     listSalesTasksForCurrentUser(),
     listCustomers({}, accessScopeFor(user)),
     listOpportunities({}, user),
+    listAssignableUsers(user),
   ]);
 
   return (
@@ -34,6 +52,7 @@ export default async function TasksPage() {
         action={createSalesTaskAction}
         className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-5"
       >
+        <input type="hidden" name="followUpId" value={prefill.followUpId} />
         <label className="text-xs text-zinc-600">
           类型
           <select
@@ -49,15 +68,32 @@ export default async function TasksPage() {
           <input
             name="title"
             required
+            defaultValue={prefill.title}
             className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           />
         </label>
+        {user.role === "ADMIN" && (
+          <label className="text-xs text-zinc-600">
+            负责人
+            <select
+              name="ownerId"
+              className="mt-1 block rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            >
+              {users.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="text-xs text-zinc-600">
           计划时间
           <input
             name="dueAt"
             type="datetime-local"
             required
+            defaultValue={prefill.dueAt}
             className="mt-1 block rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           />
         </label>
@@ -65,6 +101,7 @@ export default async function TasksPage() {
           关联客户
           <select
             name="customerId"
+            defaultValue={prefill.customerId}
             className="mt-1 block max-w-[160px] rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           >
             <option value="">无</option>
@@ -79,6 +116,7 @@ export default async function TasksPage() {
           关联商机
           <select
             name="opportunityId"
+            defaultValue={prefill.opportunityId}
             className="mt-1 block max-w-[160px] rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           >
             <option value="">无</option>
@@ -151,7 +189,7 @@ export default async function TasksPage() {
                     >
                       <button
                         type="submit"
-                        className="rounded-lg border border-zinc-300 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
+                        className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50"
                       >
                         完成
                       </button>

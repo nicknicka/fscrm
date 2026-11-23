@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   addPayment,
   listPayments,
@@ -50,6 +51,13 @@ export async function addPaymentForCurrentUser(
       orderId,
       { amount, receivedAt },
       accessScopeFor(currentUser)
+    );
+    await auditWrite(
+      currentUser,
+      "CREATE",
+      "Payment",
+      payment.id,
+      `订单 ${orderId} 登记回款 ${amount}`
     );
     revalidatePath(`/orders/${orderId}`);
     return { ok: true, paymentId: payment.id };

@@ -34,6 +34,7 @@ export type SalesTaskMinAggregateOutputType = {
   ownerId: string | null;
   customerId: string | null;
   opportunityId: string | null;
+  followUpId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -48,6 +49,7 @@ export type SalesTaskMaxAggregateOutputType = {
   ownerId: string | null;
   customerId: string | null;
   opportunityId: string | null;
+  followUpId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -62,6 +64,7 @@ export type SalesTaskCountAggregateOutputType = {
   ownerId: number;
   customerId: number;
   opportunityId: number;
+  followUpId: number;
   createdAt: number;
   updatedAt: number;
   _all: number;
@@ -77,6 +80,7 @@ export type SalesTaskMinAggregateInputType = {
   ownerId?: true;
   customerId?: true;
   opportunityId?: true;
+  followUpId?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -91,6 +95,7 @@ export type SalesTaskMaxAggregateInputType = {
   ownerId?: true;
   customerId?: true;
   opportunityId?: true;
+  followUpId?: true;
   createdAt?: true;
   updatedAt?: true;
 };
@@ -105,6 +110,7 @@ export type SalesTaskCountAggregateInputType = {
   ownerId?: true;
   customerId?: true;
   opportunityId?: true;
+  followUpId?: true;
   createdAt?: true;
   updatedAt?: true;
   _all?: true;
@@ -199,6 +205,7 @@ export type SalesTaskGroupByOutputType = {
   ownerId: string;
   customerId: string | null;
   opportunityId: string | null;
+  followUpId: string | null;
   createdAt: Date;
   updatedAt: Date;
   _count: SalesTaskCountAggregateOutputType | null;
@@ -233,6 +240,7 @@ export type SalesTaskWhereInput = {
   ownerId?: Prisma.StringFilter<"SalesTask"> | string;
   customerId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
   opportunityId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
+  followUpId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -243,6 +251,10 @@ export type SalesTaskWhereInput = {
   opportunity?: Prisma.XOR<
     Prisma.OpportunityNullableScalarRelationFilter,
     Prisma.OpportunityWhereInput
+  > | null;
+  followUp?: Prisma.XOR<
+    Prisma.FollowUpNullableScalarRelationFilter,
+    Prisma.FollowUpWhereInput
   > | null;
 };
 
@@ -256,11 +268,13 @@ export type SalesTaskOrderByWithRelationInput = {
   ownerId?: Prisma.SortOrder;
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   opportunityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  followUpId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   owner?: Prisma.UserOrderByWithRelationInput;
   customer?: Prisma.CustomerOrderByWithRelationInput;
   opportunity?: Prisma.OpportunityOrderByWithRelationInput;
+  followUp?: Prisma.FollowUpOrderByWithRelationInput;
 };
 
 export type SalesTaskWhereUniqueInput = Prisma.AtLeast<
@@ -278,6 +292,7 @@ export type SalesTaskWhereUniqueInput = Prisma.AtLeast<
     ownerId?: Prisma.StringFilter<"SalesTask"> | string;
     customerId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
     opportunityId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
+    followUpId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
     createdAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
     owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
@@ -288,6 +303,10 @@ export type SalesTaskWhereUniqueInput = Prisma.AtLeast<
     opportunity?: Prisma.XOR<
       Prisma.OpportunityNullableScalarRelationFilter,
       Prisma.OpportunityWhereInput
+    > | null;
+    followUp?: Prisma.XOR<
+      Prisma.FollowUpNullableScalarRelationFilter,
+      Prisma.FollowUpWhereInput
     > | null;
   },
   "id"
@@ -303,6 +322,7 @@ export type SalesTaskOrderByWithAggregationInput = {
   ownerId?: Prisma.SortOrder;
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   opportunityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  followUpId?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   _count?: Prisma.SalesTaskCountOrderByAggregateInput;
@@ -334,6 +354,8 @@ export type SalesTaskScalarWhereWithAggregatesInput = {
     Prisma.StringNullableWithAggregatesFilter<"SalesTask"> | string | null;
   opportunityId?:
     Prisma.StringNullableWithAggregatesFilter<"SalesTask"> | string | null;
+  followUpId?:
+    Prisma.StringNullableWithAggregatesFilter<"SalesTask"> | string | null;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SalesTask"> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SalesTask"> | Date | string;
 };
@@ -350,6 +372,7 @@ export type SalesTaskCreateInput = {
   owner: Prisma.UserCreateNestedOneWithoutSalesTasksInput;
   customer?: Prisma.CustomerCreateNestedOneWithoutSalesTasksInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutSalesTasksInput;
+  followUp?: Prisma.FollowUpCreateNestedOneWithoutTasksInput;
 };
 
 export type SalesTaskUncheckedCreateInput = {
@@ -362,6 +385,7 @@ export type SalesTaskUncheckedCreateInput = {
   ownerId: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -381,6 +405,7 @@ export type SalesTaskUpdateInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutSalesTasksNestedInput;
   customer?: Prisma.CustomerUpdateOneWithoutSalesTasksNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutSalesTasksNestedInput;
+  followUp?: Prisma.FollowUpUpdateOneWithoutTasksNestedInput;
 };
 
 export type SalesTaskUncheckedUpdateInput = {
@@ -397,6 +422,7 @@ export type SalesTaskUncheckedUpdateInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -411,6 +437,7 @@ export type SalesTaskCreateManyInput = {
   ownerId: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -443,6 +470,7 @@ export type SalesTaskUncheckedUpdateManyInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -467,6 +495,7 @@ export type SalesTaskCountOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  followUpId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -481,6 +510,7 @@ export type SalesTaskMaxOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  followUpId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -495,6 +525,7 @@ export type SalesTaskMinOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  followUpId?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
 };
@@ -787,6 +818,102 @@ export type SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput = {
     Prisma.SalesTaskScalarWhereInput | Prisma.SalesTaskScalarWhereInput[];
 };
 
+export type SalesTaskCreateNestedManyWithoutFollowUpInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.SalesTaskCreateWithoutFollowUpInput,
+        Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+      >
+    | Prisma.SalesTaskCreateWithoutFollowUpInput[]
+    | Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput[];
+  connectOrCreate?:
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput[];
+  createMany?: Prisma.SalesTaskCreateManyFollowUpInputEnvelope;
+  connect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+};
+
+export type SalesTaskUncheckedCreateNestedManyWithoutFollowUpInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.SalesTaskCreateWithoutFollowUpInput,
+        Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+      >
+    | Prisma.SalesTaskCreateWithoutFollowUpInput[]
+    | Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput[];
+  connectOrCreate?:
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput[];
+  createMany?: Prisma.SalesTaskCreateManyFollowUpInputEnvelope;
+  connect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+};
+
+export type SalesTaskUpdateManyWithoutFollowUpNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.SalesTaskCreateWithoutFollowUpInput,
+        Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+      >
+    | Prisma.SalesTaskCreateWithoutFollowUpInput[]
+    | Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput[];
+  connectOrCreate?:
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput[];
+  upsert?:
+    | Prisma.SalesTaskUpsertWithWhereUniqueWithoutFollowUpInput
+    | Prisma.SalesTaskUpsertWithWhereUniqueWithoutFollowUpInput[];
+  createMany?: Prisma.SalesTaskCreateManyFollowUpInputEnvelope;
+  set?: Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  disconnect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  delete?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  connect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  update?:
+    | Prisma.SalesTaskUpdateWithWhereUniqueWithoutFollowUpInput
+    | Prisma.SalesTaskUpdateWithWhereUniqueWithoutFollowUpInput[];
+  updateMany?:
+    | Prisma.SalesTaskUpdateManyWithWhereWithoutFollowUpInput
+    | Prisma.SalesTaskUpdateManyWithWhereWithoutFollowUpInput[];
+  deleteMany?:
+    Prisma.SalesTaskScalarWhereInput | Prisma.SalesTaskScalarWhereInput[];
+};
+
+export type SalesTaskUncheckedUpdateManyWithoutFollowUpNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.SalesTaskCreateWithoutFollowUpInput,
+        Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+      >
+    | Prisma.SalesTaskCreateWithoutFollowUpInput[]
+    | Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput[];
+  connectOrCreate?:
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput
+    | Prisma.SalesTaskCreateOrConnectWithoutFollowUpInput[];
+  upsert?:
+    | Prisma.SalesTaskUpsertWithWhereUniqueWithoutFollowUpInput
+    | Prisma.SalesTaskUpsertWithWhereUniqueWithoutFollowUpInput[];
+  createMany?: Prisma.SalesTaskCreateManyFollowUpInputEnvelope;
+  set?: Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  disconnect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  delete?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  connect?:
+    Prisma.SalesTaskWhereUniqueInput | Prisma.SalesTaskWhereUniqueInput[];
+  update?:
+    | Prisma.SalesTaskUpdateWithWhereUniqueWithoutFollowUpInput
+    | Prisma.SalesTaskUpdateWithWhereUniqueWithoutFollowUpInput[];
+  updateMany?:
+    | Prisma.SalesTaskUpdateManyWithWhereWithoutFollowUpInput
+    | Prisma.SalesTaskUpdateManyWithWhereWithoutFollowUpInput[];
+  deleteMany?:
+    Prisma.SalesTaskScalarWhereInput | Prisma.SalesTaskScalarWhereInput[];
+};
+
 export type EnumSalesTaskTypeFieldUpdateOperationsInput = {
   set?: $Enums.SalesTaskType;
 };
@@ -806,6 +933,7 @@ export type SalesTaskCreateWithoutOwnerInput = {
   updatedAt?: Date | string;
   customer?: Prisma.CustomerCreateNestedOneWithoutSalesTasksInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutSalesTasksInput;
+  followUp?: Prisma.FollowUpCreateNestedOneWithoutTasksInput;
 };
 
 export type SalesTaskUncheckedCreateWithoutOwnerInput = {
@@ -817,6 +945,7 @@ export type SalesTaskUncheckedCreateWithoutOwnerInput = {
   status?: $Enums.SalesTaskStatus;
   customerId?: string | null;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -878,6 +1007,7 @@ export type SalesTaskScalarWhereInput = {
   ownerId?: Prisma.StringFilter<"SalesTask"> | string;
   customerId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
   opportunityId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
+  followUpId?: Prisma.StringNullableFilter<"SalesTask"> | string | null;
   createdAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<"SalesTask"> | Date | string;
 };
@@ -893,6 +1023,7 @@ export type SalesTaskCreateWithoutCustomerInput = {
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutSalesTasksInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutSalesTasksInput;
+  followUp?: Prisma.FollowUpCreateNestedOneWithoutTasksInput;
 };
 
 export type SalesTaskUncheckedCreateWithoutCustomerInput = {
@@ -904,6 +1035,7 @@ export type SalesTaskUncheckedCreateWithoutCustomerInput = {
   status?: $Enums.SalesTaskStatus;
   ownerId: string;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -962,6 +1094,7 @@ export type SalesTaskCreateWithoutOpportunityInput = {
   updatedAt?: Date | string;
   owner: Prisma.UserCreateNestedOneWithoutSalesTasksInput;
   customer?: Prisma.CustomerCreateNestedOneWithoutSalesTasksInput;
+  followUp?: Prisma.FollowUpCreateNestedOneWithoutTasksInput;
 };
 
 export type SalesTaskUncheckedCreateWithoutOpportunityInput = {
@@ -973,6 +1106,7 @@ export type SalesTaskUncheckedCreateWithoutOpportunityInput = {
   status?: $Enums.SalesTaskStatus;
   ownerId: string;
   customerId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1020,6 +1154,77 @@ export type SalesTaskUpdateManyWithWhereWithoutOpportunityInput = {
   >;
 };
 
+export type SalesTaskCreateWithoutFollowUpInput = {
+  id?: string;
+  type?: $Enums.SalesTaskType;
+  title: string;
+  description?: string | null;
+  dueAt: Date | string;
+  status?: $Enums.SalesTaskStatus;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  owner: Prisma.UserCreateNestedOneWithoutSalesTasksInput;
+  customer?: Prisma.CustomerCreateNestedOneWithoutSalesTasksInput;
+  opportunity?: Prisma.OpportunityCreateNestedOneWithoutSalesTasksInput;
+};
+
+export type SalesTaskUncheckedCreateWithoutFollowUpInput = {
+  id?: string;
+  type?: $Enums.SalesTaskType;
+  title: string;
+  description?: string | null;
+  dueAt: Date | string;
+  status?: $Enums.SalesTaskStatus;
+  ownerId: string;
+  customerId?: string | null;
+  opportunityId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type SalesTaskCreateOrConnectWithoutFollowUpInput = {
+  where: Prisma.SalesTaskWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.SalesTaskCreateWithoutFollowUpInput,
+    Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+  >;
+};
+
+export type SalesTaskCreateManyFollowUpInputEnvelope = {
+  data:
+    | Prisma.SalesTaskCreateManyFollowUpInput
+    | Prisma.SalesTaskCreateManyFollowUpInput[];
+  skipDuplicates?: boolean;
+};
+
+export type SalesTaskUpsertWithWhereUniqueWithoutFollowUpInput = {
+  where: Prisma.SalesTaskWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.SalesTaskUpdateWithoutFollowUpInput,
+    Prisma.SalesTaskUncheckedUpdateWithoutFollowUpInput
+  >;
+  create: Prisma.XOR<
+    Prisma.SalesTaskCreateWithoutFollowUpInput,
+    Prisma.SalesTaskUncheckedCreateWithoutFollowUpInput
+  >;
+};
+
+export type SalesTaskUpdateWithWhereUniqueWithoutFollowUpInput = {
+  where: Prisma.SalesTaskWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.SalesTaskUpdateWithoutFollowUpInput,
+    Prisma.SalesTaskUncheckedUpdateWithoutFollowUpInput
+  >;
+};
+
+export type SalesTaskUpdateManyWithWhereWithoutFollowUpInput = {
+  where: Prisma.SalesTaskScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.SalesTaskUpdateManyMutationInput,
+    Prisma.SalesTaskUncheckedUpdateManyWithoutFollowUpInput
+  >;
+};
+
 export type SalesTaskCreateManyOwnerInput = {
   id?: string;
   type?: $Enums.SalesTaskType;
@@ -1029,6 +1234,7 @@ export type SalesTaskCreateManyOwnerInput = {
   status?: $Enums.SalesTaskStatus;
   customerId?: string | null;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1047,6 +1253,7 @@ export type SalesTaskUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customer?: Prisma.CustomerUpdateOneWithoutSalesTasksNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutSalesTasksNestedInput;
+  followUp?: Prisma.FollowUpUpdateOneWithoutTasksNestedInput;
 };
 
 export type SalesTaskUncheckedUpdateWithoutOwnerInput = {
@@ -1062,6 +1269,7 @@ export type SalesTaskUncheckedUpdateWithoutOwnerInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1079,6 +1287,7 @@ export type SalesTaskUncheckedUpdateManyWithoutOwnerInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1092,6 +1301,7 @@ export type SalesTaskCreateManyCustomerInput = {
   status?: $Enums.SalesTaskStatus;
   ownerId: string;
   opportunityId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1110,6 +1320,7 @@ export type SalesTaskUpdateWithoutCustomerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutSalesTasksNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutSalesTasksNestedInput;
+  followUp?: Prisma.FollowUpUpdateOneWithoutTasksNestedInput;
 };
 
 export type SalesTaskUncheckedUpdateWithoutCustomerInput = {
@@ -1125,6 +1336,7 @@ export type SalesTaskUncheckedUpdateWithoutCustomerInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1142,6 +1354,7 @@ export type SalesTaskUncheckedUpdateManyWithoutCustomerInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1155,6 +1368,7 @@ export type SalesTaskCreateManyOpportunityInput = {
   status?: $Enums.SalesTaskStatus;
   ownerId: string;
   customerId?: string | null;
+  followUpId?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -1173,6 +1387,7 @@ export type SalesTaskUpdateWithoutOpportunityInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   owner?: Prisma.UserUpdateOneRequiredWithoutSalesTasksNestedInput;
   customer?: Prisma.CustomerUpdateOneWithoutSalesTasksNestedInput;
+  followUp?: Prisma.FollowUpUpdateOneWithoutTasksNestedInput;
 };
 
 export type SalesTaskUncheckedUpdateWithoutOpportunityInput = {
@@ -1187,6 +1402,7 @@ export type SalesTaskUncheckedUpdateWithoutOpportunityInput = {
     | $Enums.SalesTaskStatus;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1203,6 +1419,74 @@ export type SalesTaskUncheckedUpdateManyWithoutOpportunityInput = {
     | $Enums.SalesTaskStatus;
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  followUpId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type SalesTaskCreateManyFollowUpInput = {
+  id?: string;
+  type?: $Enums.SalesTaskType;
+  title: string;
+  description?: string | null;
+  dueAt: Date | string;
+  status?: $Enums.SalesTaskStatus;
+  ownerId: string;
+  customerId?: string | null;
+  opportunityId?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type SalesTaskUpdateWithoutFollowUpInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?:
+    Prisma.EnumSalesTaskTypeFieldUpdateOperationsInput | $Enums.SalesTaskType;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  dueAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  status?:
+    | Prisma.EnumSalesTaskStatusFieldUpdateOperationsInput
+    | $Enums.SalesTaskStatus;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  owner?: Prisma.UserUpdateOneRequiredWithoutSalesTasksNestedInput;
+  customer?: Prisma.CustomerUpdateOneWithoutSalesTasksNestedInput;
+  opportunity?: Prisma.OpportunityUpdateOneWithoutSalesTasksNestedInput;
+};
+
+export type SalesTaskUncheckedUpdateWithoutFollowUpInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?:
+    Prisma.EnumSalesTaskTypeFieldUpdateOperationsInput | $Enums.SalesTaskType;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  dueAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  status?:
+    | Prisma.EnumSalesTaskStatusFieldUpdateOperationsInput
+    | $Enums.SalesTaskStatus;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  opportunityId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type SalesTaskUncheckedUpdateManyWithoutFollowUpInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?:
+    Prisma.EnumSalesTaskTypeFieldUpdateOperationsInput | $Enums.SalesTaskType;
+  title?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  dueAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  status?:
+    | Prisma.EnumSalesTaskStatusFieldUpdateOperationsInput
+    | $Enums.SalesTaskStatus;
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  opportunityId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -1221,11 +1505,13 @@ export type SalesTaskSelect<
     ownerId?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    followUpId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+    followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
   },
   ExtArgs["result"]["salesTask"]
 >;
@@ -1244,11 +1530,13 @@ export type SalesTaskSelectCreateManyAndReturn<
     ownerId?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    followUpId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+    followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
   },
   ExtArgs["result"]["salesTask"]
 >;
@@ -1267,11 +1555,13 @@ export type SalesTaskSelectUpdateManyAndReturn<
     ownerId?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    followUpId?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+    followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
   },
   ExtArgs["result"]["salesTask"]
 >;
@@ -1286,6 +1576,7 @@ export type SalesTaskSelectScalar = {
   ownerId?: boolean;
   customerId?: boolean;
   opportunityId?: boolean;
+  followUpId?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
 };
@@ -1303,6 +1594,7 @@ export type SalesTaskOmit<
   | "ownerId"
   | "customerId"
   | "opportunityId"
+  | "followUpId"
   | "createdAt"
   | "updatedAt",
   ExtArgs["result"]["salesTask"]
@@ -1314,6 +1606,7 @@ export type SalesTaskInclude<
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+  followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
 };
 export type SalesTaskIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -1322,6 +1615,7 @@ export type SalesTaskIncludeCreateManyAndReturn<
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+  followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
 };
 export type SalesTaskIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
@@ -1330,6 +1624,7 @@ export type SalesTaskIncludeUpdateManyAndReturn<
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   customer?: boolean | Prisma.SalesTask$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.SalesTask$opportunityArgs<ExtArgs>;
+  followUp?: boolean | Prisma.SalesTask$followUpArgs<ExtArgs>;
 };
 
 export type $SalesTaskPayload<
@@ -1341,6 +1636,7 @@ export type $SalesTaskPayload<
     owner: Prisma.$UserPayload<ExtArgs>;
     customer: Prisma.$CustomerPayload<ExtArgs> | null;
     opportunity: Prisma.$OpportunityPayload<ExtArgs> | null;
+    followUp: Prisma.$FollowUpPayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1362,6 +1658,10 @@ export type $SalesTaskPayload<
        */
       customerId: string | null;
       opportunityId: string | null;
+      /**
+       * 来源跟进记录（可选）：任务由某次跟进的下一步计划生成。
+       */
+      followUpId: string | null;
       createdAt: Date;
       updatedAt: Date;
     },
@@ -1954,6 +2254,19 @@ export interface Prisma__SalesTaskClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  followUp<T extends Prisma.SalesTask$followUpArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.SalesTask$followUpArgs<ExtArgs>>
+  ): Prisma.Prisma__FollowUpClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$FollowUpPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1999,6 +2312,7 @@ export interface SalesTaskFieldRefs {
   readonly ownerId: Prisma.FieldRef<"SalesTask", "String">;
   readonly customerId: Prisma.FieldRef<"SalesTask", "String">;
   readonly opportunityId: Prisma.FieldRef<"SalesTask", "String">;
+  readonly followUpId: Prisma.FieldRef<"SalesTask", "String">;
   readonly createdAt: Prisma.FieldRef<"SalesTask", "DateTime">;
   readonly updatedAt: Prisma.FieldRef<"SalesTask", "DateTime">;
 }
@@ -2511,6 +2825,28 @@ export type SalesTask$opportunityArgs<
    */
   include?: Prisma.OpportunityInclude<ExtArgs> | null;
   where?: Prisma.OpportunityWhereInput;
+};
+
+/**
+ * SalesTask.followUp
+ */
+export type SalesTask$followUpArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the FollowUp
+   */
+  select?: Prisma.FollowUpSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the FollowUp
+   */
+  omit?: Prisma.FollowUpOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FollowUpInclude<ExtArgs> | null;
+  where?: Prisma.FollowUpWhereInput;
 };
 
 /**

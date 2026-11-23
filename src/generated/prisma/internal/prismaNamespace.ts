@@ -2767,6 +2767,7 @@ export type OrderScalarFieldEnum =
 export const ReconciliationScalarFieldEnum = {
   id: "id",
   orderId: "orderId",
+  status: "status",
   receivedTotal: "receivedTotal",
   balance: "balance",
   confirmedBy: "confirmedBy",
@@ -2805,6 +2806,7 @@ export const SalesTaskScalarFieldEnum = {
   ownerId: "ownerId",
   customerId: "customerId",
   opportunityId: "opportunityId",
+  followUpId: "followUpId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
 } as const;
@@ -3234,6 +3236,18 @@ export type ListEnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   "OrderStatus[]"
 >;
+
+/**
+ * Reference to a field of type 'ReconciliationStatus'
+ */
+export type EnumReconciliationStatusFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "ReconciliationStatus">;
+
+/**
+ * Reference to a field of type 'ReconciliationStatus[]'
+ */
+export type ListEnumReconciliationStatusFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, "ReconciliationStatus[]">;
 
 /**
  * Reference to a field of type 'DiscountApprovalStatus'

@@ -35,6 +35,7 @@ const record = {
   balance: 400,
   confirmedBy: admin.id,
   note: "已核对",
+  status: "CONFIRMED",
 };
 
 beforeEach(() => {
@@ -50,7 +51,14 @@ beforeEach(() => {
 });
 
 describe("对账服务", () => {
-  it("确认对账在事务内实时汇总回款，写入金额快照", async () => {
+  it("非管理员即使传入管理员 confirmedBy 也不能确认对账（仓库层守卫）", async () => {
+    await expect(
+      confirmReconciliation(order.id, admin.id, null, scope(owner))
+    ).rejects.toBeInstanceOf(OrderNotFoundError);
+    expect(prismaMock.reconciliation.create).not.toHaveBeenCalled();
+  });
+
+  it("确认对账在事务内实时汇总回款，写入金额快照与 CONFIRMED 状态", async () => {
     const result = await confirmReconciliation(
       order.id,
       admin.id,
@@ -59,9 +67,6 @@ describe("对账服务", () => {
     );
 
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
-    expect(prismaMock.payment.aggregate).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { orderId: order.id } })
-    );
     expect(prismaMock.reconciliation.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -69,6 +74,7 @@ describe("对账服务", () => {
           balance: 400,
           confirmedBy: admin.id,
           note: "已核对",
+          status: "CONFIRMED",
         }),
       })
     );

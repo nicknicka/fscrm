@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/repositories/customer";
 import { createFollowUp } from "@/lib/db/repositories/sales";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { loadStageLabelMap } from "@/lib/stage-display";
 import type { ParseOutcome } from "@/lib/ai/followup-parser";
 
 /**
@@ -140,6 +141,10 @@ export async function advanceOpportunityStage(
     return { ok: false, message: "目标阶段不合法。" };
   }
 
+  const labels = await loadStageLabelMap();
+  const labelOf = (stage: string) =>
+    labels[stage] ?? STAGE_LABEL[stage] ?? stage;
+
   const opportunity = await prisma.opportunity.findFirst({
     where: {
       id: opportunityId,
@@ -158,7 +163,7 @@ export async function advanceOpportunityStage(
   if (!expected || expected.value !== targetStage) {
     return {
       ok: false,
-      message: `当前阶段是「${STAGE_LABEL[opportunity.stage]}」，不能直接跳到「${STAGE_LABEL[targetStage]}」。请刷新卡片后再操作。`,
+      message: `当前阶段是「${labelOf(opportunity.stage)}」，不能直接跳到「${labelOf(targetStage)}」。请刷新卡片后再操作。`,
     };
   }
 
@@ -167,13 +172,16 @@ export async function advanceOpportunityStage(
     data: { stage: targetStage as OpportunityStage },
   });
 
+  const configuredNext = nextStageOf(updated.stage);
   return {
     ok: true,
-    message: `已推进到「${STAGE_LABEL[targetStage]}」`,
+    message: `已推进到「${labelOf(targetStage)}」`,
     opportunityName: updated.name,
     stage: updated.stage,
-    stageLabel: STAGE_LABEL[updated.stage],
-    nextStage: nextStageOf(updated.stage),
+    stageLabel: labelOf(updated.stage),
+    nextStage: configuredNext
+      ? { value: configuredNext.value, label: labelOf(configuredNext.value) }
+      : null,
   };
 }
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   createContact,
   deleteContact,
@@ -57,6 +58,13 @@ export async function createContactAction(
     accessScopeFor(currentUser)
   );
   if (result.ok) {
+    await auditWrite(
+      currentUser,
+      "CREATE",
+      "Contact",
+      result.contact.id,
+      `新建联系人「${input.name}」`
+    );
     revalidateCustomer(customerId);
   }
   return result;
@@ -79,6 +87,13 @@ export async function updateContactAction(
     accessScopeFor(currentUser)
   );
   if (result.ok) {
+    await auditWrite(
+      currentUser,
+      "UPDATE",
+      "Contact",
+      contactId,
+      `更新联系人「${input.name}」`
+    );
     revalidateCustomer(result.customerId);
   }
   return result;
@@ -89,6 +104,7 @@ export async function deleteContactAction(contactId: string) {
   const currentUser = await requireCurrentUser();
   const result = await deleteContact(contactId, accessScopeFor(currentUser));
   if (result.ok) {
+    await auditWrite(currentUser, "DELETE", "Contact", contactId, "删除联系人");
     revalidateCustomer(result.customerId);
   }
   return result;

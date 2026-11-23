@@ -48,4 +48,16 @@ describe("业务审计日志", () => {
       })
     );
   });
+
+  it("支持按操作人 ID 与摘要关键词过滤", async () => {
+    await listAuditLogs(admin, { actorId: "owner_1", search: "回款" });
+    expect(prismaMock.auditLog.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        where: {
+          actorId: "owner_1",
+          summary: { contains: "回款", mode: "insensitive" },
+        },
+      })
+    );
+  });
 });

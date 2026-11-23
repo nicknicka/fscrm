@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -176,6 +176,58 @@ export function Sidebar({
   const pathname = usePathname();
   const activeHref = pickActiveNavHref(pathname, ALL_NAV_HREFS);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    drawerRef.current?.querySelector<HTMLElement>("button")?.focus();
+
+    function handleTabKey(event: KeyboardEvent) {
+      if (event.key !== "Tab" || !drawerRef.current) return;
+
+      const focusables = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null);
+      if (focusables.length === 0) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    function handleEscapeKey(event: KeyboardEvent) {
+      if (event.key === "Escape") closeDrawer();
+    }
+
+    document.addEventListener("keydown", handleTabKey);
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("keydown", handleTabKey);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [drawerOpen]);
+
+  function openDrawer() {
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    setDrawerOpen(true);
+  }
+
+  function closeDrawer() {
+    setDrawerOpen(false);
+    restoreFocusRef.current?.focus();
+  }
 
   return (
     <>
@@ -189,7 +241,7 @@ export function Sidebar({
         </div>
         <button
           type="button"
-          onClick={() => setDrawerOpen(true)}
+          onClick={openDrawer}
           aria-label="打开导航菜单"
           className="min-h-11 min-w-11 rounded-lg border border-zinc-300 px-3 py-2 text-zinc-700"
         >
@@ -211,16 +263,22 @@ export function Sidebar({
 
       {/* 移动端抽屉 */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div
+          ref={drawerRef}
+          className="fixed inset-0 z-50 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="导航菜单"
+        >
           <div
             className="absolute inset-0 bg-black/40"
-            onClick={() => setDrawerOpen(false)}
+            onClick={closeDrawer}
             aria-hidden="true"
           />
           <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
             <button
               type="button"
-              onClick={() => setDrawerOpen(false)}
+              onClick={closeDrawer}
               aria-label="关闭导航菜单"
               className="absolute right-3 top-4 z-10 min-h-11 min-w-11 rounded-lg px-3 text-zinc-600"
             >
@@ -230,7 +288,7 @@ export function Sidebar({
               userMenu={userMenu}
               currentUser={currentUser}
               activeHref={activeHref}
-              onNavigate={() => setDrawerOpen(false)}
+              onNavigate={closeDrawer}
             />
           </aside>
         </div>

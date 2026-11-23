@@ -22,10 +22,17 @@ export async function requestDiscountApprovalAction(formData: FormData) {
   if (typeof opportunityId !== "string" || !opportunityId) return;
 
   try {
-    await requestDiscountApproval(
+    const created = await requestDiscountApproval(
       opportunityId,
       { discountRate: rate, reason },
       user
+    );
+    await auditWrite(
+      user,
+      "CREATE",
+      "DiscountApproval",
+      created.id,
+      `发起折扣申请：折扣率 ${rate}，原因：${reason}`
     );
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_INPUT") return;

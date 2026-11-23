@@ -15,27 +15,33 @@ export async function listSalesTasks(user: CurrentUser) {
       owner: { select: { id: true, name: true } },
       customer: { select: { id: true, name: true } },
       opportunity: { select: { id: true, name: true } },
+      followUp: { select: { id: true, content: true, nextFollowUpAt: true } },
     },
     orderBy: [{ status: "asc" }, { dueAt: "asc" }],
   });
 }
 
-/** 新建任务/日程：负责人固定为当前用户（管理员可指定）。 */
+/** 新建任务/日程入参：负责人已在 action 层按权限解析。 */
+export interface CreateSalesTaskInput {
+  type: "TASK" | "SCHEDULE";
+  title: string;
+  description: string | null;
+  dueAt: Date;
+  customerId: string | null;
+  opportunityId: string | null;
+  /** 来源跟进记录（可选），承接下一步计划时间。 */
+  followUpId?: string | null;
+}
+
+/** 新建任务/日程：负责人由调用方按权限解析后传入。 */
 export async function createSalesTask(
-  input: {
-    type: "TASK" | "SCHEDULE";
-    title: string;
-    description: string | null;
-    dueAt: Date;
-    customerId: string | null;
-    opportunityId: string | null;
-  },
-  user: CurrentUser
+  input: CreateSalesTaskInput,
+  resolvedOwnerId: string
 ) {
   return prisma.salesTask.create({
     data: {
       ...input,
-      ownerId: user.id,
+      ownerId: resolvedOwnerId,
     },
   });
 }

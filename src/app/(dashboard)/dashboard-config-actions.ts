@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/session";
 import { saveDashboardCards } from "@/lib/analytics/dashboard-config";
 import { isDashboardCard } from "@/lib/analytics/dashboard-cards";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 
 /**
  * 保存当前用户的仪表盘卡片配置。
@@ -20,5 +21,12 @@ export async function saveDashboardCardsAction(formData: FormData) {
         typeof value === "string" && isDashboardCard(value)
     );
   await saveDashboardCards(user.id, cards);
+  await auditWrite(
+    user,
+    "UPDATE",
+    "DashboardConfig",
+    user.id,
+    "保存仪表盘卡片配置"
+  );
   revalidatePath("/");
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { saveModelConfig, testActiveModelConfig } from "@/lib/ai/model-config";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 
 /**
  * 模型服务配置的 Server Action。
@@ -45,19 +46,26 @@ export async function saveModelConfigAction(
   _prev: SaveModelConfigState | null,
   formData: FormData
 ): Promise<SaveModelConfigState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const parsed = readForm(formData);
   if ("error" in parsed) {
     return { ok: false, message: parsed.error };
   }
 
   try {
-    await saveModelConfig({
+    const config = await saveModelConfig({
       label: parsed.value.label,
       baseUrl: parsed.value.baseUrl,
       model: parsed.value.model,
       apiKey: parsed.value.apiKey || undefined,
     });
+    await auditWrite(
+      admin,
+      "UPDATE",
+      "ModelConfig",
+      config.id,
+      "更新模型服务配置"
+    );
   } catch (error) {
     return {
       ok: false,

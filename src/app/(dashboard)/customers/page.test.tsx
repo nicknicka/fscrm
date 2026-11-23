@@ -90,4 +90,15 @@ describe("客户列表页生命周期展示", () => {
     expect(html).toContain("线索");
     expect(html).toContain("留存");
   });
+
+  it("导出链接携带当前搜索词", async () => {
+    const html = renderToStaticMarkup(
+      await CustomersPage({
+        searchParams: Promise.resolve({ q: "云启科技" }),
+      })
+    );
+    expect(html).toContain(
+      "/api/export/customers?q=%E4%BA%91%E5%90%AF%E7%A7%91%E6%8A%80"
+    );
+  });
 });

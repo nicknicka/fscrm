@@ -6,7 +6,11 @@ import {
 } from "../../auth/scope";
 import type { Customer, Prisma } from "../../../generated/prisma/client";
 import type { CustomerLevel } from "../../../generated/prisma/enums";
-import { maskCustomerFields, visibleCustomerFields } from "./field-permission";
+import {
+  CUSTOMER_SENSITIVE_FIELDS,
+  maskCustomerFields,
+  visibleCustomerFields,
+} from "./field-permission";
 
 /**
  * 客户数据访问层。
@@ -71,18 +75,29 @@ export type PublicPoolCustomerSummary = {
   industry: string | null;
 };
 
-/** 客户列表的公共 where，list 与分页 count 共用，保证搜索/筛选口径一致。 */
-function customerListWhere(
+/** 客户列表的公共 where，list 与分页 count 共用，保证搜索/筛选口径一致。
+ * 普通负责人不能按不可见的敏感字段搜索，避免通过结果反推字段内容。 */
+async function customerListWhere(
   params: ListCustomersParams,
   scope: AccessScope
-): Prisma.CustomerWhereInput {
+): Promise<Prisma.CustomerWhereInput> {
   const where: Prisma.CustomerWhereInput = { ...ownerWhere(scope) };
   if (params.search) {
-    where.OR = [
+    const visible = await visibleCustomerFields(scope.role);
+    const searchable: Prisma.CustomerWhereInput[] = [
       { name: { contains: params.search, mode: "insensitive" } },
-      { phone: { contains: params.search, mode: "insensitive" } },
-      { email: { contains: params.search, mode: "insensitive" } },
     ];
+    if (visible.has("phone")) {
+      searchable.push({
+        phone: { contains: params.search, mode: "insensitive" },
+      });
+    }
+    if (visible.has("email")) {
+      searchable.push({
+        email: { contains: params.search, mode: "insensitive" },
+      });
+    }
+    where.OR = searchable;
   }
   if (scope.role === "ADMIN" && params.ownerId) {
     where.ownerId = params.ownerId;
@@ -101,7 +116,7 @@ export async function listCustomers(
   scope: AccessScope
 ) {
   const rows = await prisma.customer.findMany({
-    where: customerListWhere(params, scope),
+    where: await customerListWhere(params, scope),
     include: {
       owner: true,
       _count: { select: { contacts: true, opportunities: true } },
@@ -120,6 +135,14 @@ export async function listCustomers(
 }
 
 /**
+ * 全局客户名称列表：不加 owner 过滤，返回所有客户（含他人名下客户）的名称。
+ * 仅供导入按名称归一化查重使用；只投影 name，不泄露电话、邮箱、负责人等敏感字段。
+ */
+export async function listAllCustomerNames(): Promise<Array<{ name: string }>> {
+  return prisma.customer.findMany({ select: { name: true } });
+}
+
+/**
  * 客户分页计数：where 与 listCustomers 共用 customerListWhere，
  * 保证搜索/筛选条件下总数与列表一致。
  */
@@ -127,7 +150,9 @@ export async function countCustomersForPage(
   params: ListCustomersParams,
   scope: AccessScope
 ): Promise<number> {
-  return prisma.customer.count({ where: customerListWhere(params, scope) });
+  return prisma.customer.count({
+    where: await customerListWhere(params, scope),
+  });
 }
 
 /**
@@ -235,7 +260,8 @@ export async function createCustomer(
   });
 }
 
-/** 更新客户：普通负责人只能更新自己的客户，且不能改变负责人。 */
+/** 更新客户：普通负责人只能更新自己的客户，且不能改变负责人。
+ * 不可见的敏感字段不会写入，避免掩码字段被表单空值或伪造值覆盖。 */
 export async function updateCustomer(
   id: string,
   data: Prisma.CustomerUpdateInput,
@@ -244,6 +270,10 @@ export async function updateCustomer(
   const updateData = { ...data };
   if (scope.role !== "ADMIN") {
     delete updateData.owner;
+    const visible = await visibleCustomerFields(scope.role);
+    for (const field of CUSTOMER_SENSITIVE_FIELDS) {
+      if (!visible.has(field)) delete updateData[field];
+    }
   }
   const result = await prisma.customer.updateMany({
     where: { id, ...ownerWhere(scope) },

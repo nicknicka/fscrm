@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  listCustomers: vi.fn(),
+  listAllCustomerNames: vi.fn(),
   createCustomer: vi.fn(),
   accessScopeFor: vi.fn(),
 }));
@@ -11,7 +11,7 @@ vi.mock("@/lib/auth/scope", () => ({
 }));
 
 vi.mock("@/lib/db/repositories/customer", () => ({
-  listCustomers: mocks.listCustomers,
+  listAllCustomerNames: mocks.listAllCustomerNames,
   createCustomer: mocks.createCustomer,
 }));
 
@@ -24,7 +24,7 @@ const scope = { userId: "owner_1", role: "OWNER" as const };
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.accessScopeFor.mockReturnValue(scope);
-  mocks.listCustomers.mockResolvedValue([]);
+  mocks.listAllCustomerNames.mockResolvedValue([]);
   mocks.createCustomer.mockImplementation(async (data: { name: string }) => ({
     id: `new_${data.name}`,
     ...data,
@@ -33,7 +33,9 @@ beforeEach(() => {
 
 describe("客户批量导入", () => {
   it("按名称归一化跳过库内已存在的客户，不覆盖", async () => {
-    mocks.listCustomers.mockResolvedValue([{ name: "杭州云启科技有限公司" }]);
+    mocks.listAllCustomerNames.mockResolvedValue([
+      { name: "杭州云启科技有限公司" },
+    ]);
 
     const result = await importCustomers(
       [{ 客户名称: " 杭州云启科技 ", 电话: "138" }],
@@ -42,6 +44,21 @@ describe("客户批量导入", () => {
 
     expect(result.skipped).toBe(1);
     expect(result.created).toBe(0);
+    expect(mocks.createCustomer).not.toHaveBeenCalled();
+    expect(result.rows[0].reason).toContain("已存在同名客户");
+  });
+
+  it("普通负责人跳过他人名下同名客户（全局查重，不依赖 scope 可见性）", async () => {
+    // 该客户属于他人，普通负责人通过 scope 列表看不到，但全局查重集合里存在。
+    mocks.listAllCustomerNames.mockResolvedValue([
+      { name: "竞品科技有限公司" },
+    ]);
+
+    const result = await importCustomers([{ 客户名称: "竞品科技" }], user);
+
+    expect(result.skipped).toBe(1);
+    expect(result.created).toBe(0);
+    expect(mocks.listAllCustomerNames).toHaveBeenCalledTimes(1);
     expect(mocks.createCustomer).not.toHaveBeenCalled();
     expect(result.rows[0].reason).toContain("已存在同名客户");
   });

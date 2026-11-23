@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, requireAdmin } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   confirmReconciliation,
   latestReconciliation,
@@ -37,6 +38,13 @@ export async function confirmReconciliationForAdmin(
       admin.id,
       typeof note === "string" && note.trim() ? note.trim() : null,
       accessScopeFor(admin)
+    );
+    await auditWrite(
+      admin,
+      "APPROVE",
+      "Reconciliation",
+      record.id,
+      `订单 ${orderId} 确认对账`
     );
     revalidatePath(`/orders/${orderId}`);
     return { ok: true, reconciliationId: record.id };

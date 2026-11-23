@@ -106,7 +106,14 @@ export default async function OpportunitiesPage({
         >
           筛选
         </button>
-        <ExportButton dataset="opportunities" />
+        <ExportButton
+          dataset="opportunities"
+          params={{
+            q,
+            stage,
+            ...(user.role === "ADMIN" ? { ownerId } : {}),
+          }}
+        />
       </form>
 
       {/* 筛选胶囊：切换阶段时只换底色与文字色，用过渡而不是瞬间反色 */}
@@ -151,9 +158,9 @@ export default async function OpportunitiesPage({
       ) : (
         <Enter
           effect="fade"
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
         >
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[800px] text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">商机名称</th>

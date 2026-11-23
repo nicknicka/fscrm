@@ -6,6 +6,9 @@ const prismaMock = vi.hoisted(() => ({
   paymentPlan: {
     create: vi.fn(),
     findFirst: vi.fn(),
+    findUniqueOrThrow: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
     delete: vi.fn(),
     findMany: vi.fn(),
     aggregate: vi.fn(),
@@ -17,6 +20,7 @@ vi.mock("@/lib/db/client", () => ({ prisma: prismaMock }));
 
 import {
   addPaymentPlan,
+  updatePaymentPlan,
   deletePaymentPlan,
   listPaymentPlans,
   PaymentNotFoundError,
@@ -47,6 +51,9 @@ beforeEach(() => {
   prismaMock.order.findFirst.mockResolvedValue(order);
   prismaMock.paymentPlan.create.mockResolvedValue(plan);
   prismaMock.paymentPlan.findFirst.mockResolvedValue({ id: plan.id });
+  prismaMock.paymentPlan.findUniqueOrThrow.mockResolvedValue(plan);
+  prismaMock.paymentPlan.updateMany.mockResolvedValue({ count: 1 });
+  prismaMock.paymentPlan.deleteMany.mockResolvedValue({ count: 1 });
   prismaMock.paymentPlan.findMany.mockResolvedValue([plan]);
   prismaMock.paymentPlan.aggregate.mockResolvedValue({ _sum: { amount: 600 } });
   prismaMock.payment.aggregate.mockResolvedValue({ _sum: { amount: 400 } });
@@ -94,18 +101,76 @@ describe("回款计划服务", () => {
     expect(prismaMock.paymentPlan.create).not.toHaveBeenCalled();
   });
 
-  it("删除计划带权限条件，越权/不存在统一 NOT_FOUND", async () => {
+  it("更新在事务内带权限条件原子写入金额与时间", async () => {
+    const next = {
+      amount: 800,
+      plannedAt: new Date("2026-12-15T00:00:00.000Z"),
+    };
+    const result = await updatePaymentPlan(plan.id, next, scope(owner));
+
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(prismaMock.paymentPlan.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: plan.id,
+          order: { customer: { ownerId: owner.id } },
+        }),
+      })
+    );
+    expect(prismaMock.paymentPlan.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: plan.id,
+          order: { customer: { ownerId: owner.id } },
+        }),
+        data: { amount: next.amount, plannedAt: next.plannedAt },
+      })
+    );
+    expect(result).toEqual(expect.objectContaining({ id: plan.id }));
+  });
+
+  it("更新越权/不存在，或事务内条件更新 count=0 时抛 NOT_FOUND", async () => {
     prismaMock.paymentPlan.findFirst.mockResolvedValue(null);
+    await expect(
+      updatePaymentPlan(
+        "foreign",
+        { amount: 1, plannedAt: plan.plannedAt },
+        scope(otherOwner)
+      )
+    ).rejects.toBeInstanceOf(PaymentNotFoundError);
+    expect(prismaMock.paymentPlan.updateMany).not.toHaveBeenCalled();
+
+    prismaMock.paymentPlan.findFirst.mockResolvedValue({ id: plan.id });
+    prismaMock.paymentPlan.updateMany.mockResolvedValue({ count: 0 });
+    await expect(
+      updatePaymentPlan(
+        plan.id,
+        { amount: 1, plannedAt: plan.plannedAt },
+        scope(owner)
+      )
+    ).rejects.toBeInstanceOf(PaymentNotFoundError);
+  });
+
+  it("删除在事务内用 deleteMany 带权限条件单步完成，count=0 抛 NOT_FOUND", async () => {
+    prismaMock.paymentPlan.deleteMany.mockResolvedValue({ count: 0 });
     await expect(
       deletePaymentPlan("foreign", scope(otherOwner))
     ).rejects.toBeInstanceOf(PaymentNotFoundError);
-    expect(prismaMock.paymentPlan.delete).not.toHaveBeenCalled();
+    expect(prismaMock.paymentPlan.findFirst).not.toHaveBeenCalled();
+    expect(prismaMock.paymentPlan.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: "foreign",
+        order: { customer: { ownerId: otherOwner.id } },
+      },
+    });
 
-    prismaMock.paymentPlan.findFirst.mockResolvedValue({ id: plan.id });
-    await deletePaymentPlan(plan.id, scope(owner));
-    expect(prismaMock.paymentPlan.delete).toHaveBeenCalledWith({
+    prismaMock.paymentPlan.deleteMany.mockResolvedValue({ count: 1 });
+    await deletePaymentPlan(plan.id, scope(admin));
+    expect(prismaMock.$transaction).toHaveBeenCalled();
+    expect(prismaMock.paymentPlan.deleteMany).toHaveBeenLastCalledWith({
       where: { id: plan.id },
     });
+    expect(prismaMock.paymentPlan.delete).not.toHaveBeenCalled();
   });
 
   it("读取计划与实际回款对照，差额 = 计划 - 实际", async () => {

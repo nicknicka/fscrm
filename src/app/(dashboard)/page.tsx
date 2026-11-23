@@ -199,7 +199,7 @@ export default async function HomePage() {
           </p>
           <NavLink
             href="/reminders"
-            className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             查看待办 →
           </NavLink>
@@ -352,7 +352,7 @@ export default async function HomePage() {
             ))}
             <button
               type="submit"
-              className="ml-auto rounded-lg bg-zinc-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-900"
+              className="ml-auto min-h-11 rounded-lg bg-zinc-800 px-3 py-2.5 text-sm font-medium text-white hover:bg-zinc-900"
             >
               保存布局
             </button>

@@ -142,4 +142,36 @@ describe("商机列表搜索与高级筛选", () => {
     expect(html).toContain("ownerId=user_2");
     expect(html).toContain("stage=QUOTE");
   });
+
+  it("导出链接携带 q/stage/ownerId，普通负责人不带 ownerId", async () => {
+    mocks.getCurrentUser.mockResolvedValue(admin);
+    const adminHtml = renderToStaticMarkup(
+      await OpportunitiesPage({
+        searchParams: Promise.resolve({
+          q: "云启",
+          stage: "QUOTE",
+          ownerId: "user_2",
+        }),
+      })
+    );
+    // renderToStaticMarkup 会把 href 中的 & 转义成 &amp;
+    expect(adminHtml).toContain(
+      "/api/export/opportunities?q=%E4%BA%91%E5%90%AF&amp;stage=QUOTE&amp;ownerId=user_2"
+    );
+
+    mocks.getCurrentUser.mockResolvedValue(owner);
+    const ownerHtml = renderToStaticMarkup(
+      await OpportunitiesPage({
+        searchParams: Promise.resolve({
+          q: "云启",
+          stage: "QUOTE",
+          ownerId: "user_2",
+        }),
+      })
+    );
+    expect(ownerHtml).toContain(
+      "/api/export/opportunities?q=%E4%BA%91%E5%90%AF&amp;stage=QUOTE"
+    );
+    expect(ownerHtml).not.toContain("/api/export/opportunities?ownerId=");
+  });
 });

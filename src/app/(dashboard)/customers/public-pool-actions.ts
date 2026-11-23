@@ -11,6 +11,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor, resolveAssignableOwnerId } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   claimPublicCustomer,
   setCustomerOwner,
@@ -61,6 +62,14 @@ export async function claimPublicCustomerAction(id: string) {
     // 飞书通知失败不影响业务认领
   }
 
+  await auditWrite(
+    currentUser,
+    "CLAIM",
+    "Customer",
+    claimed.id,
+    `认领公海客户「${claimed.name}」`
+  );
+
   revalidateCustomerViews(id);
   return { ok: true as const };
 }
@@ -74,12 +83,21 @@ export async function setCustomerOwnerAction(id: string, formData: FormData) {
     requestedOwnerId
   );
 
+  let updated;
   try {
-    await setCustomerOwner(id, ownerId, accessScopeFor(currentUser));
+    updated = await setCustomerOwner(id, ownerId, accessScopeFor(currentUser));
   } catch (error) {
     if (isCustomerAccessError(error)) return NOT_FOUND;
     throw error;
   }
+
+  await auditWrite(
+    currentUser,
+    "UPDATE",
+    "Customer",
+    id,
+    updated.ownerId ? "负责人调整" : "移入公海"
+  );
 
   revalidateCustomerViews(id);
   return { ok: true as const };

@@ -42,16 +42,13 @@ export async function saveFieldPermissions(
   ]);
 }
 
-/**
- * 取当前角色对客户敏感字段的可见集合。
- * 没有配置时默认全部可见（保持既有行为）；管理员始终可见。
- */
+/** 取指定角色对客户敏感字段的可见集合。没有配置时默认全部可见；管理员始终可见。 */
 export async function visibleCustomerFields(
   role: UserRole
 ): Promise<Set<CustomerSensitiveField>> {
   if (role === UserRole.ADMIN) return new Set(CUSTOMER_SENSITIVE_FIELDS);
   const rows = await prisma.fieldPermission.findMany({
-    where: { entity: "Customer", role: UserRole.OWNER },
+    where: { entity: "Customer", role },
   });
   if (rows.length === 0) return new Set(CUSTOMER_SENSITIVE_FIELDS);
   return new Set(

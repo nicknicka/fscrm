@@ -13,7 +13,7 @@ import type * as Prisma from "../internal/prismaNamespace";
 
 /**
  * Model Reconciliation
- * 对账记录：管理员确认某订单截至某时的回款核对结果，保留当时的金额快照。
+ *
  */
 export type ReconciliationModel =
   runtime.Types.Result.DefaultSelection<Prisma.$ReconciliationPayload>;
@@ -39,6 +39,7 @@ export type ReconciliationSumAggregateOutputType = {
 export type ReconciliationMinAggregateOutputType = {
   id: string | null;
   orderId: string | null;
+  status: $Enums.ReconciliationStatus | null;
   receivedTotal: number | null;
   balance: number | null;
   confirmedBy: string | null;
@@ -49,6 +50,7 @@ export type ReconciliationMinAggregateOutputType = {
 export type ReconciliationMaxAggregateOutputType = {
   id: string | null;
   orderId: string | null;
+  status: $Enums.ReconciliationStatus | null;
   receivedTotal: number | null;
   balance: number | null;
   confirmedBy: string | null;
@@ -59,6 +61,7 @@ export type ReconciliationMaxAggregateOutputType = {
 export type ReconciliationCountAggregateOutputType = {
   id: number;
   orderId: number;
+  status: number;
   receivedTotal: number;
   balance: number;
   confirmedBy: number;
@@ -80,6 +83,7 @@ export type ReconciliationSumAggregateInputType = {
 export type ReconciliationMinAggregateInputType = {
   id?: true;
   orderId?: true;
+  status?: true;
   receivedTotal?: true;
   balance?: true;
   confirmedBy?: true;
@@ -90,6 +94,7 @@ export type ReconciliationMinAggregateInputType = {
 export type ReconciliationMaxAggregateInputType = {
   id?: true;
   orderId?: true;
+  status?: true;
   receivedTotal?: true;
   balance?: true;
   confirmedBy?: true;
@@ -100,6 +105,7 @@ export type ReconciliationMaxAggregateInputType = {
 export type ReconciliationCountAggregateInputType = {
   id?: true;
   orderId?: true;
+  status?: true;
   receivedTotal?: true;
   balance?: true;
   confirmedBy?: true;
@@ -208,6 +214,7 @@ export type ReconciliationGroupByArgs<
 export type ReconciliationGroupByOutputType = {
   id: string;
   orderId: string;
+  status: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -240,6 +247,9 @@ export type ReconciliationWhereInput = {
   NOT?: Prisma.ReconciliationWhereInput | Prisma.ReconciliationWhereInput[];
   id?: Prisma.StringFilter<"Reconciliation"> | string;
   orderId?: Prisma.StringFilter<"Reconciliation"> | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFilter<"Reconciliation">
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFilter<"Reconciliation"> | number;
   balance?: Prisma.FloatFilter<"Reconciliation"> | number;
   confirmedBy?: Prisma.StringFilter<"Reconciliation"> | string;
@@ -251,6 +261,7 @@ export type ReconciliationWhereInput = {
 export type ReconciliationOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   orderId?: Prisma.SortOrder;
+  status?: Prisma.SortOrder;
   receivedTotal?: Prisma.SortOrder;
   balance?: Prisma.SortOrder;
   confirmedBy?: Prisma.SortOrder;
@@ -266,6 +277,9 @@ export type ReconciliationWhereUniqueInput = Prisma.AtLeast<
     OR?: Prisma.ReconciliationWhereInput[];
     NOT?: Prisma.ReconciliationWhereInput | Prisma.ReconciliationWhereInput[];
     orderId?: Prisma.StringFilter<"Reconciliation"> | string;
+    status?:
+      | Prisma.EnumReconciliationStatusFilter<"Reconciliation">
+      | $Enums.ReconciliationStatus;
     receivedTotal?: Prisma.FloatFilter<"Reconciliation"> | number;
     balance?: Prisma.FloatFilter<"Reconciliation"> | number;
     confirmedBy?: Prisma.StringFilter<"Reconciliation"> | string;
@@ -282,6 +296,7 @@ export type ReconciliationWhereUniqueInput = Prisma.AtLeast<
 export type ReconciliationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   orderId?: Prisma.SortOrder;
+  status?: Prisma.SortOrder;
   receivedTotal?: Prisma.SortOrder;
   balance?: Prisma.SortOrder;
   confirmedBy?: Prisma.SortOrder;
@@ -304,6 +319,9 @@ export type ReconciliationScalarWhereWithAggregatesInput = {
     | Prisma.ReconciliationScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<"Reconciliation"> | string;
   orderId?: Prisma.StringWithAggregatesFilter<"Reconciliation"> | string;
+  status?:
+    | Prisma.EnumReconciliationStatusWithAggregatesFilter<"Reconciliation">
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatWithAggregatesFilter<"Reconciliation"> | number;
   balance?: Prisma.FloatWithAggregatesFilter<"Reconciliation"> | number;
   confirmedBy?: Prisma.StringWithAggregatesFilter<"Reconciliation"> | string;
@@ -315,6 +333,7 @@ export type ReconciliationScalarWhereWithAggregatesInput = {
 
 export type ReconciliationCreateInput = {
   id?: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -326,6 +345,7 @@ export type ReconciliationCreateInput = {
 export type ReconciliationUncheckedCreateInput = {
   id?: string;
   orderId: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -335,6 +355,9 @@ export type ReconciliationUncheckedCreateInput = {
 
 export type ReconciliationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -346,6 +369,9 @@ export type ReconciliationUpdateInput = {
 export type ReconciliationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   orderId?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -356,6 +382,7 @@ export type ReconciliationUncheckedUpdateInput = {
 export type ReconciliationCreateManyInput = {
   id?: string;
   orderId: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -365,6 +392,9 @@ export type ReconciliationCreateManyInput = {
 
 export type ReconciliationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -375,6 +405,9 @@ export type ReconciliationUpdateManyMutationInput = {
 export type ReconciliationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   orderId?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -395,6 +428,7 @@ export type ReconciliationOrderByRelationAggregateInput = {
 export type ReconciliationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   orderId?: Prisma.SortOrder;
+  status?: Prisma.SortOrder;
   receivedTotal?: Prisma.SortOrder;
   balance?: Prisma.SortOrder;
   confirmedBy?: Prisma.SortOrder;
@@ -410,6 +444,7 @@ export type ReconciliationAvgOrderByAggregateInput = {
 export type ReconciliationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   orderId?: Prisma.SortOrder;
+  status?: Prisma.SortOrder;
   receivedTotal?: Prisma.SortOrder;
   balance?: Prisma.SortOrder;
   confirmedBy?: Prisma.SortOrder;
@@ -420,6 +455,7 @@ export type ReconciliationMaxOrderByAggregateInput = {
 export type ReconciliationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   orderId?: Prisma.SortOrder;
+  status?: Prisma.SortOrder;
   receivedTotal?: Prisma.SortOrder;
   balance?: Prisma.SortOrder;
   confirmedBy?: Prisma.SortOrder;
@@ -542,8 +578,13 @@ export type ReconciliationUncheckedUpdateManyWithoutOrderNestedInput = {
     | Prisma.ReconciliationScalarWhereInput[];
 };
 
+export type EnumReconciliationStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ReconciliationStatus;
+};
+
 export type ReconciliationCreateWithoutOrderInput = {
   id?: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -553,6 +594,7 @@ export type ReconciliationCreateWithoutOrderInput = {
 
 export type ReconciliationUncheckedCreateWithoutOrderInput = {
   id?: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -613,6 +655,9 @@ export type ReconciliationScalarWhereInput = {
     | Prisma.ReconciliationScalarWhereInput[];
   id?: Prisma.StringFilter<"Reconciliation"> | string;
   orderId?: Prisma.StringFilter<"Reconciliation"> | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFilter<"Reconciliation">
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFilter<"Reconciliation"> | number;
   balance?: Prisma.FloatFilter<"Reconciliation"> | number;
   confirmedBy?: Prisma.StringFilter<"Reconciliation"> | string;
@@ -622,6 +667,7 @@ export type ReconciliationScalarWhereInput = {
 
 export type ReconciliationCreateManyOrderInput = {
   id?: string;
+  status?: $Enums.ReconciliationStatus;
   receivedTotal: number;
   balance: number;
   confirmedBy: string;
@@ -631,6 +677,9 @@ export type ReconciliationCreateManyOrderInput = {
 
 export type ReconciliationUpdateWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -640,6 +689,9 @@ export type ReconciliationUpdateWithoutOrderInput = {
 
 export type ReconciliationUncheckedUpdateWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -649,6 +701,9 @@ export type ReconciliationUncheckedUpdateWithoutOrderInput = {
 
 export type ReconciliationUncheckedUpdateManyWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?:
+    | Prisma.EnumReconciliationStatusFieldUpdateOperationsInput
+    | $Enums.ReconciliationStatus;
   receivedTotal?: Prisma.FloatFieldUpdateOperationsInput | number;
   balance?: Prisma.FloatFieldUpdateOperationsInput | number;
   confirmedBy?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -663,6 +718,7 @@ export type ReconciliationSelect<
   {
     id?: boolean;
     orderId?: boolean;
+    status?: boolean;
     receivedTotal?: boolean;
     balance?: boolean;
     confirmedBy?: boolean;
@@ -680,6 +736,7 @@ export type ReconciliationSelectCreateManyAndReturn<
   {
     id?: boolean;
     orderId?: boolean;
+    status?: boolean;
     receivedTotal?: boolean;
     balance?: boolean;
     confirmedBy?: boolean;
@@ -697,6 +754,7 @@ export type ReconciliationSelectUpdateManyAndReturn<
   {
     id?: boolean;
     orderId?: boolean;
+    status?: boolean;
     receivedTotal?: boolean;
     balance?: boolean;
     confirmedBy?: boolean;
@@ -710,6 +768,7 @@ export type ReconciliationSelectUpdateManyAndReturn<
 export type ReconciliationSelectScalar = {
   id?: boolean;
   orderId?: boolean;
+  status?: boolean;
   receivedTotal?: boolean;
   balance?: boolean;
   confirmedBy?: boolean;
@@ -723,6 +782,7 @@ export type ReconciliationOmit<
 > = runtime.Types.Extensions.GetOmit<
   | "id"
   | "orderId"
+  | "status"
   | "receivedTotal"
   | "balance"
   | "confirmedBy"
@@ -761,6 +821,10 @@ export type $ReconciliationPayload<
     {
       id: string;
       orderId: string;
+      /**
+       * 对账状态（显式记录，避免只能靠“是否存在”推断）。
+       */
+      status: $Enums.ReconciliationStatus;
       /**
        * 确认时的已回款合计快照。
        */
@@ -1389,6 +1453,7 @@ export interface Prisma__ReconciliationClient<
 export interface ReconciliationFieldRefs {
   readonly id: Prisma.FieldRef<"Reconciliation", "String">;
   readonly orderId: Prisma.FieldRef<"Reconciliation", "String">;
+  readonly status: Prisma.FieldRef<"Reconciliation", "ReconciliationStatus">;
   readonly receivedTotal: Prisma.FieldRef<"Reconciliation", "Float">;
   readonly balance: Prisma.FieldRef<"Reconciliation", "Float">;
   readonly confirmedBy: Prisma.FieldRef<"Reconciliation", "String">;

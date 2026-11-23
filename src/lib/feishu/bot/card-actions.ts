@@ -16,8 +16,8 @@ import {
   claimCustomerForUser,
   logCardAction,
   nextStageOf,
-  STAGE_LABEL,
 } from "./actions";
+import { loadStageLabelMap } from "@/lib/stage-display";
 import { resolveCrmUser } from "./identity";
 import { followUpCreatedCard } from "@/lib/feishu/cards/templates";
 import { recordFollowUp } from "./actions";
@@ -188,6 +188,8 @@ async function advanceStage(
     where: { id: event.targetId },
     include: { customer: true },
   });
+  const labels = await loadStageLabelMap();
+  const fallbackLabel = opportunity?.stage ?? "";
 
   return {
     status: "handled",
@@ -198,10 +200,11 @@ async function advanceStage(
           opportunityName: opportunity.name,
           customerName: opportunity.customer.name,
           stage: opportunity.stage,
-          stageLabel: STAGE_LABEL[opportunity.stage] ?? opportunity.stage,
+          stageLabel:
+            result.stageLabel ?? labels[opportunity.stage] ?? fallbackLabel,
           amount: opportunity.amount,
-          nextStage: nextStageOf(opportunity.stage),
-          actorName: `${user.name} 刚把阶段推进到「${STAGE_LABEL[opportunity.stage]}」`,
+          nextStage: result.nextStage ?? nextStageOf(opportunity.stage),
+          actorName: `${user.name} 刚把阶段推进到「${result.stageLabel ?? labels[opportunity.stage] ?? fallbackLabel}」`,
         })
       : rejectedCard("阶段已更新，但读取商机失败。"),
   };

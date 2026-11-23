@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/client";
+import type { Prisma } from "@/generated/prisma/client";
 import type { CurrentUser } from "@/lib/auth/session";
 
 /**
@@ -45,17 +46,28 @@ export async function auditWrite(
   }
 }
 
-/** 查询审计日志：按实体/动作过滤，管理员全员、负责人仅自己。 */
+/** 查询审计日志：按实体/操作人/摘要过滤，管理员全员、负责人仅自己。 */
 export async function listAuditLogs(
   user: CurrentUser,
-  filters: { entityType?: string; entityId?: string; limit?: number } = {}
+  filters: {
+    entityType?: string;
+    entityId?: string;
+    actorId?: string;
+    search?: string;
+    limit?: number;
+  } = {}
 ) {
+  const where: Prisma.AuditLogWhereInput = {
+    ...(user.role === "OWNER" ? { actorId: user.id } : {}),
+    ...(filters.entityType ? { entityType: filters.entityType } : {}),
+    ...(filters.entityId ? { entityId: filters.entityId } : {}),
+    ...(filters.actorId ? { actorId: filters.actorId } : {}),
+    ...(filters.search
+      ? { summary: { contains: filters.search, mode: "insensitive" as const } }
+      : {}),
+  };
   return prisma.auditLog.findMany({
-    where: {
-      ...(user.role === "OWNER" ? { actorId: user.id } : {}),
-      ...(filters.entityType ? { entityType: filters.entityType } : {}),
-      ...(filters.entityId ? { entityId: filters.entityId } : {}),
-    },
+    where,
     orderBy: { createdAt: "desc" },
     take: filters.limit ?? 200,
   });

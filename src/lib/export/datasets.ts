@@ -18,24 +18,56 @@ import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
 import type { CsvColumn } from "./csv";
 import type { ExportDataset } from "./types";
 
-/** 单个数据集的加载器：按当前用户权限取全部可见行。 */
-type DatasetLoader = (user: CurrentUser) => Promise<{
+/** 导出筛选参数：与列表页的搜索/阶段/负责人条件保持一致。 */
+export interface ExportDatasetFilters {
+  search?: string;
+  stage?: string;
+  ownerId?: string;
+}
+
+/**
+ * 单个数据集的加载器：按当前用户权限与筛选条件取数。
+ * 不指定筛选项时加载全部可见行，维持既有导出口径。
+ */
+type DatasetLoader = (
+  user: CurrentUser,
+  filters?: ExportDatasetFilters
+) => Promise<{
   rows: unknown[];
   columns: CsvColumn<never>[];
 }>;
 
 /** 统一的取数：全部数据集都走仓储层的 scope 收窄。 */
 const loaders: Record<ExportDataset, DatasetLoader> = {
-  customers: async (user) => {
-    const rows = await listCustomers({}, accessScopeFor(user));
+  customers: async (user, filters) => {
+    // 仓储层默认只取 50 行；导出必须取全部可见行，故显式传 take。
+    const rows = await listCustomers(
+      {
+        search: filters?.search,
+        ownerId: filters?.ownerId,
+        take: Number.MAX_SAFE_INTEGER,
+      },
+      accessScopeFor(user)
+    );
     return { rows, columns: customerColumns as CsvColumn<never>[] };
   },
-  leads: async (user) => {
-    const rows = await listLeads({}, accessScopeFor(user));
+  leads: async (user, filters) => {
+    const rows = await listLeads(
+      { search: filters?.search, take: Number.MAX_SAFE_INTEGER },
+      accessScopeFor(user)
+    );
     return { rows, columns: leadColumns as CsvColumn<never>[] };
   },
-  opportunities: async (user) => {
-    const rows = await listOpportunities({}, user);
+  opportunities: async (user, filters) => {
+    const rows = await listOpportunities(
+      {
+        search: filters?.search,
+        stage: filters?.stage,
+        ownerId: filters?.ownerId,
+        take: Number.MAX_SAFE_INTEGER,
+      },
+      user
+    );
     return { rows, columns: opportunityColumns as CsvColumn<never>[] };
   },
   followups: async (user) => {
@@ -55,9 +87,10 @@ const loaders: Record<ExportDataset, DatasetLoader> = {
 /** 导出指定数据集：返回列定义与数据行。 */
 export async function loadExportDataset(
   user: CurrentUser,
-  dataset: ExportDataset
+  dataset: ExportDataset,
+  filters?: ExportDatasetFilters
 ) {
-  return loaders[dataset](user);
+  return loaders[dataset](user, filters);
 }
 
 // --- 列定义 -------------------------------------------------------------

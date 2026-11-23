@@ -1,3 +1,4 @@
+import { type NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { loadExportDataset } from "@/lib/export/datasets";
 import { renderCsv, type CsvColumn } from "@/lib/export/csv";
@@ -14,7 +15,7 @@ import { EXPORT_LABELS, isExportDataset } from "@/lib/export/types";
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ dataset: string }> }
 ) {
   const user = await getCurrentUser();
@@ -33,8 +34,16 @@ export async function GET(
     });
   }
 
+  // 读取列表页传来的筛选条件；缺省时导出全部可见行。
+  const searchParams = request.nextUrl.searchParams;
+  const filters = {
+    search: searchParams.get("q") ?? undefined,
+    stage: searchParams.get("stage") ?? undefined,
+    ownerId: searchParams.get("ownerId") ?? undefined,
+  };
+
   try {
-    const { rows, columns } = await loadExportDataset(user, dataset);
+    const { rows, columns } = await loadExportDataset(user, dataset, filters);
     // 各数据集的列取值函数与行类型在各自 loader 内已配对，此处统一按 unknown 收窄。
     const csv = renderCsv(columns as CsvColumn<unknown>[], rows);
     const filename = `fscrm-${dataset}-${new Date().toISOString().slice(0, 10)}.csv`;

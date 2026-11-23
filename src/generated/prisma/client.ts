@@ -103,7 +103,7 @@ export type Contract = Prisma.ContractModel;
 export type Order = Prisma.OrderModel;
 /**
  * Model Reconciliation
- * 对账记录：管理员确认某订单截至某时的回款核对结果，保留当时的金额快照。
+ *
  */
 export type Reconciliation = Prisma.ReconciliationModel;
 /**

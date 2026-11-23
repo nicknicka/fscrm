@@ -108,4 +108,11 @@ describe("线索列表搜索", () => {
       expect.anything()
     );
   });
+
+  it("导出链接携带当前搜索词", async () => {
+    const html = renderToStaticMarkup(
+      await LeadsPage({ searchParams: Promise.resolve({ q: "云启" }) })
+    );
+    expect(html).toContain("/api/export/leads?q=%E4%BA%91%E5%90%AF");
+  });
 });

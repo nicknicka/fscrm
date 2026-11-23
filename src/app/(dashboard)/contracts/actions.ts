@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   ContractNotFoundError,
   convertQuotationToContract,
@@ -41,6 +42,13 @@ export async function convertQuotationToContractAction(
     const contract = await convertQuotationToContract(
       quotationId,
       accessScopeFor(currentUser)
+    );
+    await auditWrite(
+      currentUser,
+      "CONVERT",
+      "Contract",
+      contract.id,
+      `报价 ${quotationId} 转为合同`
     );
     revalidateContractViews(contract.id, opportunityId);
     return { ok: true as const, contractId: contract.id };

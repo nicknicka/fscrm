@@ -135,7 +135,7 @@ export default async function ApprovalsPage() {
                         type="submit"
                         name="decision"
                         value="APPROVED"
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+                        className="min-h-11 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
                       >
                         通过
                       </button>
@@ -143,7 +143,7 @@ export default async function ApprovalsPage() {
                         type="submit"
                         name="decision"
                         value="REJECTED"
-                        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+                        className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50"
                       >
                         驳回
                       </button>

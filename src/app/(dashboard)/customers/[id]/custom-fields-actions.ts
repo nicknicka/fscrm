@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { saveCustomerCustomFields } from "@/lib/db/repositories/customer";
 import {
   CUSTOMER_FIELD_DEFINITIONS,
@@ -27,5 +28,6 @@ export async function saveCustomerCustomFieldsAction(
     normalizeCustomFields(raw),
     accessScopeFor(user)
   );
+  await auditWrite(user, "UPDATE", "Customer", id, "更新客户自定义字段");
   revalidatePath(`/customers/${id}`);
 }

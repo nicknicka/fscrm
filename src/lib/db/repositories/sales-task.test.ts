@@ -51,7 +51,7 @@ describe("任务与日程服务", () => {
     );
   });
 
-  it("新建任务固定负责人为当前用户", async () => {
+  it("新建任务按已解析负责人写入，并保留来源跟进 ID", async () => {
     await createSalesTask(
       {
         type: "TASK",
@@ -60,12 +60,16 @@ describe("任务与日程服务", () => {
         dueAt: task.dueAt,
         customerId: null,
         opportunityId: null,
+        followUpId: "followup_1",
       },
-      owner
+      "resolved_owner"
     );
     expect(prismaMock.salesTask.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ ownerId: owner.id }),
+        data: expect.objectContaining({
+          ownerId: "resolved_owner",
+          followUpId: "followup_1",
+        }),
       })
     );
   });

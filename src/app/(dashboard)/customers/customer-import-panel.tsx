@@ -50,7 +50,7 @@ export function CustomerImportPanel() {
         <button
           type="button"
           onClick={downloadTemplate}
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+          className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50"
         >
           下载 CSV 模板
         </button>

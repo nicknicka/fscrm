@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { parseCsv } from "@/lib/import/csv-parser";
 import {
   CUSTOMER_IMPORT_HEADERS,
@@ -48,6 +49,15 @@ export async function importCustomersAction(
   }
 
   const summary = await importCustomers(rows, user);
+  if (summary.created > 0) {
+    await auditWrite(
+      user,
+      "CREATE",
+      "Customer",
+      `import-${Date.now()}`,
+      `批量导入客户：新建 ${summary.created} 条，跳过 ${summary.skipped} 条，失败 ${summary.failed} 条`
+    );
+  }
   revalidatePath("/customers");
   return { ok: true, summary };
 }

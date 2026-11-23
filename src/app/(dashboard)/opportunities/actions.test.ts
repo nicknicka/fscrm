@@ -189,6 +189,9 @@ describe("商机 Server Actions", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith(
       "/opportunities/opp_from_lead"
     );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/funnel");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/analytics");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/targets");
   });
 
   it("越权阶段更新与删除动作被拒绝且不调用仓储写入", async () => {

@@ -82,6 +82,8 @@ export async function updateOpportunityAction(id: string, formData: FormData) {
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
   return { ok: true as const };
 }
 
@@ -127,6 +129,8 @@ export async function createOpportunityAction(formData: FormData) {
 
   revalidatePath("/opportunities");
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
   redirect("/opportunities");
 }
 
@@ -141,6 +145,8 @@ export async function updateOpportunityStageAction(
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
 }
 
 export async function deleteOpportunityAction(id: string) {
@@ -148,6 +154,8 @@ export async function deleteOpportunityAction(id: string) {
   await deleteOpportunity(id, user);
   revalidatePath("/opportunities");
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
 }
 
 /** 商机详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */

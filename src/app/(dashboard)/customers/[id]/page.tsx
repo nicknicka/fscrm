@@ -4,11 +4,8 @@ import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import {
-  OpportunityStage,
-  FollowUpMode,
-  CustomerLifecycle,
-} from "@/generated/prisma/enums";
+import { loadStageLabelMap } from "@/lib/stage-display";
+import { FollowUpMode, CustomerLifecycle } from "@/generated/prisma/enums";
 import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
 import {
   CUSTOMER_FIELD_DEFINITIONS,
@@ -33,15 +30,6 @@ const followUpModeLabel: Record<string, string> = {
   [FollowUpMode.OTHER]: "其他",
 };
 
-const stageLabel: Record<string, string> = {
-  [OpportunityStage.CONTACT]: "初步接触",
-  [OpportunityStage.NEED_CONFIRM]: "需求确认",
-  [OpportunityStage.QUOTE]: "报价",
-  [OpportunityStage.NEGOTIATE]: "谈判",
-  [OpportunityStage.WON]: "赢单",
-  [OpportunityStage.LOST]: "输单",
-};
-
 /** 客户详情页：基本信息 + 联系人 + 商机 + 跟进记录。 */
 export default async function CustomerDetailPage({
   params,
@@ -56,6 +44,7 @@ export default async function CustomerDetailPage({
     notFound();
   }
   const customFields = normalizeCustomFields(customer.customFields);
+  const stageLabel = await loadStageLabelMap();
   const users =
     currentUser.role === "ADMIN"
       ? (await listAssignableUsers(currentUser)).map((user) => ({
@@ -120,7 +109,7 @@ export default async function CustomerDetailPage({
             </div>
             <button
               type="submit"
-              className="mt-3 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+              className="mt-3 min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50"
             >
               保存自定义字段
             </button>
@@ -157,7 +146,7 @@ export default async function CustomerDetailPage({
                 </select>
                 <button
                   type="submit"
-                  className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+                  className="min-h-11 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-900"
                 >
                   保存生命周期
                 </button>
@@ -271,7 +260,7 @@ export default async function CustomerDetailPage({
             </label>
             <button
               type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="min-h-11 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
             >
               保存跟进
             </button>
@@ -295,6 +284,14 @@ export default async function CustomerDetailPage({
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {followUp.nextFollowUpAt && (
+                        <Link
+                          href={`/tasks?customerId=${encodeURIComponent(id)}&followUpId=${encodeURIComponent(followUp.id)}&dueAt=${encodeURIComponent(toDateTimeLocal(followUp.nextFollowUpAt))}&title=${encodeURIComponent(`跟进：${customer.name}`)}`}
+                          className="text-xs font-medium text-blue-600 hover:underline"
+                        >
+                          建任务
+                        </Link>
+                      )}
                       <span className="text-xs text-zinc-400">
                         {followUp.createdAt.toLocaleString("zh-CN")}
                       </span>
@@ -323,6 +320,12 @@ export default async function CustomerDetailPage({
       </div>
     </div>
   );
+}
+
+/** 把 Date 转为 datetime-local 输入可接受的值（本地时区）。 */
+function toDateTimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** 信息项。 */

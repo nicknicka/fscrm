@@ -29,6 +29,10 @@ vi.mock("@/lib/db/repositories/user", () => ({
   listAssignableUsers: mocks.listAssignableUsers,
 }));
 
+vi.mock("@/lib/stage-display", () => ({
+  loadStageLabelMap: vi.fn().mockResolvedValue({ WON: "赢单" }),
+}));
+
 vi.mock("../actions", () => ({
   createCustomerFollowUpAction: vi.fn(),
   deleteCustomerFollowUpAction: vi.fn(),

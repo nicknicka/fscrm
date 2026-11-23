@@ -10,7 +10,10 @@
  */
 import { accessScopeFor, type AccessScope } from "@/lib/auth/scope";
 import type { CurrentUser } from "@/lib/auth/session";
-import { createCustomer, listCustomers } from "@/lib/db/repositories/customer";
+import {
+  createCustomer,
+  listAllCustomerNames,
+} from "@/lib/db/repositories/customer";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { normalizeName } from "@/lib/name-normalize";
 
@@ -63,7 +66,8 @@ export async function importCustomers(
   user: CurrentUser
 ): Promise<ImportSummary> {
   const scope: AccessScope = accessScopeFor(user);
-  const existing = await listCustomers({}, scope);
+  // 全局按名称去重：即使同名客户属于他人，也跳过，不重复导入。
+  const existing = await listAllCustomerNames();
   const seen = new Set(existing.map((c) => normalizeName(c.name)));
 
   const summary: ImportSummary = {

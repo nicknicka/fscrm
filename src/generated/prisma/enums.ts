@@ -91,6 +91,14 @@ export const OrderStatus = {
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
+export const ReconciliationStatus = {
+  CONFIRMED: "CONFIRMED",
+  VOID: "VOID",
+} as const;
+
+export type ReconciliationStatus =
+  (typeof ReconciliationStatus)[keyof typeof ReconciliationStatus];
+
 export const DiscountApprovalStatus = {
   PENDING: "PENDING",
   APPROVED: "APPROVED",

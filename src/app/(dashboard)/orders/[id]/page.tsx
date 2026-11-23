@@ -18,6 +18,7 @@ import {
   addPaymentPlanFormAction,
   deletePaymentPlanFormAction,
   listPaymentPlansForCurrentUser,
+  updatePaymentPlanFormAction,
 } from "../payment-plan-actions";
 import {
   confirmReconciliationFormAction,
@@ -178,33 +179,69 @@ export default async function OrderDetailPage({
           {plans.plans.length > 0 && (
             <ul className="mb-4 space-y-2 text-sm">
               {plans.plans.map((plan) => (
-                <li
-                  key={plan.id}
-                  className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2"
-                >
-                  <span>
-                    {plan.plannedAt.toLocaleString("zh-CN")}
-                    {plan.note ? ` · ${plan.note}` : ""}
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="font-medium">
-                      ¥{plan.amount.toLocaleString("zh-CN")}
+                <li key={plan.id} className="rounded-lg bg-zinc-50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>
+                      {plan.plannedAt.toLocaleString("zh-CN")}
+                      {plan.note ? ` · ${plan.note}` : ""}
                     </span>
-                    <form
-                      action={deletePaymentPlanFormAction.bind(
-                        null,
-                        plan.id,
-                        order.id
-                      )}
-                    >
-                      <button
-                        type="submit"
-                        className="text-xs text-red-600 hover:underline"
+                    <span className="flex items-center gap-3">
+                      <span className="font-medium">
+                        ¥{plan.amount.toLocaleString("zh-CN")}
+                      </span>
+                      <form
+                        action={deletePaymentPlanFormAction.bind(
+                          null,
+                          plan.id,
+                          order.id
+                        )}
                       >
-                        删除
-                      </button>
-                    </form>
-                  </span>
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          删除
+                        </button>
+                      </form>
+                    </span>
+                  </div>
+                  <form
+                    action={updatePaymentPlanFormAction.bind(
+                      null,
+                      plan.id,
+                      order.id
+                    )}
+                    className="mt-2 flex flex-wrap items-end gap-3 border-t border-zinc-200 pt-2"
+                  >
+                    <label className="text-xs text-zinc-600">
+                      金额
+                      <input
+                        name="amount"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        defaultValue={plan.amount}
+                        required
+                        className="mt-1 w-28 rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      />
+                    </label>
+                    <label className="text-xs text-zinc-600">
+                      计划到账时间
+                      <input
+                        name="plannedAt"
+                        type="datetime-local"
+                        defaultValue={toDateTimeLocal(plan.plannedAt)}
+                        required
+                        className="mt-1 rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className="min-h-11 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
+                    >
+                      保存
+                    </button>
+                  </form>
                 </li>
               ))}
             </ul>
@@ -278,7 +315,12 @@ export default async function OrderDetailPage({
                   className="rounded-lg bg-zinc-50 px-3 py-2 text-zinc-700"
                 >
                   <div className="flex justify-between">
-                    <span>{record.createdAt.toLocaleString("zh-CN")}</span>
+                    <span>
+                      {record.createdAt.toLocaleString("zh-CN")}
+                      <span className="ml-2 text-xs text-zinc-500">
+                        {record.status === "VOID" ? "已作废" : "已确认"}
+                      </span>
+                    </span>
                     <span>
                       确认时已收 ¥{record.receivedTotal.toLocaleString("zh-CN")}
                     </span>
@@ -343,6 +385,12 @@ export default async function OrderDetailPage({
       </section>
     </div>
   );
+}
+
+/** 把 Date 转为 datetime-local 输入可接受的值（本地时区）。 */
+function toDateTimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function Info({ label, value }: { label: string; value: string }) {

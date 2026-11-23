@@ -94,7 +94,7 @@ export default async function CustomersPage({
         >
           搜索
         </button>
-        <ExportButton dataset="customers" />
+        <ExportButton dataset="customers" params={{ q }} />
       </form>
 
       {customers.length === 0 ? (
@@ -102,9 +102,9 @@ export default async function CustomersPage({
       ) : (
         <Enter
           effect="fade"
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
         >
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">客户名称</th>
@@ -208,7 +208,7 @@ export default async function CustomersPage({
                           </select>
                           <button
                             type="submit"
-                            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50"
+                            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
                           >
                             保存负责人
                           </button>

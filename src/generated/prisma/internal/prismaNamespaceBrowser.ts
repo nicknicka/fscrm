@@ -269,6 +269,7 @@ export type OrderScalarFieldEnum =
 export const ReconciliationScalarFieldEnum = {
   id: "id",
   orderId: "orderId",
+  status: "status",
   receivedTotal: "receivedTotal",
   balance: "balance",
   confirmedBy: "confirmedBy",
@@ -307,6 +308,7 @@ export const SalesTaskScalarFieldEnum = {
   ownerId: "ownerId",
   customerId: "customerId",
   opportunityId: "opportunityId",
+  followUpId: "followUpId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
 } as const;

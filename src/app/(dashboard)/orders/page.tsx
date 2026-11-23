@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { NavLink } from "@/components/nav-link";
+import { Enter } from "@/components/stagger";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
 import { listOrdersForCurrentUser } from "./actions";
@@ -10,12 +11,20 @@ export default async function OrdersPage() {
 
   return (
     <div>
-      <PageHeader title="订单" description="由合同转化形成、进入履约阶段的业务单据" />
+      <Enter>
+        <PageHeader
+          title="订单"
+          description="由合同转化形成、进入履约阶段的业务单据"
+        />
+      </Enter>
 
       {orders.length === 0 ? (
         <EmptyState message="暂无订单。请在合同详情中把合同转为订单。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <Enter
+          effect="fade"
+          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+        >
           <table className="w-full text-left text-sm">
             <thead className="border-b border-zinc-200 bg-zinc-50 text-xs text-zinc-500">
               <tr>
@@ -40,7 +49,11 @@ export default async function OrdersPage() {
                     ¥{order.amount.toLocaleString("zh-CN")}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge tone={order.status === OrderStatus.CANCELLED ? "red" : "blue"}>
+                    <Badge
+                      tone={
+                        order.status === OrderStatus.CANCELLED ? "red" : "blue"
+                      }
+                    >
                       {orderStatusLabel[order.status] ?? order.status}
                     </Badge>
                   </td>
@@ -59,20 +72,19 @@ export default async function OrdersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Link
+                    <NavLink
                       href={`/orders/${order.id}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                     >
                       详情
-                    </Link>
+                    </NavLink>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );
 }
-

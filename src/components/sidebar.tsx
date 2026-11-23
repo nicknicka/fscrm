@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
@@ -14,6 +13,7 @@ import { usePathname } from "next/navigation";
  */
 
 import type { CurrentUser } from "@/lib/auth/session";
+import { NavLink } from "./nav-link";
 import { GuideLauncher } from "./guide/guide-launcher";
 
 interface NavItem {
@@ -44,13 +44,13 @@ const NAV_ITEMS: NavItem[] = [
 /** 管理员专属入口，按会话角色由服务端决定是否渲染。 */
 export function AdminNavItem() {
   return (
-    <Link
+    <NavLink
       href="/settings/users"
       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
     >
       <span className="text-base">◍</span>
       用户与角色
-    </Link>
+    </NavLink>
   );
 }
 
@@ -64,7 +64,10 @@ export function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-zinc-200 bg-white">
+    <aside
+      className="flex w-56 shrink-0 flex-col border-r border-zinc-200 bg-white"
+      style={{ viewTransitionName: "site-sidebar" }}
+    >
       <div className="flex h-16 items-center gap-2 border-b border-zinc-200 px-5">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
           F
@@ -79,7 +82,7 @@ export function Sidebar({
               ? pathname === "/"
               : pathname.startsWith(item.href);
           return (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
               data-guide={item.guide}
@@ -91,7 +94,7 @@ export function Sidebar({
             >
               <span className="text-base">{item.icon}</span>
               {item.label}
-            </Link>
+            </NavLink>
           );
         })}
         {currentUser?.role === "ADMIN" && <AdminNavItem />}

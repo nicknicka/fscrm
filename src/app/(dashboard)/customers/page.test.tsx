@@ -18,7 +18,11 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
-vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
+vi.mock("next/navigation", () => ({
+  redirect: mocks.redirect,
+  usePathname: () => "/customers",
+  useRouter: () => ({ prefetch: vi.fn() }),
+}));
 
 vi.mock("@/lib/auth/session", () => ({
   requireCurrentUser: mocks.requireCurrentUser,

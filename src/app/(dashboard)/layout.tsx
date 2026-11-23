@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { Sidebar } from "@/components/sidebar";
 import { UserMenu } from "@/components/user-menu";
+import { PageTransition } from "@/components/page-transition";
 
 /**
  * 业务页面的统一布局：左侧导航 + 右侧内容区。
@@ -33,7 +34,9 @@ export default async function DashboardLayout({
         <Sidebar userMenu={<UserMenu />} currentUser={currentUser} />
       </Suspense>
       <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-6xl px-8 py-8">{children}</div>
+        <div className="mx-auto max-w-6xl px-8 py-8">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
     </div>
   );

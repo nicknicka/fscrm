@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { NavLink } from "@/components/nav-link";
+import { Enter } from "@/components/stagger";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { listPublicPoolCustomers } from "@/lib/db/repositories/customer";
@@ -39,15 +40,20 @@ export default async function PublicPoolPage() {
 
   return (
     <div>
-      <PageHeader
-        title="公海"
-        description={`共 ${customers.length} 个公海客户`}
-      />
+      <Enter>
+        <PageHeader
+          title="公海"
+          description={`共 ${customers.length} 个公海客户`}
+        />
+      </Enter>
 
       {customers.length === 0 ? (
         <EmptyState message="公海暂无客户。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <Enter
+          effect="fade"
+          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+        >
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
@@ -62,15 +68,18 @@ export default async function PublicPoolPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {customers.map((customer: PublicPoolCustomerSummary) => (
-                <tr key={customer.id} className="hover:bg-zinc-50">
+                <tr
+                  key={customer.id}
+                  className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
+                >
                   <td className="px-4 py-3">
                     {scope.role === "ADMIN" ? (
-                      <Link
+                      <NavLink
                         href={`/customers/${customer.id}`}
-                        className="font-medium text-blue-600 hover:underline"
+                        className="font-medium text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                       >
                         {customer.name}
-                      </Link>
+                      </NavLink>
                     ) : (
                       // 普通负责人认领前只能看到最小信息，详情页仍受负责人范围限制。
                       <span className="font-medium text-zinc-900">
@@ -103,7 +112,7 @@ export default async function PublicPoolPage() {
                       >
                         <button
                           type="submit"
-                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-blue-700"
                         >
                           认领
                         </button>
@@ -142,7 +151,7 @@ export default async function PublicPoolPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
+import { NavLink } from "@/components/nav-link";
+import { Enter } from "@/components/stagger";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { listCustomers } from "@/lib/db/repositories/customer";
@@ -42,17 +43,19 @@ export default async function CustomersPage({
 
   return (
     <div>
-      <PageHeader
-        title="客户"
-        description={`共 ${customers.length} 个客户`}
-        action={
-          <div data-guide="create-customer">
-            <CustomerForm
-              users={users.map((u) => ({ id: u.id, name: u.name }))}
-            />
-          </div>
-        }
-      />
+      <Enter>
+        <PageHeader
+          title="客户"
+          description={`共 ${customers.length} 个客户`}
+          action={
+            <div data-guide="create-customer">
+              <CustomerForm
+                users={users.map((u) => ({ id: u.id, name: u.name }))}
+              />
+            </div>
+          }
+        />
+      </Enter>
 
       <form className="mb-4 flex gap-2" action="/customers">
         <input
@@ -64,7 +67,7 @@ export default async function CustomersPage({
         />
         <button
           type="submit"
-          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-zinc-900"
         >
           搜索
         </button>
@@ -73,7 +76,10 @@ export default async function CustomersPage({
       {customers.length === 0 ? (
         <EmptyState message="暂无客户数据，点击右上角「新建客户」开始添加。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <Enter
+          effect="fade"
+          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+        >
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
@@ -90,16 +96,16 @@ export default async function CustomersPage({
               {customers.map((customer, idx) => (
                 <tr
                   key={customer.id}
-                  className="hover:bg-zinc-50"
+                  className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
                   {...(idx === 0 ? { "data-guide": "customer-row" } : {})}
                 >
                   <td className="px-4 py-3">
-                    <Link
+                    <NavLink
                       href={`/customers/${customer.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                     >
                       {customer.name}
-                    </Link>
+                    </NavLink>
                   </td>
                   <td className="px-4 py-3">
                     <Badge tone={levelTone[customer.level]}>
@@ -176,7 +182,7 @@ export default async function CustomersPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

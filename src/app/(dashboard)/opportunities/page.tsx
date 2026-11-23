@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
+import { NavLink } from "@/components/nav-link";
+import { Enter } from "@/components/stagger";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth/session";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
@@ -37,50 +38,56 @@ export default async function OpportunitiesPage({
 
   return (
     <div>
-      <PageHeader
-        title="商机"
-        description={`共 ${opportunities.length} 个商机`}
-        action={
-          <div data-guide="create-opportunity">
-            <OpportunityForm
-              customers={customers}
-              users={users}
-              defaultOwnerId={user.id}
-            />
-          </div>
-        }
-      />
+      <Enter>
+        <PageHeader
+          title="商机"
+          description={`共 ${opportunities.length} 个商机`}
+          action={
+            <div data-guide="create-opportunity">
+              <OpportunityForm
+                customers={customers}
+                users={users}
+                defaultOwnerId={user.id}
+              />
+            </div>
+          }
+        />
+      </Enter>
 
+      {/* 筛选胶囊：切换阶段时只换底色与文字色，用过渡而不是瞬间反色 */}
       <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
-        <Link
+        <NavLink
           href="/opportunities"
-          className={`rounded-full px-3 py-1 ${
+          className={`rounded-full px-3 py-1 transition-colors duration-[var(--motion-base)] ease-[var(--ease-standard)] ${
             !stage
               ? "bg-zinc-900 text-white"
-              : "bg-white text-zinc-600 ring-1 ring-zinc-200"
+              : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50"
           }`}
         >
           全部阶段
-        </Link>
+        </NavLink>
         {OPPORTUNITY_STAGES.map((item) => (
-          <Link
+          <NavLink
             key={item.value}
             href={`/opportunities?stage=${item.value}`}
-            className={`rounded-full px-3 py-1 ${
+            className={`rounded-full px-3 py-1 transition-colors duration-[var(--motion-base)] ease-[var(--ease-standard)] ${
               stage === item.value
                 ? "bg-zinc-900 text-white"
-                : "bg-white text-zinc-600 ring-1 ring-zinc-200"
+                : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50"
             }`}
           >
             {item.label}
-          </Link>
+          </NavLink>
         ))}
       </div>
 
       {opportunities.length === 0 ? (
         <EmptyState message="暂无商机数据，点击右上角「新建商机」开始添加。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <Enter
+          effect="fade"
+          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+        >
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
@@ -99,14 +106,17 @@ export default async function OpportunitiesPage({
                   stageMeta[opp.stage] ??
                   stageMeta[OPPORTUNITY_STAGES[0].value];
                 return (
-                  <tr key={opp.id} className="hover:bg-zinc-50">
+                  <tr
+                    key={opp.id}
+                    className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
+                  >
                     <td className="px-4 py-3 font-medium">
-                      <Link
+                      <NavLink
                         href={`/opportunities/${opp.id}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                       >
                         {opp.name}
-                      </Link>
+                      </NavLink>
                     </td>
                     <td className="px-4 py-3 text-zinc-600">
                       {opp.customer?.name ?? "—"}
@@ -152,7 +162,7 @@ export default async function OpportunitiesPage({
               })}
             </tbody>
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

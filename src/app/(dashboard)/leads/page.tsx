@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
+import { NavLink } from "@/components/nav-link";
+import { Enter } from "@/components/stagger";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { listLeads } from "@/lib/db/repositories/sales";
@@ -37,16 +38,21 @@ export default async function LeadsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="线索"
-        description={`共 ${leads.length} 条线索`}
-        action={<LeadForm users={users} currentUserId={currentUser.id} />}
-      />
+      <Enter>
+        <PageHeader
+          title="线索"
+          description={`共 ${leads.length} 条线索`}
+          action={<LeadForm users={users} currentUserId={currentUser.id} />}
+        />
+      </Enter>
 
       {leads.length === 0 ? (
         <EmptyState message="暂无线索数据，点击右上角「新建线索」开始添加。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <Enter
+          effect="fade"
+          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+        >
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
@@ -63,7 +69,10 @@ export default async function LeadsPage() {
                 const meta =
                   statusMeta[lead.status] ?? statusMeta[LeadStatus.NEW];
                 return (
-                  <tr key={lead.id} className="hover:bg-zinc-50">
+                  <tr
+                    key={lead.id}
+                    className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
+                  >
                     <td className="px-4 py-3 font-medium">{lead.name}</td>
                     <td className="px-4 py-3 text-zinc-600">
                       {lead.source ?? "—"}
@@ -117,12 +126,12 @@ export default async function LeadsPage() {
                             </button>
                           </form>
                         ) : (
-                          <Link
+                          <NavLink
                             href="/opportunities"
-                            className="text-sm text-blue-600 hover:underline"
+                            className="text-sm text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                           >
                             查看商机
-                          </Link>
+                          </NavLink>
                         )}
                         <form action={deleteLeadAction.bind(null, lead.id)}>
                           <button
@@ -139,7 +148,7 @@ export default async function LeadsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

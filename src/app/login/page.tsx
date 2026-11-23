@@ -1,11 +1,12 @@
 import { Suspense, type ReactNode } from "react";
 
+import { LoginEntrance } from "@/components/login-entrance";
 import { loginErrorMessage } from "@/lib/login/messages";
 
 function LoginCard({ children }: { children: ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <section className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+      <LoginEntrance>
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-base font-bold text-white">
             F
@@ -27,7 +28,7 @@ function LoginCard({ children }: { children: ReactNode }) {
         <p className="mt-4 text-center text-xs leading-5 text-zinc-500">
           授权后将自动返回 CRM；你可以随时退出并使用其他飞书账号重新授权。
         </p>
-      </section>
+      </LoginEntrance>
     </main>
   );
 }

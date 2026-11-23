@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GuideStep } from "./guide-steps";
 
@@ -26,6 +26,20 @@ export function GuideOverlay({
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [missing, setMissing] = useState(false);
+  /** 气泡真实高度：用于把它放在目标下方且不压住目标（步骤标题可能换行）。 */
+  const [bubbleHeight, setBubbleHeight] = useState(0);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+
+  // 每步换目标、或窗口尺寸变化后重新量一次气泡高度
+  useEffect(() => {
+    const el = bubbleRef.current;
+    if (!el) return;
+    const measure = () => setBubbleHeight(el.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [index, rect]);
 
   const step = steps[index];
 
@@ -137,6 +151,9 @@ export function GuideOverlay({
   };
   if (hole) {
     const gap = 16;
+    // 用实测高度，而不是估算值：步骤标题换行时气泡会更高，按小值算会压到目标上。
+    // 首次渲染还没量到高度时用 218 作为下限占位，量到后自动重算。
+    const measured = bubbleHeight || 218;
     const targetCenterX = hole.left + hole.width / 2;
     const targetCenterY = hole.top + hole.height / 2;
 
@@ -150,14 +167,14 @@ export function GuideOverlay({
           window.innerWidth - bubbleWidth - 16
         ),
         top: Math.min(
-          Math.max(targetCenterY - 90, 16),
-          window.innerHeight - 220
+          Math.max(targetCenterY - measured / 2, 16),
+          window.innerHeight - measured - 16
         ),
       };
     } else {
       // 其余情况放在目标下方，空间不足则放上方
       const below = hole.top + hole.height + gap;
-      const fitsBelow = below + 230 < window.innerHeight;
+      const fitsBelow = below + measured + 12 < window.innerHeight;
       const left = Math.min(
         Math.max(targetCenterX - bubbleWidth / 2, 16),
         window.innerWidth - bubbleWidth - 16
@@ -178,19 +195,19 @@ export function GuideOverlay({
       {hole ? (
         <>
           <div
-            className="pointer-events-none fixed inset-x-0 top-0 bg-zinc-900/60 transition-all duration-300"
+            className="pointer-events-none fixed inset-x-0 top-0 bg-zinc-900/60 transition-[top,height,width] duration-[var(--motion-base)] ease-[var(--ease-out-expo)]"
             style={{ height: hole.top }}
           />
           <div
-            className="pointer-events-none fixed inset-x-0 bottom-0 bg-zinc-900/60 transition-all duration-300"
+            className="pointer-events-none fixed inset-x-0 bottom-0 bg-zinc-900/60 transition-[top,height,width] duration-[var(--motion-base)] ease-[var(--ease-out-expo)]"
             style={{ top: hole.top + hole.height }}
           />
           <div
-            className="pointer-events-none fixed left-0 bg-zinc-900/60 transition-all duration-300"
+            className="pointer-events-none fixed left-0 bg-zinc-900/60 transition-[top,height,width] duration-[var(--motion-base)] ease-[var(--ease-out-expo)]"
             style={{ top: hole.top, height: hole.height, width: hole.left }}
           />
           <div
-            className="pointer-events-none fixed right-0 bg-zinc-900/60 transition-all duration-300"
+            className="pointer-events-none fixed right-0 bg-zinc-900/60 transition-[top,height,width] duration-[var(--motion-base)] ease-[var(--ease-out-expo)]"
             style={{
               top: hole.top,
               height: hole.height,
@@ -199,7 +216,7 @@ export function GuideOverlay({
           />
           {/* 高亮描边 + 脉冲光圈 */}
           <div
-            className="pointer-events-none fixed rounded-xl ring-2 ring-blue-400 transition-all duration-300"
+            className="pointer-events-none fixed rounded-xl ring-2 ring-blue-400 transition-[top,left,width,height] duration-[var(--motion-base)] ease-[var(--ease-out-expo)]"
             style={{
               top: hole.top,
               left: hole.left,
@@ -217,8 +234,9 @@ export function GuideOverlay({
 
       {/* 说明气泡 */}
       <div
+        ref={bubbleRef}
         style={bubbleStyle}
-        className="rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-zinc-200 guide-fade-in"
+        className="guide-bubble rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-zinc-200"
       >
         <div className="flex items-center justify-between">
           <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
@@ -248,7 +266,7 @@ export function GuideOverlay({
         {/* 进度条 */}
         <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-zinc-100">
           <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-500"
+            className="h-full rounded-full bg-blue-500 transition-[width] duration-[var(--motion-slow)] ease-[var(--ease-out-expo)]"
             style={{ width: `${((index + 1) / steps.length) * 100}%` }}
           />
         </div>

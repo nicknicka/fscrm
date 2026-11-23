@@ -1,6 +1,16 @@
 import { requireCurrentUser } from "@/lib/auth/session";
+import { loadWinRate } from "@/lib/analytics/dashboard";
 import { countOpportunitiesByStage } from "@/lib/db/repositories/sales";
+import { listStageConfigs } from "@/lib/db/repositories/stage-config";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
+
+/** 漏斗单阶段的转化率（占进入漏斗的商机数）。 */
+export interface FunnelStageConversion {
+  stage: string;
+  label: string;
+  count: number;
+  rate: number;
+}
 
 /**
  * 销售漏斗的页面数据接缝：从会话确定权限范围，实时聚合商机阶段计数，
@@ -11,10 +21,14 @@ import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
  */
 export async function loadFunnelData() {
   const currentUser = await requireCurrentUser();
-  const grouped = await countOpportunitiesByStage(currentUser);
+  const [grouped, configs, winRate] = await Promise.all([
+    countOpportunitiesByStage(currentUser),
+    listStageConfigs(),
+    loadWinRate(currentUser),
+  ]);
   const counts = new Map(grouped.map((row) => [row.stage, row.count]));
-
-  const stages = OPPORTUNITY_STAGES.map(({ value, label, tone }) => ({
+  const stageConfigs = configs.length > 0 ? configs : OPPORTUNITY_STAGES;
+  const stages = stageConfigs.map(({ value, label, tone }) => ({
     stage: value,
     label,
     tone,
@@ -22,8 +36,28 @@ export async function loadFunnelData() {
     href: `/opportunities?stage=${value}`,
   }));
 
+  const total = stages.reduce((sum, stage) => sum + stage.count, 0);
+
+  // 阶段转化率：各阶段商机数 / 漏斗内总商机数，保留一位小数。
+  // 与下方阶段条共用同一组计数口径（均来自 countOpportunitiesByStage）。
+  const stageConversions: FunnelStageConversion[] = stageConfigs
+    .filter(({ value }) => value !== "WON" && value !== "LOST")
+    .map(({ value, label }) => {
+      const count = counts.get(value) ?? 0;
+      return {
+        stage: value,
+        label,
+        count,
+        rate: total > 0 ? Math.round((count / total) * 1000) / 10 : 0,
+      };
+    });
+
   return {
     stages,
-    total: stages.reduce((sum, stage) => sum + stage.count, 0),
+    total,
+    summary: {
+      winRate,
+      stageConversions,
+    },
   };
 }

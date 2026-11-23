@@ -15,6 +15,9 @@ const prismaMock = vi.hoisted(() => ({
   user: {
     findMany: vi.fn(),
   },
+  fieldPermission: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 vi.mock("@/lib/db/client", () => ({ prisma: prismaMock }));
@@ -51,9 +54,9 @@ describe("customer repository access scope", () => {
     await listCustomers({}, admin);
     await listCustomers({ ownerId: owner.userId }, admin);
 
-    expect(prismaMock.customer.findMany.mock.calls[0][0].where).not.toHaveProperty(
-      "ownerId"
-    );
+    expect(
+      prismaMock.customer.findMany.mock.calls[0][0].where
+    ).not.toHaveProperty("ownerId");
     expect(prismaMock.customer.findMany.mock.calls[1][0].where).toHaveProperty(
       "ownerId",
       owner.userId
@@ -150,6 +153,82 @@ describe("customer repository access scope", () => {
     });
   });
 
+  it("does not search by phone or email when the role cannot see those fields", async () => {
+    prismaMock.fieldPermission.findMany.mockResolvedValueOnce([
+      { role: "OWNER", entity: "Customer", field: "phone", visible: false },
+      { role: "OWNER", entity: "Customer", field: "email", visible: false },
+      { role: "OWNER", entity: "Customer", field: "address", visible: false },
+    ]);
+    prismaMock.customer.findMany.mockResolvedValueOnce([]);
+
+    await listCustomers({ search: "138000" }, owner);
+
+    const where = prismaMock.customer.findMany.mock.calls[0][0].where;
+    expect(where.OR).toEqual([
+      { name: { contains: "138000", mode: "insensitive" } },
+    ]);
+  });
+
+  it("drops hidden sensitive fields from an ordinary owner's update so masked values cannot be overwritten", async () => {
+    prismaMock.fieldPermission.findMany.mockResolvedValueOnce([
+      { role: "OWNER", entity: "Customer", field: "phone", visible: true },
+      { role: "OWNER", entity: "Customer", field: "email", visible: false },
+      { role: "OWNER", entity: "Customer", field: "address", visible: true },
+    ]);
+    prismaMock.customer.updateMany.mockResolvedValueOnce({ count: 1 });
+    prismaMock.customer.findUnique.mockResolvedValueOnce({ id: "customer_1" });
+
+    await updateCustomer(
+      "customer_1",
+      {
+        name: "Acme",
+        phone: "138000",
+        email: "forged@example.com",
+        address: "北京",
+      },
+      owner
+    );
+
+    expect(prismaMock.customer.updateMany).toHaveBeenCalledWith({
+      where: { id: "customer_1", ownerId: owner.userId },
+      data: { name: "Acme", phone: "138000", address: "北京" },
+    });
+  });
+
+  it("drops hidden sensitive fields for all non-admin roles, not just OWNER", async () => {
+    prismaMock.fieldPermission.findMany.mockResolvedValueOnce([
+      { role: "MANAGER", entity: "Customer", field: "phone", visible: false },
+    ]);
+    prismaMock.customer.updateMany.mockResolvedValueOnce({ count: 1 });
+    prismaMock.customer.findUnique.mockResolvedValueOnce({ id: "customer_1" });
+
+    await updateCustomer(
+      "customer_1",
+      { phone: "forged" },
+      { userId: "u1", role: "MANAGER" as never }
+    );
+
+    expect(prismaMock.customer.updateMany).toHaveBeenCalledWith({
+      where: { id: "customer_1", ownerId: "u1" },
+      data: {},
+    });
+    expect(prismaMock.fieldPermission.findMany).toHaveBeenCalledWith({
+      where: { entity: "Customer", role: "MANAGER" },
+    });
+  });
+
+  it("keeps all sensitive fields for an administrator update", async () => {
+    prismaMock.customer.updateMany.mockResolvedValueOnce({ count: 1 });
+    prismaMock.customer.findUnique.mockResolvedValueOnce({ id: "customer_1" });
+
+    await updateCustomer("customer_1", { email: "admin@example.com" }, admin);
+
+    expect(prismaMock.customer.updateMany).toHaveBeenCalledWith({
+      where: { id: "customer_1" },
+      data: { email: "admin@example.com" },
+    });
+  });
+
   it("rejects updating someone else's customer without changing it", async () => {
     prismaMock.customer.updateMany.mockResolvedValueOnce({ count: 0 });
 
@@ -167,9 +246,9 @@ describe("customer repository access scope", () => {
   it("rejects deleting a customer the current owner cannot access", async () => {
     prismaMock.customer.findFirst.mockResolvedValueOnce(null);
 
-    await expect(deleteCustomer("customer_foreign", owner)).rejects.toMatchObject(
-      { name: "CustomerAccessError" }
-    );
+    await expect(
+      deleteCustomer("customer_foreign", owner)
+    ).rejects.toMatchObject({ name: "CustomerAccessError" });
 
     expect(prismaMock.customer.delete).not.toHaveBeenCalled();
   });
@@ -177,13 +256,23 @@ describe("customer repository access scope", () => {
   it("limits assignable owners for the customer form by role", async () => {
     prismaMock.user.findMany.mockResolvedValue([]);
 
-    await listAssignableUsers({ id: "user_owner", name: "张三", role: "OWNER" });
-    await listAssignableUsers({ id: "user_admin", name: "管理员", role: "ADMIN" });
+    await listAssignableUsers({
+      id: "user_owner",
+      name: "张三",
+      role: "OWNER",
+    });
+    await listAssignableUsers({
+      id: "user_admin",
+      name: "管理员",
+      role: "ADMIN",
+    });
 
-    expect(prismaMock.user.findMany.mock.calls[0][0]).toHaveProperty(
+    expect(prismaMock.user.findMany.mock.calls[0][0]).toHaveProperty("where", {
+      id: owner.userId,
+    });
+    expect(prismaMock.user.findMany.mock.calls[1][0]).toHaveProperty(
       "where",
-      { id: owner.userId }
+      {}
     );
-    expect(prismaMock.user.findMany.mock.calls[1][0]).toHaveProperty("where", {});
   });
 });

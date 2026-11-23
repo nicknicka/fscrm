@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
-import { FollowUpMode, OpportunityStage } from "@/generated/prisma/enums";
+import { loadStageLabelMap } from "@/lib/stage-display";
+import { FollowUpMode } from "@/generated/prisma/enums";
 import {
   createOpportunityFollowUpAction,
   deleteOpportunityFollowUpAction,
@@ -19,15 +20,6 @@ const followUpModeLabel: Record<string, string> = {
   [FollowUpMode.EMAIL]: "邮件",
   [FollowUpMode.IM]: "即时消息",
   [FollowUpMode.OTHER]: "其他",
-};
-
-const stageLabel: Record<string, string> = {
-  [OpportunityStage.CONTACT]: "初步接触",
-  [OpportunityStage.NEED_CONFIRM]: "需求确认",
-  [OpportunityStage.QUOTE]: "报价",
-  [OpportunityStage.NEGOTIATE]: "谈判",
-  [OpportunityStage.WON]: "赢单",
-  [OpportunityStage.LOST]: "输单",
 };
 
 /** 商机详情页。 */
@@ -48,6 +40,7 @@ export default async function OpportunityDetailPage({
           name: candidate.name,
         }))
       : [];
+  const stageLabel = await loadStageLabelMap();
   const quotations = await listQuotationsForCurrentUser(id);
 
   return (
@@ -184,6 +177,14 @@ export default async function OpportunityDetailPage({
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {f.nextFollowUpAt && (
+                        <Link
+                          href={`/tasks?customerId=${encodeURIComponent(opportunity.customerId ?? "")}&opportunityId=${encodeURIComponent(id)}&followUpId=${encodeURIComponent(f.id)}&dueAt=${encodeURIComponent(toDateTimeLocal(f.nextFollowUpAt))}&title=${encodeURIComponent(`跟进：${opportunity.name}`)}`}
+                          className="text-xs font-medium text-blue-600 hover:underline"
+                        >
+                          建任务
+                        </Link>
+                      )}
                       <span className="text-xs text-zinc-400">
                         {f.createdAt.toLocaleString("zh-CN")}
                       </span>
@@ -227,6 +228,12 @@ export default async function OpportunityDetailPage({
       </div>
     </div>
   );
+}
+
+/** 把 Date 转为 datetime-local 输入可接受的值（本地时区）。 */
+function toDateTimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function Info({ label, value }: { label: string; value: string }) {

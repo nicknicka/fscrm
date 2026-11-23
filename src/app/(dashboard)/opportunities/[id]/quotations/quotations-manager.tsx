@@ -35,7 +35,7 @@ const inputClass =
   "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500";
 
 const submitClass =
-  "rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700";
+  "min-h-11 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700";
 
 export function QuotationsManager({
   opportunityId,
@@ -125,7 +125,7 @@ export function QuotationsManager({
                     <button
                       type="button"
                       onClick={() => setEditingId(null)}
-                      className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
+                      className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-600 hover:bg-zinc-50"
                     >
                       取消
                     </button>
@@ -154,6 +154,12 @@ export function QuotationsManager({
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
+                    <a
+                      href={`/print/quotation/${quotation.id}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      打印
+                    </a>
                     <button
                       type="button"
                       onClick={() => {
@@ -178,7 +184,7 @@ export function QuotationsManager({
                             ? undefined
                             : "报价已确认后才可转为合同"
                         }
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                        className="min-h-11 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
                       >
                         转为合同
                       </button>

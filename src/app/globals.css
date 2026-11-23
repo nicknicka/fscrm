@@ -3,6 +3,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ── 动效令牌 ────────────────────────────────────────────────
+   * 三档时长 + 三档缓动，所有过渡只从这里取值，避免各组件自己写魔法数字。
+   * exit 一律比 enter 快、且位移更小：离场不抢注意力，入场才值得被看见。
+   */
+  --motion-fast: 140ms; /* 悬停、按下：即时反馈 */
+  --motion-base: 220ms; /* 状态切换：颜色、描边、进度 */
+  --motion-slow: 320ms; /* 内容入场：行、卡片、区块 */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* 快进慢出，默认入场 */
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0); /* 只用于离场 */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* 双向对称 */
+  /* 弹簧曲线（linear() 采样）：落点有轻微回落，比 ease 更有重量感 */
+  --ease-spring: linear(0, 0.32 8%, 0.79 20%, 1.03 30%, 1.01 46%, 1);
+
+  /* 列表入场的逐行延迟上限：超过 12 行后不再继续累积，避免长表格等半天 */
+  --stagger-step: 28ms;
 }
 
 @theme inline {
@@ -10,6 +26,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --ease-out-expo: var(--ease-out-expo);
+  --ease-in-expo: var(--ease-in-expo);
+  --ease-standard: var(--ease-standard);
+  --ease-spring: var(--ease-spring);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,7 +45,92 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* 操作引导：脉冲光圈与气泡入场动画 */
+/*
+ * ── 内容入场 ──────────────────────────────────────────────
+ *
+ * 由 React 侧（stagger.tsx）决定"要不要播"：只有首屏加载时才给节点挂上
+ * data-enter / data-stagger，动画播完即摘掉属性。客户端页面切换不重播 ——
+ * 这不是偏好而是约束：客户端导航时 React 会给页面套上 View Transition 快照，
+ * 过渡结束会中止节点上的 CSS 动画，若动画起始帧是 opacity:0 且带 fill，
+ * 内容就会永久停在不可见状态（实测可复现）。分工因此是：
+ *   首屏加载 → 逐块 / 逐行入场；页面切换 → View Transition 的淡入与滑动。
+ *
+ * 具体效果：
+ *   [data-enter="rise"]  页头与指标卡，上移 10px 落入
+ *   [data-enter="fade"]  表格容器与说明区块，轻落位
+ *   [data-stagger] > *   列表项逐行落入，延迟 28ms 递增、12 项封顶
+ */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes enter-settle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-enter="rise"] {
+  animation: enter-rise var(--motion-slow) var(--ease-out-expo) both;
+}
+
+[data-enter="fade"] {
+  animation: enter-settle var(--motion-slow) var(--ease-out-expo) both;
+}
+
+[data-stagger] > * {
+  animation: enter-rise var(--motion-slow) var(--ease-out-expo) both;
+  animation-delay: calc(min(var(--i, 0), 12) * var(--stagger-step));
+}
+
+/* 放在 keyframes 之后的兜底：万一动画被外部中止，也不会留下不可见的节点 */
+[data-enter],
+[data-stagger] > * {
+  opacity: 1;
+}
+
+/*
+ * 进度条展开：从左侧长到目标宽度，延迟 = 所在行的入场延迟 + 90ms，
+ * 读起来是"行先到、条再量出来"。只做 scaleX，不触发重排。
+ * 类名由 React 侧控制：首屏才挂，摘掉后条就是静态宽度。
+ */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.bar-grow {
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-grow {
+    animation: bar-grow 520ms var(--ease-out-expo) both;
+    animation-delay: calc(min(var(--i, 0), 12) * var(--stagger-step) + 90ms);
+  }
+}
+
+/*
+ * 操作引导：脉冲光圈与气泡入场动画
+ * 注意：引导层的内容是"靶子"，定位靠 getBoundingClientRect，因此这里只做
+ * 光圈的呼吸与气泡的落位，不对遮罩块做位移，避免高亮洞在动画期间和靶子错位。
+ */
 @keyframes guide-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55);
@@ -54,14 +159,110 @@ body {
 }
 
 .guide-fade-in {
-  animation: guide-fade-in 220ms ease-out;
+  animation: guide-fade-in var(--motion-slow) var(--ease-out-expo);
 }
 
+/*
+ * 引导气泡：每步换目标时，气泡从上一个位置挪到新位置，而不是瞬间跳过去。
+ * 位置用 left/top 过渡（气泡的定位方式会在 top/bottom 之间切换，混写会跳）；
+ * 入场只做一次淡入，不重复位移，避免和换位的过渡叠加成"抖一下"。
+ */
+.guide-bubble {
+  transition:
+    left var(--motion-base) var(--ease-out-expo),
+    top var(--motion-base) var(--ease-out-expo);
+  animation: guide-fade-in var(--motion-slow) var(--ease-out-expo);
+}
+
+/* 遮罩本身淡入：引导出现时先亮起来，再对准靶子 */
+@keyframes guide-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.guide-scrim {
+  animation: guide-scrim-in 200ms var(--ease-out-expo) both;
+}
+
+/*
+ * 减弱动效：所有位移、缩放、循环动画与逐行延迟一律取消，只保留极短的透明度过渡。
+ * 入场动画直接不播 —— 内容以终态呈现，不会出现"停在中间帧"或"卡在不可见"的情况。
+ */
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+    --stagger-step: 0ms;
+  }
+
+  [data-enter="rise"],
+  [data-enter="fade"],
+  [data-stagger] > *,
+  .bar-grow {
+    animation: none;
+  }
+
   .guide-pulse {
     animation: none;
   }
-  .guide-fade-in {
+  .guide-fade-in,
+  .guide-scrim,
+  .guide-bubble {
     animation: none;
+  }
+
+  /* 一律不产生位移：只留颜色与透明度 */
+  *,
+  *::before,
+  *::after {
+    transition-property:
+      color, background-color, border-color, outline-color, box-shadow, opacity !important;
+    transition-duration: var(--motion-fast) !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ── 页面切换 ──────────────────────────────────────────────
+ * 由 page-transition.tsx 在路由变化后挂上 data-enter，下一帧摘掉，
+ * 于是新页面从进入方向偏移 12px 滑入落定。方向随点击时的层级比较决定：
+ * 深入页面从右侧来（nav-forward），返回从左侧来（nav-back）。
+ * 位移只有 12px：足够读作"换了一页"，又不至于让人追着元素看。
+ * 用 transition 而非 animation：过渡可被打断，比动画更耐得住快速连点。
+ */
+.page-enter {
+  transition:
+    opacity var(--motion-slow) var(--ease-out-expo),
+    translate var(--motion-slow) var(--ease-out-expo);
+}
+
+.page-enter.is-from-right {
+  opacity: 0;
+  translate: 12px 0;
+}
+
+.page-enter.is-from-left {
+  opacity: 0;
+  translate: -12px 0;
+}
+
+/* 侧边栏是空间锚点：页面切换时它不动，用户据此确认"换的是内容不是整个应用" */
+
+/*
+ * 首次落位阶段关掉位移过渡：气泡从占位位置直接出现在目标旁，
+ * 避免从左上角一路滑过页面标题，看起来像两层文字叠在一起。
+ */
+.guide-bubble.guide-bubble-static {
+  transition: none;
+}
+
+/* 单据打印：隐藏非打印元素，去掉背景与阴影，保证纸张上只有单据正文。 */
+@media print {
+  body {
+    background: #fff !important;
   }
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { updateCustomer } from "@/lib/db/repositories/customer";
 import { CustomerLifecycle } from "@/generated/prisma/enums";
 
@@ -24,6 +25,14 @@ export async function updateCustomerLifecycleAction(
   }
 
   await updateCustomer(id, { lifecycle }, accessScopeFor(admin));
+
+  await auditWrite(
+    admin,
+    "UPDATE",
+    "Customer",
+    id,
+    `生命周期更新为 ${lifecycle}`
+  );
 
   revalidatePath("/customers");
   revalidatePath(`/customers/${id}`);

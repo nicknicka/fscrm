@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { grantAdmin, revokeAdmin } from "@/lib/db/repositories/user";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 
 /**
  * 用户与角色管理动作。
@@ -22,16 +23,18 @@ function userIdFrom(formData: FormData): string {
 
 /** 任命已有负责人为管理员。 */
 export async function grantAdminAction(formData: FormData): Promise<void> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = userIdFrom(formData);
   await grantAdmin({ id });
+  await auditWrite(admin, "UPDATE", "User", id, "任命管理员");
   revalidatePath("/settings/users");
 }
 
 /** 撤销已有负责人的管理员角色，回落为普通负责人。 */
 export async function revokeAdminAction(formData: FormData): Promise<void> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = userIdFrom(formData);
   await revokeAdmin({ id });
+  await auditWrite(admin, "UPDATE", "User", id, "撤销管理员");
   revalidatePath("/settings/users");
 }

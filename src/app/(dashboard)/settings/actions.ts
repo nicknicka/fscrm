@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { runContactSync } from "@/lib/services/contact-sync";
 import type { RunContactSyncResult } from "@/lib/services/contact-sync";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 
 /**
  * 手动触发通讯录同步。
@@ -12,8 +13,11 @@ import type { RunContactSyncResult } from "@/lib/services/contact-sync";
  * 不能绕过登录直接触发飞书 API 调用。当前业务角色都可使用设置页同步按钮。
  */
 export async function syncContactsAction(): Promise<RunContactSyncResult> {
-  await requireCurrentUser();
+  const user = await requireCurrentUser();
   const outcome = await runContactSync();
+  if (outcome.ok) {
+    await auditWrite(user, "SYNC", "ContactSync", "current", "手动同步通讯录");
+  }
   revalidatePath("/settings");
   revalidatePath("/");
   return outcome;

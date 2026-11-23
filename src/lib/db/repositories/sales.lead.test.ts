@@ -9,33 +9,77 @@ type FakeLead = {
   name: string;
   status: string;
   ownerId: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
 };
 
+type ContainsFilter = { contains?: string; mode?: string };
+
+type WhereInput = {
+  id?: string;
+  ownerId?: string | null;
+  status?: string;
+  OR?: Array<{
+    name?: ContainsFilter;
+    contactPhone?: ContainsFilter;
+    contactEmail?: ContainsFilter;
+  }>;
+};
+
+/** 模拟 contains 模糊匹配（忽略大小写，与 Prisma 的 insensitive 一致）。 */
+function containsMatch(
+  value: string | null | undefined,
+  filter?: ContainsFilter
+) {
+  if (!filter?.contains) return false;
+  return (value ?? "").toLowerCase().includes(filter.contains.toLowerCase());
+}
+
 const mocks = vi.hoisted(() => {
-  const leads: {
-    id: string;
-    name: string;
-    status: string;
-    ownerId: string | null;
-  }[] = [
-    { id: "lead_mine", name: "我的线索", status: "NEW", ownerId: "user_owner" },
-    { id: "lead_other", name: "他人线索", status: "NEW", ownerId: "user_other" },
-    { id: "lead_none", name: "未分配线索", status: "NEW", ownerId: null },
+  const leads: FakeLead[] = [
+    {
+      id: "lead_mine",
+      name: "我的线索",
+      status: "NEW",
+      ownerId: "user_owner",
+      contactPhone: "13800000001",
+      contactEmail: "mine@example.com",
+    },
+    {
+      id: "lead_other",
+      name: "他人线索",
+      status: "NEW",
+      ownerId: "user_other",
+      contactPhone: "13900000002",
+      contactEmail: "other@example.com",
+    },
+    {
+      id: "lead_none",
+      name: "未分配线索",
+      status: "NEW",
+      ownerId: null,
+      contactPhone: null,
+      contactEmail: null,
+    },
   ];
 
-  const matches = (
-    lead: { id: string; ownerId: string | null; status: string },
-    where: { id?: string; ownerId?: string | null; status?: string } = {}
-  ) =>
+  const matches = (lead: FakeLead, where: WhereInput = {}) =>
     (where.id === undefined || lead.id === where.id) &&
     (where.ownerId === undefined || lead.ownerId === where.ownerId) &&
-    (where.status === undefined || lead.status === where.status);
+    (where.status === undefined || lead.status === where.status) &&
+    (where.OR === undefined ||
+      where.OR.length === 0 ||
+      where.OR.some(
+        (clause) =>
+          containsMatch(lead.name, clause.name) ||
+          containsMatch(lead.contactPhone, clause.contactPhone) ||
+          containsMatch(lead.contactEmail, clause.contactEmail)
+      ));
 
   return {
     leads,
-    findMany: vi.fn(
-      async ({ where = {} }: { where?: { ownerId?: string | null; status?: string } } = {}) =>
-        leads.filter((lead) => matches(lead, where))
+    findMany: vi.fn(async ({ where = {} }: { where?: WhereInput } = {}) =>
+      leads.filter((lead) => matches(lead, where))
     ),
     create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
       const owner = data.owner as { connect?: { id?: string } } | undefined;
@@ -68,29 +112,25 @@ const mocks = vi.hoisted(() => {
       }
     ),
     update: vi.fn(),
-    delete: vi.fn(
-      async ({ where }: { where: { id: string } }) => {
-        const index = leads.findIndex((lead) => lead.id === where.id);
-        if (index === -1) throw new Error("NOT_FOUND");
-        return leads.splice(index, 1)[0];
-      }
-    ),
+    delete: vi.fn(async ({ where }: { where: { id: string } }) => {
+      const index = leads.findIndex((lead) => lead.id === where.id);
+      if (index === -1) throw new Error("NOT_FOUND");
+      return leads.splice(index, 1)[0];
+    }),
     deleteMany: vi.fn(),
     count: vi.fn(
-      async ({ where = {} }: { where?: { ownerId?: string | null } } = {}) =>
+      async ({ where = {} }: { where?: WhereInput } = {}) =>
         leads.filter((lead) => matches(lead, where)).length
     ),
     findFirst: vi.fn(
       async ({ where }: { where: { id?: string; ownerId?: string } }) =>
         leads.find((lead) => matches(lead, where)) ?? null
     ),
-    findUniqueOrThrow: vi.fn(
-      async ({ where }: { where: { id: string } }) => {
-        const found = leads.find((lead) => lead.id === where.id);
-        if (!found) throw new Error("NOT_FOUND");
-        return found;
-      }
-    ),
+    findUniqueOrThrow: vi.fn(async ({ where }: { where: { id: string } }) => {
+      const found = leads.find((lead) => lead.id === where.id);
+      if (!found) throw new Error("NOT_FOUND");
+      return found;
+    }),
   };
 });
 
@@ -111,6 +151,7 @@ vi.mock("@/lib/db/client", () => ({
 }));
 
 import {
+  countLeadsForPage,
   createLead,
   deleteLead,
   listLeads,
@@ -122,13 +163,31 @@ const ownerScope: AccessScope = { userId: OWNER_ID, role: "OWNER" };
 const adminScope: AccessScope = { userId: ADMIN_ID, role: "ADMIN" };
 
 const initialLeads: FakeLead[] = [
-  { id: "lead_mine", name: "我的线索", status: "NEW", ownerId: OWNER_ID },
-  { id: "lead_other", name: "他人线索", status: "NEW", ownerId: OTHER_ID },
+  {
+    id: "lead_mine",
+    name: "我的线索",
+    status: "NEW",
+    ownerId: OWNER_ID,
+    contactPhone: "13800000001",
+    contactEmail: "mine@example.com",
+  },
+  {
+    id: "lead_other",
+    name: "他人线索",
+    status: "NEW",
+    ownerId: OTHER_ID,
+    contactPhone: "13900000002",
+    contactEmail: "other@example.com",
+  },
   { id: "lead_none", name: "未分配线索", status: "NEW", ownerId: null },
 ];
 
 beforeEach(() => {
-  mocks.leads.splice(0, mocks.leads.length, ...initialLeads.map((l) => ({ ...l })));
+  mocks.leads.splice(
+    0,
+    mocks.leads.length,
+    ...initialLeads.map((l) => ({ ...l }))
+  );
   for (const key of [
     "findMany",
     "create",
@@ -195,5 +254,32 @@ describe("线索权限范围", () => {
       id: "lead_other",
     });
     expect(mocks.leads.some((l) => l.id === "lead_other")).toBe(false);
+  });
+});
+
+describe("线索关键词搜索", () => {
+  it("按名称模糊匹配，且不越过负责人权限范围", async () => {
+    const leads = await listLeads({ search: "我的" }, ownerScope);
+    expect(leads.map((lead) => lead.id)).toEqual(["lead_mine"]);
+  });
+
+  it("按电话或邮箱匹配", async () => {
+    const byPhone = await listLeads({ search: "13900000002" }, adminScope);
+    expect(byPhone.map((lead) => lead.id)).toEqual(["lead_other"]);
+
+    const byEmail = await listLeads({ search: "MINE@EXAMPLE" }, adminScope);
+    expect(byEmail.map((lead) => lead.id)).toEqual(["lead_mine"]);
+  });
+
+  it("搜索无结果时返回空列表，计数也为 0", async () => {
+    const leads = await listLeads({ search: "不存在" }, adminScope);
+    const total = await countLeadsForPage({ search: "不存在" }, adminScope);
+    expect(leads).toEqual([]);
+    expect(total).toBe(0);
+  });
+
+  it("分页计数与搜索条件一致", async () => {
+    const total = await countLeadsForPage({ search: "线索" }, adminScope);
+    expect(total).toBe(3);
   });
 });

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireCurrentUser: vi.fn(),
   listCustomers: vi.fn(),
+  countCustomersForPage: vi.fn(),
   listAssignableUsers: vi.fn(),
   deleteCustomerAction: vi.fn(),
   createCustomerAction: vi.fn(),
@@ -18,7 +19,11 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
-vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
+vi.mock("next/navigation", () => ({
+  redirect: mocks.redirect,
+  usePathname: () => "/customers",
+  useRouter: () => ({ prefetch: vi.fn() }),
+}));
 
 vi.mock("@/lib/auth/session", () => ({
   requireCurrentUser: mocks.requireCurrentUser,
@@ -26,6 +31,7 @@ vi.mock("@/lib/auth/session", () => ({
 
 vi.mock("@/lib/db/repositories/customer", () => ({
   listCustomers: mocks.listCustomers,
+  countCustomersForPage: mocks.countCustomersForPage,
 }));
 
 vi.mock("@/lib/db/repositories/user", () => ({
@@ -52,6 +58,7 @@ describe("客户列表页生命周期展示", () => {
       role: "OWNER",
     });
     mocks.listAssignableUsers.mockResolvedValue([]);
+    mocks.countCustomersForPage.mockResolvedValue(2);
     mocks.listCustomers.mockResolvedValue([
       {
         id: "customer_1",
@@ -82,5 +89,16 @@ describe("客户列表页生命周期展示", () => {
     expect(html).toContain("客户生命周期");
     expect(html).toContain("线索");
     expect(html).toContain("留存");
+  });
+
+  it("导出链接携带当前搜索词", async () => {
+    const html = renderToStaticMarkup(
+      await CustomersPage({
+        searchParams: Promise.resolve({ q: "云启科技" }),
+      })
+    );
+    expect(html).toContain(
+      "/api/export/customers?q=%E4%BA%91%E5%90%AF%E7%A7%91%E6%8A%80"
+    );
   });
 });

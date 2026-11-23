@@ -1,10 +1,14 @@
-import Link from "next/link";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
+import { NavLink } from "@/components/nav-link";
+import { ExportButton } from "@/components/export-button";
+import { Pagination } from "@/components/pagination";
+import { Enter } from "@/components/stagger";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
-import { listLeads } from "@/lib/db/repositories/sales";
+import { countLeadsForPage, listLeads } from "@/lib/db/repositories/sales";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCurrentUser } from "@/lib/auth/session";
+import { buildPaginationMeta, parsePagination } from "@/lib/pagination";
 import { LeadStatus } from "@/generated/prisma/enums";
 import { LeadForm } from "./lead-form";
 import {
@@ -24,30 +28,71 @@ const statusMeta: Record<
 };
 
 /** 线索列表页。 */
-export default async function LeadsPage() {
+export default async function LeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    q?: string | string[];
+    page?: string | string[];
+    pageSize?: string | string[];
+  }>;
+}) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return <EmptyState message="请先登录后再查看线索。" />;
   }
   const scope = accessScopeFor(currentUser);
-  const [leads, users] = await Promise.all([
-    listLeads({}, scope),
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q : undefined;
+  const pagination = parsePagination(params);
+  const search = q ? { search: q } : {};
+  const [leads, total, users] = await Promise.all([
+    listLeads(
+      { ...search, skip: pagination.skip, take: pagination.take },
+      scope
+    ),
+    countLeadsForPage(search, scope),
     listAssignableUsers(currentUser),
   ]);
+  const meta = buildPaginationMeta(pagination, total);
 
   return (
     <div>
-      <PageHeader
-        title="线索"
-        description={`共 ${leads.length} 条线索`}
-        action={<LeadForm users={users} currentUserId={currentUser.id} />}
-      />
+      <Enter>
+        <PageHeader
+          title="线索"
+          description={`共 ${total} 条线索`}
+          action={<LeadForm users={users} currentUserId={currentUser.id} />}
+        />
+      </Enter>
+
+      <form className="mb-4 flex gap-2" action="/leads" method="get">
+        {/* 搜索即新条件，重置到第 1 页 */}
+        <input type="hidden" name="page" value="1" />
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="搜索线索名称、电话或邮箱"
+          className="w-full max-w-sm rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-zinc-900"
+        >
+          搜索
+        </button>
+        <ExportButton dataset="leads" params={{ q }} />
+      </form>
 
       {leads.length === 0 ? (
         <EmptyState message="暂无线索数据，点击右上角「新建线索」开始添加。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-          <table className="w-full text-left text-sm">
+        <Enter
+          effect="fade"
+          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
+        >
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">线索名称</th>
@@ -63,7 +108,10 @@ export default async function LeadsPage() {
                 const meta =
                   statusMeta[lead.status] ?? statusMeta[LeadStatus.NEW];
                 return (
-                  <tr key={lead.id} className="hover:bg-zinc-50">
+                  <tr
+                    key={lead.id}
+                    className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
+                  >
                     <td className="px-4 py-3 font-medium">{lead.name}</td>
                     <td className="px-4 py-3 text-zinc-600">
                       {lead.source ?? "—"}
@@ -111,18 +159,18 @@ export default async function LeadsPage() {
                             )}
                             <button
                               type="submit"
-                              className="rounded-lg bg-blue-50 px-2 py-1 text-sm text-blue-700 hover:bg-blue-100"
+                              className="min-h-11 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100"
                             >
                               转化为商机
                             </button>
                           </form>
                         ) : (
-                          <Link
+                          <NavLink
                             href="/opportunities"
-                            className="text-sm text-blue-600 hover:underline"
+                            className="text-sm text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                           >
                             查看商机
-                          </Link>
+                          </NavLink>
                         )}
                         <form action={deleteLeadAction.bind(null, lead.id)}>
                           <button
@@ -138,8 +186,12 @@ export default async function LeadsPage() {
                 );
               })}
             </tbody>
+
+            {total > 0 && (
+              <Pagination meta={meta} pathname="/leads" filters={{ q }} />
+            )}
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

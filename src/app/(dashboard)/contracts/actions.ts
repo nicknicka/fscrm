@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   ContractNotFoundError,
   convertQuotationToContract,
+  countContractsForPage,
   getContract,
   listContracts,
 } from "@/lib/db/repositories/contract";
@@ -41,6 +43,13 @@ export async function convertQuotationToContractAction(
       quotationId,
       accessScopeFor(currentUser)
     );
+    await auditWrite(
+      currentUser,
+      "CONVERT",
+      "Contract",
+      contract.id,
+      `报价 ${quotationId} 转为合同`
+    );
     revalidateContractViews(contract.id, opportunityId);
     return { ok: true as const, contractId: contract.id };
   } catch (error) {
@@ -50,9 +59,17 @@ export async function convertQuotationToContractAction(
 }
 
 /** 页面读取接缝：从会话构造权限范围并交给合同服务收窄。 */
-export async function listContractsForCurrentUser() {
+export async function listContractsForCurrentUser(
+  pagination: { skip?: number; take?: number } = {}
+) {
   const currentUser = await requireCurrentUser();
-  return listContracts(accessScopeFor(currentUser));
+  return listContracts(accessScopeFor(currentUser), pagination);
+}
+
+/** 合同分页计数：与列表共用权限口径。 */
+export async function countContractsForCurrentUser() {
+  const currentUser = await requireCurrentUser();
+  return countContractsForPage(accessScopeFor(currentUser));
 }
 
 /** 详情读取接缝：越权与不存在由服务统一返回 null，页面按 notFound 处理。 */

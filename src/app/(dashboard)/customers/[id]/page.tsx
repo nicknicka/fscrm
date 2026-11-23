@@ -4,13 +4,16 @@ import { Badge, PageHeader } from "@/components/ui";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import { getCustomer } from "@/lib/db/repositories/customer";
-import {
-  OpportunityStage,
-  FollowUpMode,
-  CustomerLifecycle,
-} from "@/generated/prisma/enums";
+import { loadStageLabelMap } from "@/lib/stage-display";
+import { FollowUpMode, CustomerLifecycle } from "@/generated/prisma/enums";
 import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
+import {
+  CUSTOMER_FIELD_DEFINITIONS,
+  normalizeCustomFields,
+} from "@/lib/custom-fields";
+import { saveCustomerCustomFieldsAction } from "./custom-fields-actions";
 import { ContactsManager } from "./contacts/contacts-manager";
+import { ChatBindingManager } from "./chat-binding-manager";
 import { CustomerDetailForm } from "./customer-detail-form";
 import { updateCustomerLifecycleAction } from "../lifecycle-actions";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
@@ -27,15 +30,6 @@ const followUpModeLabel: Record<string, string> = {
   [FollowUpMode.OTHER]: "其他",
 };
 
-const stageLabel: Record<string, string> = {
-  [OpportunityStage.CONTACT]: "初步接触",
-  [OpportunityStage.NEED_CONFIRM]: "需求确认",
-  [OpportunityStage.QUOTE]: "报价",
-  [OpportunityStage.NEGOTIATE]: "谈判",
-  [OpportunityStage.WON]: "赢单",
-  [OpportunityStage.LOST]: "输单",
-};
-
 /** 客户详情页：基本信息 + 联系人 + 商机 + 跟进记录。 */
 export default async function CustomerDetailPage({
   params,
@@ -49,6 +43,8 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+  const customFields = normalizeCustomFields(customer.customFields);
+  const stageLabel = await loadStageLabelMap();
   const users =
     currentUser.role === "ADMIN"
       ? (await listAssignableUsers(currentUser)).map((user) => ({
@@ -94,6 +90,30 @@ export default async function CustomerDetailPage({
               <div className="text-zinc-700">{customer.remark}</div>
             </div>
           )}
+          <form
+            action={saveCustomerCustomFieldsAction.bind(null, customer.id)}
+            className="mt-4 border-t border-zinc-100 pt-4"
+          >
+            <h3 className="mb-2 text-sm font-semibold">自定义字段</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {CUSTOMER_FIELD_DEFINITIONS.map((def) => (
+                <label key={def.key} className="text-xs text-zinc-600">
+                  {def.label}
+                  <input
+                    name={`cf_${def.key}`}
+                    defaultValue={customFields[def.key] ?? ""}
+                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
+                  />
+                </label>
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="mt-3 min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              保存自定义字段
+            </button>
+          </form>
           <CustomerDetailForm
             customerId={customer.id}
             level={customer.level}
@@ -126,7 +146,7 @@ export default async function CustomerDetailPage({
                 </select>
                 <button
                   type="submit"
-                  className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+                  className="min-h-11 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-900"
                 >
                   保存生命周期
                 </button>
@@ -146,6 +166,19 @@ export default async function CustomerDetailPage({
             phone: contact.phone,
             email: contact.email,
             remark: contact.remark,
+          }))}
+        />
+
+        {/* 飞书群绑定 */}
+        <ChatBindingManager
+          customerId={customer.id}
+          bindings={(customer.chatBindings ?? []).map((binding) => ({
+            chatId: binding.chatId,
+            boundByName:
+              binding.boundByUserId === currentUser.id
+                ? currentUser.name
+                : null,
+            createdAt: binding.createdAt.toLocaleDateString("zh-CN"),
           }))}
         />
 
@@ -227,7 +260,7 @@ export default async function CustomerDetailPage({
             </label>
             <button
               type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="min-h-11 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
             >
               保存跟进
             </button>
@@ -251,6 +284,14 @@ export default async function CustomerDetailPage({
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {followUp.nextFollowUpAt && (
+                        <Link
+                          href={`/tasks?customerId=${encodeURIComponent(id)}&followUpId=${encodeURIComponent(followUp.id)}&dueAt=${encodeURIComponent(toDateTimeLocal(followUp.nextFollowUpAt))}&title=${encodeURIComponent(`跟进：${customer.name}`)}`}
+                          className="text-xs font-medium text-blue-600 hover:underline"
+                        >
+                          建任务
+                        </Link>
+                      )}
                       <span className="text-xs text-zinc-400">
                         {followUp.createdAt.toLocaleString("zh-CN")}
                       </span>
@@ -279,6 +320,12 @@ export default async function CustomerDetailPage({
       </div>
     </div>
   );
+}
+
+/** 把 Date 转为 datetime-local 输入可接受的值（本地时区）。 */
+function toDateTimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** 信息项。 */

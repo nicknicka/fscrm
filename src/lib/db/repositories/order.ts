@@ -3,6 +3,10 @@ import type { AccessScope } from "@/lib/auth/scope";
 import { customerOwnerWhere } from "./scoped";
 import { OrderNotFoundError } from "./not-found";
 import { OrderStatus } from "../../../generated/prisma/enums";
+import {
+  canTransitionOrder,
+  InvalidOrderTransitionError,
+} from "../../order-status";
 
 // 订单与报价/合同/回款共用同一种越权/不存在错误（NOT_FOUND），实体定义在 ./not-found。
 export { OrderNotFoundError };
@@ -68,13 +72,28 @@ export async function convertContractToOrder(
   });
 }
 
-/** 查询订单列表；普通负责人仅见本人客户的相关订单。 */
-export async function listOrders(scope: AccessScope) {
+/** 订单列表的公共 where，list 与分页 count 共用。 */
+function orderListWhere(scope: AccessScope) {
+  return customerOwnerWhere<{ id?: string }>(scope);
+}
+
+/** 查询订单列表；普通负责人仅见本人客户的相关订单。支持分页。 */
+export async function listOrders(
+  scope: AccessScope,
+  pagination: { skip?: number; take?: number } = {}
+) {
   return prisma.order.findMany({
-    where: customerOwnerWhere<{ id?: string }>(scope),
+    where: orderListWhere(scope),
     include: orderInclude,
     orderBy: { createdAt: "desc" },
+    skip: pagination.skip ?? 0,
+    take: pagination.take ?? 50,
   });
+}
+
+/** 订单分页计数：where 与 listOrders 同源。 */
+export async function countOrdersForPage(scope: AccessScope): Promise<number> {
+  return prisma.order.count({ where: orderListWhere(scope) });
 }
 
 /** 按 ID 查询订单详情；越权与不存在都返回 null。 */
@@ -82,5 +101,48 @@ export async function getOrder(id: string, scope: AccessScope) {
   return prisma.order.findFirst({
     where: customerOwnerWhere<{ id?: string }>(scope, id),
     include: orderInclude,
+  });
+}
+
+/**
+ * 推进订单状态（事务化）。
+ *
+ * 读、判、写都放在一个事务里：按当前用户权限读取订单 → 校验 from→to 合法 →
+ * 带权限条件 updateMany（同时防止并发下的重复/越权流转）。
+ * - 越权或不存在：抛 OrderNotFoundError（与单据链其它入口一致）。
+ * - 非法迁移：抛 InvalidOrderTransitionError（对象存在但不允许该迁移）。
+ */
+export async function transitionOrderStatus(
+  id: string,
+  target: OrderStatus,
+  scope: AccessScope
+) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findFirst({
+      where: customerOwnerWhere<{ id?: string }>(scope, id),
+      select: { id: true, status: true },
+    });
+    if (!order) throw new OrderNotFoundError();
+
+    const from = order.status as OrderStatus;
+    if (!canTransitionOrder(from, target)) {
+      throw new InvalidOrderTransitionError(from, target);
+    }
+
+    // updateMany 带同样的权限条件：事务内若归属变更导致不再可见，count=0 视为失败。
+    const updated = await tx.order.updateMany({
+      where: {
+        id,
+        status: from,
+        ...customerOwnerWhere<{ id?: string }>(scope),
+      },
+      data: { status: target },
+    });
+    if (updated.count === 0) throw new OrderNotFoundError();
+
+    return tx.order.findUniqueOrThrow({
+      where: { id },
+      include: orderInclude,
+    });
   });
 }

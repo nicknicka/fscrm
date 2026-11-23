@@ -1,12 +1,20 @@
-import Link from "next/link";
 import { PageHeader, Badge, EmptyState } from "@/components/ui";
+import { Pagination } from "@/components/pagination";
+import { NavLink } from "@/components/nav-link";
+import { ExportButton } from "@/components/export-button";
+import { Enter } from "@/components/stagger";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
-import { listCustomers } from "@/lib/db/repositories/customer";
+import {
+  countCustomersForPage,
+  listCustomers,
+} from "@/lib/db/repositories/customer";
+import { buildPaginationMeta, parsePagination } from "@/lib/pagination";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
 import { CustomerForm } from "./customer-form";
+import { CustomerImportPanel } from "./customer-import-panel";
 import { deleteCustomerAction } from "./actions";
 import { setCustomerOwnerFormAction } from "./public-pool-actions";
 
@@ -19,15 +27,27 @@ import { setCustomerOwnerFormAction } from "./public-pool-actions";
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    page?: string | string[];
+    pageSize?: string | string[];
+  }>;
 }) {
   const currentUser = await requireCurrentUser();
   const scope = accessScopeFor(currentUser);
-  const { q } = await searchParams;
-  const [customers, users] = await Promise.all([
-    listCustomers({ search: q }, scope),
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q : undefined;
+  const pagination = parsePagination(params);
+  const search = q ? { search: q } : {};
+  const [customers, total, users] = await Promise.all([
+    listCustomers(
+      { ...search, skip: pagination.skip, take: pagination.take },
+      scope
+    ),
+    countCustomersForPage(search, scope),
     listAssignableUsers(currentUser),
   ]);
+  const meta = buildPaginationMeta(pagination, total);
 
   const levelTone: Record<string, "red" | "amber" | "zinc"> = {
     [CustomerLevel.HIGH]: "red",
@@ -42,19 +62,25 @@ export default async function CustomersPage({
 
   return (
     <div>
-      <PageHeader
-        title="客户"
-        description={`共 ${customers.length} 个客户`}
-        action={
-          <div data-guide="create-customer">
-            <CustomerForm
-              users={users.map((u) => ({ id: u.id, name: u.name }))}
-            />
-          </div>
-        }
-      />
+      <Enter>
+        <PageHeader
+          title="客户"
+          description={`共 ${total} 个客户`}
+          action={
+            <div data-guide="create-customer">
+              <CustomerForm
+                users={users.map((u) => ({ id: u.id, name: u.name }))}
+              />
+            </div>
+          }
+        />
+      </Enter>
 
-      <form className="mb-4 flex gap-2" action="/customers">
+      <CustomerImportPanel />
+
+      <form className="mb-4 flex gap-2" action="/customers" method="get">
+        {/* 搜索即新条件，重置到第 1 页 */}
+        <input type="hidden" name="page" value="1" />
         <input
           type="search"
           name="q"
@@ -64,20 +90,25 @@ export default async function CustomersPage({
         />
         <button
           type="submit"
-          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-zinc-900"
         >
           搜索
         </button>
+        <ExportButton dataset="customers" params={{ q }} />
       </form>
 
       {customers.length === 0 ? (
         <EmptyState message="暂无客户数据，点击右上角「新建客户」开始添加。" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-          <table className="w-full text-left text-sm">
+        <Enter
+          effect="fade"
+          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
+        >
+          <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">客户名称</th>
+                <th className="px-4 py-3 font-medium">客户来源</th>
                 <th className="px-4 py-3 font-medium">等级</th>
                 <th className="px-4 py-3 font-medium">客户生命周期</th>
                 <th className="px-4 py-3 font-medium">行业</th>
@@ -90,16 +121,17 @@ export default async function CustomersPage({
               {customers.map((customer, idx) => (
                 <tr
                   key={customer.id}
-                  className="hover:bg-zinc-50"
+                  className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
                   {...(idx === 0 ? { "data-guide": "customer-row" } : {})}
                 >
                   <td className="px-4 py-3">
-                    <Link
+                    {/* 引导第三步的高亮目标挂在客户名称链接上（见 NavLink 的 data-guide）。 */}
+                    <NavLink
                       href={`/customers/${customer.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
                     >
                       {customer.name}
-                    </Link>
+                    </NavLink>
                   </td>
                   <td className="px-4 py-3">
                     <Badge tone={levelTone[customer.level]}>
@@ -110,6 +142,18 @@ export default async function CustomersPage({
                     <Badge tone="blue">
                       {customerLifecycleLabel[customer.lifecycle]}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-zinc-600">
+                    {(customer as { customFields?: Record<string, unknown> })
+                      .customFields?.source
+                      ? String(
+                          (
+                            customer as {
+                              customFields: Record<string, unknown>;
+                            }
+                          ).customFields.source
+                        )
+                      : "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-600">
                     {customer.industry ?? "—"}
@@ -164,7 +208,7 @@ export default async function CustomersPage({
                           </select>
                           <button
                             type="submit"
-                            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50"
+                            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
                           >
                             保存负责人
                           </button>
@@ -175,8 +219,12 @@ export default async function CustomersPage({
                 </tr>
               ))}
             </tbody>
+
+            {total > 0 && (
+              <Pagination meta={meta} pathname="/customers" filters={{ q }} />
+            )}
           </table>
-        </div>
+        </Enter>
       )}
     </div>
   );

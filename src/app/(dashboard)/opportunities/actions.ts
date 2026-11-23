@@ -18,11 +18,9 @@ import {
   type AccessScope,
 } from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { OpportunityStage } from "@/generated/prisma/enums";
-import {
-  parseFollowUpMode,
-  parseNextFollowUpAt,
-} from "@/lib/follow-up-form";
+import { parseFollowUpMode, parseNextFollowUpAt } from "@/lib/follow-up-form";
 
 /** 商机相关的 Server Actions。每个入口都从会话重新认证并授权。 */
 
@@ -84,6 +82,8 @@ export async function updateOpportunityAction(id: string, formData: FormData) {
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
   return { ok: true as const };
 }
 
@@ -129,6 +129,8 @@ export async function createOpportunityAction(formData: FormData) {
 
   revalidatePath("/opportunities");
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
   redirect("/opportunities");
 }
 
@@ -139,9 +141,12 @@ export async function updateOpportunityStageAction(
   const user = await requireCurrentUser();
   const stage = parseStage(formData.get("stage"));
   await updateOpportunity(id, { stage }, user);
+  await auditWrite(user, "UPDATE", "Opportunity", id, `阶段更新为 ${stage}`);
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
 }
 
 export async function deleteOpportunityAction(id: string) {
@@ -149,6 +154,8 @@ export async function deleteOpportunityAction(id: string) {
   await deleteOpportunity(id, user);
   revalidatePath("/opportunities");
   revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
 }
 
 /** 商机详情新增跟进；权限校验由 createFollowUp 仓储层统一完成。 */

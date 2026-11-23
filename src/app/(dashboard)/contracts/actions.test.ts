@@ -74,7 +74,10 @@ describe("合同 Server Actions", () => {
     );
 
     await expect(
-      convertQuotationToContractAction("foreign_quotation", "foreign_opportunity")
+      convertQuotationToContractAction(
+        "foreign_quotation",
+        "foreign_opportunity"
+      )
     ).resolves.toEqual(NOT_FOUND);
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
@@ -85,18 +88,26 @@ describe("合同 Server Actions", () => {
     mocks.requireCurrentUser.mockResolvedValue(admin);
     await listContractsForCurrentUser();
 
-    expect(mocks.listContracts).toHaveBeenNthCalledWith(1, {
-      userId: owner.id,
-      role: owner.role,
-    });
+    expect(mocks.listContracts).toHaveBeenNthCalledWith(
+      1,
+      {
+        userId: owner.id,
+        role: owner.role,
+      },
+      {}
+    );
     expect(mocks.getContract).toHaveBeenCalledWith("contract_1", {
       userId: owner.id,
       role: owner.role,
     });
-    expect(mocks.listContracts).toHaveBeenNthCalledWith(2, {
-      userId: admin.id,
-      role: admin.role,
-    });
+    expect(mocks.listContracts).toHaveBeenNthCalledWith(
+      2,
+      {
+        userId: admin.id,
+        role: admin.role,
+      },
+      {}
+    );
   });
 
   it("所有入口先校验会话，未登录不读写", async () => {

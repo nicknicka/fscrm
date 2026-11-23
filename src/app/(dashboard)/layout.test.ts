@@ -27,8 +27,14 @@ describe("authenticated dashboard layout", () => {
   });
 
   it("only renders the admin users entry for an admin session", () => {
-    expect(sidebarSource).toContain('href="/settings/users"');
+    expect(sidebarSource).toContain("/settings/users");
+    expect(sidebarSource).toContain("ADMIN_NAV_HREFS");
     expect(sidebarSource).toContain('currentUser?.role === "ADMIN"');
     expect(layoutSource).toContain("currentUser={currentUser}");
+  });
+
+  it("uses segment-boundary matching so parent and child entries never both highlight", () => {
+    expect(sidebarSource).toContain("pickActiveNavHref");
+    expect(sidebarSource).not.toContain("pathname.startsWith(item.href)");
   });
 });

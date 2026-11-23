@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import {
   createQuotation,
   listQuotations,
@@ -80,6 +81,13 @@ export async function createQuotationAction(
       { opportunityId, status, items },
       accessScopeFor(currentUser)
     );
+    await auditWrite(
+      currentUser,
+      "CREATE",
+      "Quotation",
+      quotation.id,
+      `新建报价（商机 ${opportunityId}）`
+    );
     revalidateOpportunity(opportunityId);
     return { ok: true as const, quotationId: quotation.id };
   } catch (error) {
@@ -104,6 +112,13 @@ export async function updateQuotationAction(
       quotationId,
       { status, items },
       accessScopeFor(currentUser)
+    );
+    await auditWrite(
+      currentUser,
+      "UPDATE",
+      "Quotation",
+      quotation.id,
+      `更新报价（商机 ${opportunityId}）`
     );
     revalidateOpportunity(opportunityId);
     return { ok: true as const, quotationId: quotation.id };

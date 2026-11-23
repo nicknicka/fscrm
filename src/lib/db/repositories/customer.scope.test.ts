@@ -15,6 +15,9 @@ const prismaMock = vi.hoisted(() => ({
   user: {
     findMany: vi.fn(),
   },
+  fieldPermission: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 vi.mock("@/lib/db/client", () => ({ prisma: prismaMock }));
@@ -51,9 +54,9 @@ describe("customer repository access scope", () => {
     await listCustomers({}, admin);
     await listCustomers({ ownerId: owner.userId }, admin);
 
-    expect(prismaMock.customer.findMany.mock.calls[0][0].where).not.toHaveProperty(
-      "ownerId"
-    );
+    expect(
+      prismaMock.customer.findMany.mock.calls[0][0].where
+    ).not.toHaveProperty("ownerId");
     expect(prismaMock.customer.findMany.mock.calls[1][0].where).toHaveProperty(
       "ownerId",
       owner.userId
@@ -167,9 +170,9 @@ describe("customer repository access scope", () => {
   it("rejects deleting a customer the current owner cannot access", async () => {
     prismaMock.customer.findFirst.mockResolvedValueOnce(null);
 
-    await expect(deleteCustomer("customer_foreign", owner)).rejects.toMatchObject(
-      { name: "CustomerAccessError" }
-    );
+    await expect(
+      deleteCustomer("customer_foreign", owner)
+    ).rejects.toMatchObject({ name: "CustomerAccessError" });
 
     expect(prismaMock.customer.delete).not.toHaveBeenCalled();
   });
@@ -177,13 +180,23 @@ describe("customer repository access scope", () => {
   it("limits assignable owners for the customer form by role", async () => {
     prismaMock.user.findMany.mockResolvedValue([]);
 
-    await listAssignableUsers({ id: "user_owner", name: "张三", role: "OWNER" });
-    await listAssignableUsers({ id: "user_admin", name: "管理员", role: "ADMIN" });
+    await listAssignableUsers({
+      id: "user_owner",
+      name: "张三",
+      role: "OWNER",
+    });
+    await listAssignableUsers({
+      id: "user_admin",
+      name: "管理员",
+      role: "ADMIN",
+    });
 
-    expect(prismaMock.user.findMany.mock.calls[0][0]).toHaveProperty(
+    expect(prismaMock.user.findMany.mock.calls[0][0]).toHaveProperty("where", {
+      id: owner.userId,
+    });
+    expect(prismaMock.user.findMany.mock.calls[1][0]).toHaveProperty(
       "where",
-      { id: owner.userId }
+      {}
     );
-    expect(prismaMock.user.findMany.mock.calls[1][0]).toHaveProperty("where", {});
   });
 });

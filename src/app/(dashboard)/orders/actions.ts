@@ -4,10 +4,17 @@ import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import {
+  InvalidOrderTransitionError,
+  parseOrderStatus,
+} from "@/lib/order-status";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
+import {
   convertContractToOrder,
+  countOrdersForPage,
   getOrder,
   listOrders,
   OrderNotFoundError,
+  transitionOrderStatus,
 } from "@/lib/db/repositories/order";
 
 /**
@@ -55,9 +62,17 @@ export async function convertContractToOrderAction(
 }
 
 /** 页面读取接缝：从会话构造权限范围并交给订单服务收窄。 */
-export async function listOrdersForCurrentUser() {
+export async function listOrdersForCurrentUser(
+  pagination: { skip?: number; take?: number } = {}
+) {
   const currentUser = await requireCurrentUser();
-  return listOrders(accessScopeFor(currentUser));
+  return listOrders(accessScopeFor(currentUser), pagination);
+}
+
+/** 订单分页计数：与列表共用权限口径。 */
+export async function countOrdersForCurrentUser() {
+  const currentUser = await requireCurrentUser();
+  return countOrdersForPage(accessScopeFor(currentUser));
 }
 
 /** 详情读取接缝：越权与不存在由服务统一返回 null，页面按 notFound 处理。 */
@@ -73,4 +88,59 @@ export async function convertContractToOrderFormAction(
   _formData: FormData
 ): Promise<void> {
   await convertContractToOrderAction(contractId, opportunityId);
+}
+
+/** 订单状态流转结果：失败时返回稳定错误码，不泄露订单存在性。 */
+type TransitionResult =
+  | { ok: true; status: string }
+  | { ok: false; error: "NOT_FOUND" | "INVALID_INPUT" | "INVALID_TRANSITION" };
+
+/**
+ * 推进订单状态。目标状态来自表单，但合法性由状态机 + 仓储事务双重校验；
+ * 成功后刷新订单列表与详情。
+ */
+export async function transitionOrderStatusAction(
+  id: string,
+  formData: FormData
+): Promise<TransitionResult> {
+  const target = parseOrderStatus(formData.get("status"));
+  if (!target) return { ok: false, error: "INVALID_INPUT" };
+
+  const currentUser = await requireCurrentUser();
+  try {
+    const order = await transitionOrderStatus(
+      id,
+      target,
+      accessScopeFor(currentUser)
+    );
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${id}`);
+    await auditWrite(
+      currentUser,
+      "UPDATE",
+      "Order",
+      id,
+      `状态更新为 ${order.status}`
+    );
+    return { ok: true, status: order.status };
+  } catch (error) {
+    if (error instanceof OrderNotFoundError) {
+      return { ok: false, error: "NOT_FOUND" };
+    }
+    if (error instanceof InvalidOrderTransitionError) {
+      return { ok: false, error: "INVALID_TRANSITION" };
+    }
+    throw error;
+  }
+}
+
+/**
+ * 表单专用的状态流转入口：`<form action>` 要求返回 void。
+ * 业务结果由 transitionOrderStatusAction 承载；这里只丢弃返回值。
+ */
+export async function transitionOrderStatusFormAction(
+  id: string,
+  _formData: FormData
+): Promise<void> {
+  await transitionOrderStatusAction(id, _formData);
 }

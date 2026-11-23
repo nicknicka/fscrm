@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireCurrentUser: vi.fn(),
   listCustomers: vi.fn(),
+  countCustomersForPage: vi.fn(),
   listAssignableUsers: vi.fn(),
   deleteCustomerAction: vi.fn(),
   createCustomerAction: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("@/lib/auth/session", () => ({
 
 vi.mock("@/lib/db/repositories/customer", () => ({
   listCustomers: mocks.listCustomers,
+  countCustomersForPage: mocks.countCustomersForPage,
 }));
 
 vi.mock("@/lib/db/repositories/user", () => ({
@@ -56,6 +58,7 @@ describe("客户列表页生命周期展示", () => {
       role: "OWNER",
     });
     mocks.listAssignableUsers.mockResolvedValue([]);
+    mocks.countCustomersForPage.mockResolvedValue(2);
     mocks.listCustomers.mockResolvedValue([
       {
         id: "customer_1",

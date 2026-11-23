@@ -1,5 +1,6 @@
 import { requireCurrentUser } from "@/lib/auth/session";
 import { countOpportunitiesByStage } from "@/lib/db/repositories/sales";
+import { listStageConfigs } from "@/lib/db/repositories/stage-config";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
 
 /**
@@ -11,16 +12,20 @@ import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
  */
 export async function loadFunnelData() {
   const currentUser = await requireCurrentUser();
-  const grouped = await countOpportunitiesByStage(currentUser);
+  const [grouped, configs] = await Promise.all([
+    countOpportunitiesByStage(currentUser),
+    listStageConfigs(),
+  ]);
   const counts = new Map(grouped.map((row) => [row.stage, row.count]));
-
-  const stages = OPPORTUNITY_STAGES.map(({ value, label, tone }) => ({
-    stage: value,
-    label,
-    tone,
-    count: counts.get(value) ?? 0,
-    href: `/opportunities?stage=${value}`,
-  }));
+  const stages = (configs.length > 0 ? configs : OPPORTUNITY_STAGES).map(
+    ({ value, label, tone }) => ({
+      stage: value,
+      label,
+      tone,
+      count: counts.get(value) ?? 0,
+      href: `/opportunities?stage=${value}`,
+    })
+  );
 
   return {
     stages,

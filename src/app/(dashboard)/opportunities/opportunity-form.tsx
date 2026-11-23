@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { OpportunityStage } from "@/generated/prisma/enums";
+import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
 import { createOpportunityAction } from "./actions";
 
 /** 新建商机表单。 */
@@ -9,10 +10,12 @@ export function OpportunityForm({
   customers,
   users,
   defaultOwnerId,
+  stages = OPPORTUNITY_STAGES.map((s) => ({ value: s.value, label: s.label })),
 }: {
   customers: { id: string; name: string }[];
   users: { id: string; name: string }[];
   defaultOwnerId: string;
+  stages?: readonly { value: OpportunityStage; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -73,15 +76,14 @@ export function OpportunityForm({
           </label>
           <select
             name="stage"
-            defaultValue={OpportunityStage.CONTACT}
+            defaultValue={stages[0]?.value ?? OpportunityStage.CONTACT}
             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
           >
-            <option value={OpportunityStage.CONTACT}>初步接触</option>
-            <option value={OpportunityStage.NEED_CONFIRM}>需求确认</option>
-            <option value={OpportunityStage.QUOTE}>报价</option>
-            <option value={OpportunityStage.NEGOTIATE}>谈判</option>
-            <option value={OpportunityStage.WON}>赢单</option>
-            <option value={OpportunityStage.LOST}>输单</option>
+            {stages.map((stage) => (
+              <option key={stage.value} value={stage.value}>
+                {stage.label}
+              </option>
+            ))}
           </select>
         </div>
         <Field label="预计金额" name="amount" placeholder="如：50000" />

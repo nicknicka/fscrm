@@ -15,6 +15,16 @@ export interface GuideStep {
   path?: string;
   /** 气泡相对目标的位置。 */
   placement?: "bottom" | "top" | "right" | "left";
+  /**
+   * 这一步的完成方式。
+   *
+   * - `navigate`（默认）：点一下目标就算完成，适合导航、按钮这类
+   *  「点一下即达」的动作；
+   * - `submit`：必须等用户把表单提交完才算完成，适合目标本身是表单、
+   *  需要先填完再保存的场景。否则点到表单任意位置就会跳下一步，
+   *  操作被打断。
+   */
+  completion?: "navigate" | "submit";
 }
 
 /** 首次使用的完整操作链路：录入客户 → 记录跟进 → 转化商机 → 收款。 */
@@ -43,8 +53,9 @@ export const ONBOARDING_STEPS: GuideStep[] = [
   {
     id: "followup-form",
     title: "第四步：记录一次跟进",
-    body: "在客户详情下方的「跟进记录」里填写方式、内容和下次跟进时间，保存后沟通历史可追溯。",
+    body: "在客户详情下方的「跟进记录」里填写方式、内容和下次跟进时间，保存后沟通历史可追溯。填完并保存，引导才会继续。",
     placement: "top",
+    completion: "submit",
   },
   {
     id: "nav-opportunities",

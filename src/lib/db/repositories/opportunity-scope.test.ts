@@ -20,6 +20,7 @@ const prismaMock = vi.hoisted(() => ({
 vi.mock("@/lib/db/client", () => ({ prisma: prismaMock }));
 
 import {
+  countOpportunitiesForPage,
   createOpportunity,
   deleteOpportunity,
   getOpportunity,
@@ -86,9 +87,9 @@ describe("商机权限范围", () => {
         where: expect.objectContaining({ id: "opp_1" }),
       })
     );
-    expect(prismaMock.opportunity.findFirst.mock.calls[1][0].where).not.toHaveProperty(
-      "ownerId"
-    );
+    expect(
+      prismaMock.opportunity.findFirst.mock.calls[1][0].where
+    ).not.toHaveProperty("ownerId");
   });
 
   it("越权详情返回 null，不泄露商机存在性", async () => {
@@ -161,8 +162,12 @@ describe("商机权限范围", () => {
   });
 
   it("阶段更新与删除按当前负责人收窄，越权操作不执行", async () => {
-    prismaMock.opportunity.update.mockResolvedValue(opportunity("opp_1", owner.id));
-    prismaMock.opportunity.delete.mockResolvedValue(opportunity("opp_1", owner.id));
+    prismaMock.opportunity.update.mockResolvedValue(
+      opportunity("opp_1", owner.id)
+    );
+    prismaMock.opportunity.delete.mockResolvedValue(
+      opportunity("opp_1", owner.id)
+    );
 
     await updateOpportunity("opp_1", { stage: "WON" }, owner);
     await deleteOpportunity("opp_1", owner);
@@ -194,8 +199,12 @@ describe("商机权限范围", () => {
   });
 
   it("管理员可更新或删除任意商机的阶段和归属", async () => {
-    prismaMock.opportunity.update.mockResolvedValue(opportunity("opp_2", other.id));
-    prismaMock.opportunity.delete.mockResolvedValue(opportunity("opp_2", other.id));
+    prismaMock.opportunity.update.mockResolvedValue(
+      opportunity("opp_2", other.id)
+    );
+    prismaMock.opportunity.delete.mockResolvedValue(
+      opportunity("opp_2", other.id)
+    );
 
     await updateOpportunity(
       "opp_2",
@@ -229,5 +238,54 @@ describe("商机权限范围", () => {
     expect(prismaMock.user.findMany.mock.calls[1][0].where).not.toHaveProperty(
       "role"
     );
+  });
+});
+
+describe("商机关键词搜索与组合筛选", () => {
+  const searchWhere = {
+    OR: [
+      { name: { contains: "云启", mode: "insensitive" } },
+      { remark: { contains: "云启", mode: "insensitive" } },
+      { customer: { name: { contains: "云启", mode: "insensitive" } } },
+    ],
+  };
+
+  it("搜索词生成名称/备注/客户名的 OR 条件", async () => {
+    prismaMock.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities({ search: "云启" }, admin);
+
+    expect(prismaMock.opportunity.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: searchWhere })
+    );
+  });
+
+  it("普通负责人搜索时仍固定为本人负责范围", async () => {
+    prismaMock.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities({ search: "云启", ownerId: other.id }, owner);
+
+    expect(prismaMock.opportunity.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { ownerId: owner.id, ...searchWhere },
+      })
+    );
+  });
+
+  it("阶段、负责人、搜索可组合，且计数与列表同源", async () => {
+    prismaMock.opportunity.findMany.mockResolvedValue([]);
+    prismaMock.opportunity.count.mockResolvedValue(0);
+    const filters = { stage: "QUOTE", ownerId: "user_2", search: "云启" };
+    const expected = { stage: "QUOTE", ownerId: "user_2", ...searchWhere };
+
+    await listOpportunities(filters, admin);
+    await countOpportunitiesForPage(filters, admin);
+
+    expect(prismaMock.opportunity.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expected })
+    );
+    expect(prismaMock.opportunity.count).toHaveBeenCalledWith({
+      where: expected,
+    });
   });
 });

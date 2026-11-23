@@ -88,13 +88,30 @@ export async function convertQuotationToContract(
   });
 }
 
-/** 查询合同列表；普通负责人仅见本人客户的相关合同。 */
-export async function listContracts(scope: AccessScope) {
+/** 合同列表的公共 where，list 与分页 count 共用。 */
+function contractListWhere(scope: AccessScope) {
+  return customerOwnerWhere<{ id?: string }>(scope);
+}
+
+/** 查询合同列表；普通负责人仅见本人客户的相关合同。支持分页。 */
+export async function listContracts(
+  scope: AccessScope,
+  pagination: { skip?: number; take?: number } = {}
+) {
   return prisma.contract.findMany({
-    where: customerOwnerWhere<{ id?: string }>(scope),
+    where: contractListWhere(scope),
     include: contractInclude,
     orderBy: { createdAt: "desc" },
+    skip: pagination.skip ?? 0,
+    take: pagination.take ?? 50,
   });
+}
+
+/** 合同分页计数：where 与 listContracts 同源。 */
+export async function countContractsForPage(
+  scope: AccessScope
+): Promise<number> {
+  return prisma.contract.count({ where: contractListWhere(scope) });
 }
 
 /** 按 ID 查询合同详情；越权与不存在都返回 null。 */

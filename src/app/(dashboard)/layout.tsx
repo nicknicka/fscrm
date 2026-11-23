@@ -25,16 +25,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row">
       <Suspense
         fallback={
-          <div className="w-56 shrink-0 border-r border-zinc-200 bg-white" />
+          <div className="hidden w-56 shrink-0 border-r border-zinc-200 bg-white md:block" />
         }
       >
         <Sidebar userMenu={<UserMenu />} currentUser={currentUser} />
       </Suspense>
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-6xl px-8 py-8">
+      <main className="min-w-0 flex-1 overflow-auto">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
           <PageTransition>{children}</PageTransition>
         </div>
       </main>

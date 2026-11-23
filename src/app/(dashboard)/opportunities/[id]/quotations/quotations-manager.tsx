@@ -154,6 +154,12 @@ export function QuotationsManager({
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
+                    <a
+                      href={`/print/quotation/${quotation.id}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      打印
+                    </a>
                     <button
                       type="button"
                       onClick={() => {

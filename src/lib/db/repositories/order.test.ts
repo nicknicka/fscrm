@@ -10,7 +10,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const txMock = vi.hoisted(() => ({
   contract: { findFirst: vi.fn() },
-  order: { findFirst: vi.fn(), create: vi.fn() },
+  order: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    updateMany: vi.fn(),
+    findUniqueOrThrow: vi.fn(),
+  },
 }));
 
 const prismaMock = vi.hoisted(() => ({
@@ -26,7 +31,10 @@ import {
   getOrder,
   listOrders,
   OrderNotFoundError,
+  transitionOrderStatus,
 } from "./order";
+import { InvalidOrderTransitionError } from "@/lib/order-status";
+import { OrderStatus } from "@/generated/prisma/enums";
 
 const owner = { id: "owner_1", name: "张三", role: "OWNER" as const };
 const otherOwner = { id: "owner_2", name: "李四", role: "OWNER" as const };
@@ -70,6 +78,8 @@ function happyPath() {
   txMock.contract.findFirst.mockResolvedValue(contract);
   txMock.order.create.mockResolvedValue(order);
   txMock.order.findFirst.mockResolvedValue(null);
+  txMock.order.updateMany.mockResolvedValue({ count: 1 });
+  txMock.order.findUniqueOrThrow.mockResolvedValue(order);
   prismaMock.order.findMany.mockResolvedValue([]);
   prismaMock.order.findFirst.mockResolvedValue(null);
 }
@@ -189,5 +199,86 @@ describe("合同转订单服务（prisma.$transaction 接缝）", () => {
         include: expect.objectContaining({ sourceContract: true }),
       })
     );
+  });
+});
+
+describe("订单状态流转（事务）", () => {
+  it("合法迁移在事务内写入，且 updateMany 带权限与当前状态条件", async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: order.id,
+      status: "PENDING",
+    });
+    txMock.order.findUniqueOrThrow.mockResolvedValue({
+      ...order,
+      status: "FULFILLING",
+    });
+
+    const result = await transitionOrderStatus(
+      order.id,
+      OrderStatus.FULFILLING,
+      scope(owner)
+    );
+
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(txMock.order.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: order.id,
+          status: "PENDING",
+          customer: { ownerId: owner.id },
+        }),
+        data: { status: "FULFILLING" },
+      })
+    );
+    expect(result).toEqual(expect.objectContaining({ status: "FULFILLING" }));
+  });
+
+  it("非法迁移（跳级）被拒绝，不写入", async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: order.id,
+      status: "PENDING",
+    });
+
+    await expect(
+      transitionOrderStatus(order.id, OrderStatus.COMPLETED, scope(owner))
+    ).rejects.toBeInstanceOf(InvalidOrderTransitionError);
+    expect(txMock.order.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("终态不能再迁移", async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: order.id,
+      status: "CANCELLED",
+    });
+
+    await expect(
+      transitionOrderStatus(order.id, OrderStatus.FULFILLING, scope(owner))
+    ).rejects.toBeInstanceOf(InvalidOrderTransitionError);
+    expect(txMock.order.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("越权或订单不存在统一抛 NOT_FOUND，不写入", async () => {
+    txMock.order.findFirst.mockResolvedValue(null);
+
+    await expect(
+      transitionOrderStatus(
+        "foreign",
+        OrderStatus.FULFILLING,
+        scope(otherOwner)
+      )
+    ).rejects.toBeInstanceOf(OrderNotFoundError);
+    expect(txMock.order.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("并发下归属变化导致 updateMany 计数为 0 时视为失败", async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: order.id,
+      status: "PENDING",
+    });
+    txMock.order.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      transitionOrderStatus(order.id, OrderStatus.FULFILLING, scope(owner))
+    ).rejects.toBeInstanceOf(OrderNotFoundError);
   });
 });

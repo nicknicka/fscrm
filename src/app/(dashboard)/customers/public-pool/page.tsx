@@ -1,9 +1,14 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { NavLink } from "@/components/nav-link";
+import { Pagination } from "@/components/pagination";
 import { Enter } from "@/components/stagger";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
-import { listPublicPoolCustomers } from "@/lib/db/repositories/customer";
+import {
+  countPublicPoolCustomers,
+  listPublicPoolCustomers,
+} from "@/lib/db/repositories/customer";
+import { buildPaginationMeta, parsePagination } from "@/lib/pagination";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import type { PublicPoolCustomerSummary } from "@/lib/db/repositories/customer";
@@ -19,13 +24,23 @@ import {
  * 普通负责人在认领前只看到名称、等级、行业这些最小信息（ADR-0003 的有意例外），
  * 联系人/商机数量等关联统计仅管理员可见。
  */
-export default async function PublicPoolPage() {
+export default async function PublicPoolPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string | string[];
+    pageSize?: string | string[];
+  }>;
+}) {
   const currentUser = await requireCurrentUser();
   const scope = accessScopeFor(currentUser);
-  const [customers, users] = await Promise.all([
-    listPublicPoolCustomers(scope),
+  const pagination = parsePagination(await searchParams);
+  const [customers, total, users] = await Promise.all([
+    listPublicPoolCustomers(scope, pagination),
+    countPublicPoolCustomers(scope),
     listAssignableUsers(currentUser),
   ]);
+  const meta = buildPaginationMeta(pagination, total);
 
   const levelTone: Record<string, "red" | "amber" | "zinc"> = {
     [CustomerLevel.HIGH]: "red",
@@ -41,10 +56,7 @@ export default async function PublicPoolPage() {
   return (
     <div>
       <Enter>
-        <PageHeader
-          title="公海"
-          description={`共 ${customers.length} 个公海客户`}
-        />
+        <PageHeader title="公海" description={`共 ${total} 个公海客户`} />
       </Enter>
 
       {customers.length === 0 ? (
@@ -150,6 +162,10 @@ export default async function PublicPoolPage() {
                 </tr>
               ))}
             </tbody>
+
+            {total > 0 && (
+              <Pagination meta={meta} pathname="/customers/public-pool" />
+            )}
           </table>
         </Enter>
       )}

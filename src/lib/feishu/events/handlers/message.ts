@@ -1,85 +1,128 @@
-import { getUserByFeishuOpenId } from "@/lib/db/repositories/user";
-import type { FeishuEventHandler, FeishuMessageReceiveEvent } from "../types";
+import type { FeishuEventHandler } from "../types";
+import { handleInboundMessage } from "../../bot/message-flow";
 
-/** 从消息事件解析出的结构化消息信息。 */
+/**
+ * `im.message.receive_v1`（收到消息）处理器。
+ *
+ * 只做「把飞书事件翻译成机器人输入」这件事，业务逻辑全在
+ * `bot/message-flow.ts`：那里才有去重、身份映射、模型解析、落库与回复。
+ * 这样消息处理器可以被命令行脚本直接复用，也便于单测。
+ */
+
+/** 从事件里取出的最小消息信息。 */
 export interface ParsedMessage {
   messageId: string;
   chatId: string;
   chatType: string;
   messageType: string;
   senderOpenId: string | null;
-  /** 已解析的消息内容；内容非 JSON 时保留原始字符串。 */
-  content: unknown;
+  /** 原文（已去掉 @提及 占位符）。 */
+  text: string;
+  /** 是否 @了机器人。 */
+  mentionedBot: boolean;
 }
 
-/**
- * 将事件数据收窄为消息接收事件。
- *
- * 分发边界上事件数据为 `unknown`，处理器在读取前按事件键做类型收窄。
- */
-function asMessageReceiveEvent(data: unknown): FeishuMessageReceiveEvent {
-  return data as FeishuMessageReceiveEvent;
+interface RawMention {
+  key?: string;
+  name?: string;
+  id?: { open_id?: string };
 }
 
-/**
- * 安全解析飞书消息内容。
- *
- * 飞书消息的 `content` 是 JSON 字符串，不同消息类型结构不同。
- * 解析失败时返回原始字符串，避免因格式问题中断处理。
- */
-function parseContent(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return raw;
-  }
-}
-
-/** 从消息事件提取结构化信息。 */
-export function extractMessage(
-  event: FeishuMessageReceiveEvent
-): ParsedMessage {
-  const { message, sender } = event;
-  return {
-    messageId: message.message_id,
-    chatId: message.chat_id,
-    chatType: message.chat_type,
-    messageType: message.message_type,
-    senderOpenId: sender?.sender_id?.open_id ?? null,
-    content: parseContent(message.content),
+interface RawEventData {
+  sender?: { sender_id?: { open_id?: string } };
+  message?: {
+    message_id?: string;
+    chat_id?: string;
+    chat_type?: string;
+    message_type?: string;
+    content?: string;
+    mentions?: RawMention[];
   };
 }
 
 /**
- * `im.message.receive_v1`（收到消息）事件处理器。
+ * 解析消息正文。
  *
- * 收到消息后：
- * 1. 提取结构化消息内容；
- * 2. 按发送者飞书 open_id 匹配 CRM 用户（身份联动）；
- * 3. 记录结构化日志。
- *
- * 注：当前不自动创建跟进记录——消息可能没有明确的客户上下文，
- * 强行写入会污染跟进数据。识别出的 CRM 用户可用于后续交互（如回复确认、指令处理）。
+ * 飞书文本消息的 content 形如 `{"text":"@_user_1 记一下..."}`；
+ * @提及 在正文里是 `@_user_N` 占位符，需要按 mentions 列表逐个替换掉，
+ * 否则模型会把 `@_user_1` 当成公司名的一部分。
  */
-export const handleMessageReceive: FeishuEventHandler = async ({ data }) => {
-  const message = extractMessage(asMessageReceiveEvent(data));
-
-  // 按 open_id 匹配 CRM 用户，失败不影响事件处理
-  let crmUser: { id: string; name: string } | null = null;
-  if (message.senderOpenId) {
-    try {
-      const user = await getUserByFeishuOpenId(message.senderOpenId);
-      if (user) {
-        crmUser = { id: user.id, name: user.name };
-      }
-    } catch (error) {
-      console.warn("[feishu:event] 匹配 CRM 用户失败（已忽略）:", error);
+export function extractText(
+  content: unknown,
+  mentions: RawMention[] = []
+): string {
+  let text = "";
+  if (typeof content === "string") {
+    text = content;
+  } else if (content && typeof content === "object") {
+    const value = (content as { text?: unknown }).text;
+    if (typeof value === "string") text = value;
+  }
+  for (const mention of mentions) {
+    if (mention.key) {
+      text = text.split(mention.key).join("");
     }
   }
+  return text.replace(/\s+/g, " ").trim();
+}
+
+/** 从消息事件提取结构化信息。 */
+export function extractMessage(data: unknown): ParsedMessage {
+  const event = (data ?? {}) as RawEventData;
+  const message = event.message ?? {};
+  const mentions = message.mentions ?? [];
+  const rawContent = message.content ?? "";
+
+  let parsedContent: unknown = rawContent;
+  try {
+    parsedContent = JSON.parse(rawContent);
+  } catch {
+    // 非 JSON 保留原文
+  }
+
+  // 注意：无法仅从事件判断机器人自身的 open_id，这里以「有无 @提及」近似判断。
+  // 群聊里没有 @ 任何人时，SDK 侧也不会推送给我们；保守做法是要求 text 非空
+  // 且存在 mentions，或单聊。
+  const mentionedBot = mentions.length > 0;
+
+  return {
+    messageId: message.message_id ?? "",
+    chatId: message.chat_id ?? "",
+    chatType: message.chat_type ?? "p2p",
+    messageType: message.message_type ?? "text",
+    senderOpenId: event.sender?.sender_id?.open_id ?? null,
+    text: extractText(parsedContent, mentions),
+    mentionedBot,
+  };
+}
+
+export const handleMessageReceive: FeishuEventHandler = async ({ data }) => {
+  const message = extractMessage(data);
+
+  if (!message.senderOpenId) {
+    console.warn("[feishu:event] 消息缺少发送者 open_id，已忽略");
+    return;
+  }
+
+  // 只处理文本消息；其他类型（图片、文件）暂时忽略，避免误把二进制当跟进内容
+  if (message.messageType !== "text") {
+    console.log(
+      `[feishu:event] 忽略非文本消息 type=${message.messageType} id=${message.messageId}`
+    );
+    return;
+  }
+
+  const result = await handleInboundMessage({
+    messageId: message.messageId,
+    chatId: message.chatId,
+    senderOpenId: message.senderOpenId,
+    text: message.text,
+    mentionedBot: message.mentionedBot,
+    chatType: message.chatType,
+  });
 
   console.log(
-    `[feishu:event] 收到消息 messageId=${message.messageId} ` +
-      `chatId=${message.chatId} type=${message.messageType} ` +
-      `from=${crmUser ? `CRM用户:${crmUser.name}` : (message.senderOpenId ?? "未知")}`
+    `[feishu:event] message ${message.messageId} → ${result.status}` +
+      ("summary" in result ? ` (${result.summary})` : "")
   );
 };

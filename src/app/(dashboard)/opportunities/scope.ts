@@ -1,5 +1,9 @@
 import type { CurrentUser } from "@/lib/auth/session";
-import { getOpportunity, listOpportunities } from "@/lib/db/repositories/sales";
+import {
+  countOpportunitiesForPage,
+  getOpportunity,
+  listOpportunities,
+} from "@/lib/db/repositories/sales";
 
 /**
  * 商机页面的服务端读取接缝：页面只依赖这里提供的会话范围数据，
@@ -9,11 +13,26 @@ import { getOpportunity, listOpportunities } from "@/lib/db/repositories/sales";
  * 规则后续收敛（#17），只需改这一处。
  */
 
+export type OpportunityListFilters = {
+  stage?: string;
+  ownerId?: string;
+  search?: string;
+};
+
 export async function listOpportunitiesForCurrentUser(
   scope: CurrentUser,
-  filters: { stage?: string } = {}
+  filters: OpportunityListFilters = {},
+  pagination: { skip?: number; take?: number } = {}
 ) {
-  return listOpportunities(filters, scope);
+  return listOpportunities({ ...filters, ...pagination }, scope);
+}
+
+/** 商机分页计数：与列表共用同一套筛选与权限口径。 */
+export async function countOpportunitiesForCurrentUser(
+  scope: CurrentUser,
+  filters: OpportunityListFilters = {}
+) {
+  return countOpportunitiesForPage(filters, scope);
 }
 
 export async function getOpportunityForCurrentUser(
@@ -22,4 +41,3 @@ export async function getOpportunityForCurrentUser(
 ) {
   return getOpportunity(id, scope);
 }
-

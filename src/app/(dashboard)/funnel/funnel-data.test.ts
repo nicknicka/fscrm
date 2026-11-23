@@ -13,6 +13,10 @@ vi.mock("@/lib/db/repositories/sales", () => ({
   countOpportunitiesByStage: mocks.countOpportunitiesByStage,
 }));
 
+vi.mock("@/lib/db/repositories/stage-config", () => ({
+  listStageConfigs: vi.fn().mockResolvedValue([]),
+}));
+
 import { loadFunnelData } from "./funnel-data";
 import type { CurrentUser } from "@/lib/auth/session";
 

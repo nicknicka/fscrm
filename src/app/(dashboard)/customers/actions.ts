@@ -15,10 +15,8 @@ import { getUserById } from "@/lib/db/repositories/user";
 import { notifyUser } from "@/lib/feishu/message/notify";
 import { CustomerLevel } from "@/generated/prisma/enums";
 import { createFollowUp, deleteFollowUp } from "@/lib/db/repositories/sales";
-import {
-  parseFollowUpMode,
-  parseNextFollowUpAt,
-} from "@/lib/follow-up-form";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
+import { parseFollowUpMode, parseNextFollowUpAt } from "@/lib/follow-up-form";
 
 /**
  * 客户相关的 Server Actions。
@@ -79,6 +77,14 @@ export async function createCustomerAction(formData: FormData) {
     );
   }
 
+  await auditWrite(
+    currentUser,
+    "CREATE",
+    "Customer",
+    customer.id,
+    `新建客户「${customer.name}」`
+  );
+
   revalidatePath("/customers");
   redirect("/customers");
 }
@@ -97,7 +103,13 @@ function parseCustomerDetailInput(
   const level = parseLevel(formData.get("level"));
   const data: Parameters<typeof updateCustomer>[1] = {};
   if (level) data.level = level;
-  for (const field of ["industry", "phone", "email", "address", "remark"] as const) {
+  for (const field of [
+    "industry",
+    "phone",
+    "email",
+    "address",
+    "remark",
+  ] as const) {
     if (formData.has(field)) {
       data[field] = parseOptionalText(formData.get(field));
     }
@@ -176,6 +188,7 @@ export async function deleteCustomerAction(id: string) {
   } catch (error) {
     rethrowCustomerAccessError(error);
   }
+  await auditWrite(currentUser, "DELETE", "Customer", id, "删除客户");
   revalidatePath("/customers");
 }
 

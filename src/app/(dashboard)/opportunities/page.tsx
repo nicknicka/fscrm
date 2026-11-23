@@ -1,23 +1,24 @@
 import { notFound } from "next/navigation";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
 import { NavLink } from "@/components/nav-link";
+import { ExportButton } from "@/components/export-button";
+import { Pagination } from "@/components/pagination";
 import { Enter } from "@/components/stagger";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth/session";
+import {
+  buildPaginationMeta,
+  paginationHref,
+  parsePagination,
+} from "@/lib/pagination";
 import { OPPORTUNITY_STAGES } from "@/lib/opportunity-stages";
+import { listStageConfigs } from "@/lib/db/repositories/stage-config";
 import { OpportunityForm } from "./opportunity-form";
 import { loadOpportunitiesPageData } from "./page-data";
 import {
   deleteOpportunityAction,
   updateOpportunityStageAction,
 } from "./actions";
-
-const stageMeta = Object.fromEntries(
-  OPPORTUNITY_STAGES.map((stage) => [stage.value, stage])
-) as Record<
-  string,
-  { label: string; tone: "blue" | "amber" | "green" | "zinc" }
->;
 
 /** 商机列表页。 */
 export default async function OpportunitiesPage({
@@ -31,33 +32,92 @@ export default async function OpportunitiesPage({
   const params = await searchParams;
   const stageParam = params.stage;
   const stage = typeof stageParam === "string" ? stageParam : undefined;
-  const { opportunities, customers, users } = await loadOpportunitiesPageData(
-    user,
-    stage
-  );
+  const q = typeof params.q === "string" ? params.q : undefined;
+  const ownerId =
+    typeof params.ownerId === "string" ? params.ownerId : undefined;
+  const pagination = parsePagination(params);
+  const { opportunities, total, customers, users } =
+    await loadOpportunitiesPageData(user, { stage, q, ownerId }, pagination);
+  const stageConfigs = await listStageConfigs();
+  const stages = stageConfigs.length > 0 ? stageConfigs : OPPORTUNITY_STAGES;
+  const stageMeta = Object.fromEntries(
+    stages.map((s) => [
+      s.value,
+      { label: s.label, tone: s.tone as "blue" | "amber" | "green" | "zinc" },
+    ])
+  ) as Record<
+    string,
+    { label: string; tone: "blue" | "amber" | "green" | "zinc" }
+  >;
+  const meta = buildPaginationMeta(pagination, total);
+  // 搜索/负责人筛选表单需保留当前阶段；阶段胶囊需保留搜索与负责人。
+  const activeFilters = { stage, q, ownerId };
 
   return (
     <div>
       <Enter>
         <PageHeader
           title="商机"
-          description={`共 ${opportunities.length} 个商机`}
+          description={`共 ${total} 个商机`}
           action={
             <div data-guide="create-opportunity">
               <OpportunityForm
                 customers={customers}
                 users={users}
                 defaultOwnerId={user.id}
+                stages={stages.map((s) => ({ value: s.value, label: s.label }))}
               />
             </div>
           }
         />
       </Enter>
 
+      {/* 搜索 + 负责人筛选。切换条件都重置到第 1 页，并保留当前阶段。 */}
+      <form
+        className="mb-4 flex flex-wrap items-center gap-2"
+        action="/opportunities"
+        method="get"
+      >
+        <input type="hidden" name="page" value="1" />
+        {stage && <input type="hidden" name="stage" value={stage} />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="搜索商机名称、客户或备注"
+          className="w-full max-w-xs rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+        />
+        {user.role === "ADMIN" && (
+          <>
+            <AutoSubmitSelect
+              name="ownerId"
+              defaultValue={ownerId ?? ""}
+              options={[
+                { value: "", label: "全部负责人" },
+                ...users.map((u) => ({ value: u.id, label: u.name })),
+              ]}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            />
+          </>
+        )}
+        <button
+          type="submit"
+          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-zinc-900"
+        >
+          筛选
+        </button>
+        <ExportButton dataset="opportunities" />
+      </form>
+
       {/* 筛选胶囊：切换阶段时只换底色与文字色，用过渡而不是瞬间反色 */}
       <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
         <NavLink
-          href="/opportunities"
+          href={paginationHref(
+            "/opportunities",
+            { ...activeFilters, stage: undefined },
+            1,
+            pagination.pageSize
+          )}
           className={`rounded-full px-3 py-1 transition-colors duration-[var(--motion-base)] ease-[var(--ease-standard)] ${
             !stage
               ? "bg-zinc-900 text-white"
@@ -66,10 +126,15 @@ export default async function OpportunitiesPage({
         >
           全部阶段
         </NavLink>
-        {OPPORTUNITY_STAGES.map((item) => (
+        {stages.map((item) => (
           <NavLink
             key={item.value}
-            href={`/opportunities?stage=${item.value}`}
+            href={paginationHref(
+              "/opportunities",
+              { ...activeFilters, stage: item.value },
+              1,
+              pagination.pageSize
+            )}
             className={`rounded-full px-3 py-1 transition-colors duration-[var(--motion-base)] ease-[var(--ease-standard)] ${
               stage === item.value
                 ? "bg-zinc-900 text-white"
@@ -102,9 +167,7 @@ export default async function OpportunitiesPage({
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {opportunities.map((opp) => {
-                const meta =
-                  stageMeta[opp.stage] ??
-                  stageMeta[OPPORTUNITY_STAGES[0].value];
+                const meta = stageMeta[opp.stage] ?? stageMeta[stages[0].value];
                 return (
                   <tr
                     key={opp.id}
@@ -139,7 +202,7 @@ export default async function OpportunitiesPage({
                         <AutoSubmitSelect
                           name="stage"
                           defaultValue={opp.stage}
-                          options={OPPORTUNITY_STAGES.map((item) => ({
+                          options={stages.map((item) => ({
                             value: item.value,
                             label: item.label,
                           }))}
@@ -161,6 +224,14 @@ export default async function OpportunitiesPage({
                 );
               })}
             </tbody>
+
+            {total > 0 && (
+              <Pagination
+                meta={meta}
+                pathname="/opportunities"
+                filters={activeFilters}
+              />
+            )}
           </table>
         </Enter>
       )}

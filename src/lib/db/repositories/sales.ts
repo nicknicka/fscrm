@@ -35,7 +35,12 @@ function rejectMissingRecord(error: unknown): never {
 
 function opportunityWhere(
   scope: CurrentUser,
-  params: { stage?: string; customerId?: string; ownerId?: string } = {}
+  params: {
+    stage?: string;
+    customerId?: string;
+    ownerId?: string;
+    search?: string;
+  } = {}
 ): Prisma.OpportunityWhereInput {
   const where: Prisma.OpportunityWhereInput = {};
   if (params.stage) {
@@ -50,7 +55,15 @@ function opportunityWhere(
       where.customerId = params.customerId;
     }
   } else if (params.ownerId) {
+    // 负责人筛选只对管理员生效；普通负责人已被上面的 ownerId 固定为本人。
     where.ownerId = params.ownerId;
+  }
+  if (params.search) {
+    where.OR = [
+      { name: { contains: params.search, mode: "insensitive" } },
+      { remark: { contains: params.search, mode: "insensitive" } },
+      { customer: { name: { contains: params.search, mode: "insensitive" } } },
+    ];
   }
   return where;
 }
@@ -59,11 +72,11 @@ function opportunityWhere(
 // 线索
 // ---------------------------------------------------------------------------
 
-/** 查询线索列表（含负责人）。 */
-export async function listLeads(
-  params: { status?: string; ownerId?: string },
+/** 线索列表的公共 where，list 与分页 count 共用，避免两处条件漂移。 */
+function leadWhere(
+  params: { status?: string; ownerId?: string; search?: string },
   scope: AccessScope
-) {
+): Prisma.LeadWhereInput {
   const where: Prisma.LeadWhereInput = { ...ownerWhere(scope) };
   if (params.status) {
     where.status = params.status as Prisma.LeadWhereInput["status"];
@@ -71,11 +84,44 @@ export async function listLeads(
   if (params.ownerId && scope.role === "ADMIN") {
     where.ownerId = params.ownerId;
   }
+  if (params.search) {
+    where.OR = [
+      { name: { contains: params.search, mode: "insensitive" } },
+      { contactPhone: { contains: params.search, mode: "insensitive" } },
+      { contactEmail: { contains: params.search, mode: "insensitive" } },
+    ];
+  }
+  return where;
+}
+
+/** 查询线索列表（含负责人）。支持分页与关键词搜索。 */
+export async function listLeads(
+  params: {
+    status?: string;
+    ownerId?: string;
+    search?: string;
+    skip?: number;
+    take?: number;
+  },
+  scope: AccessScope
+) {
   return prisma.lead.findMany({
-    where,
+    where: leadWhere(params, scope),
     include: { owner: true },
     orderBy: { createdAt: "desc" },
+    skip: params.skip ?? 0,
+    take: params.take ?? 50,
   });
+}
+
+/**
+ * 线索分页计数：where 与 listLeads 共用 leadWhere，保证总数与列表一致。
+ */
+export async function countLeadsForPage(
+  params: { status?: string; ownerId?: string; search?: string },
+  scope: AccessScope
+): Promise<number> {
+  return prisma.lead.count({ where: leadWhere(params, scope) });
 }
 
 /** 统计当前权限范围内的线索数。 */
@@ -131,16 +177,41 @@ export async function deleteLead(
 // 商机
 // ---------------------------------------------------------------------------
 
-/** 查询商机列表（含客户与负责人），按当前负责人角色收窄。 */
+/** 查询商机列表（含客户与负责人），按当前负责人角色收窄。支持分页。 */
 export async function listOpportunities(
-  params: { stage?: string; customerId?: string; ownerId?: string } = {},
+  params: {
+    stage?: string;
+    customerId?: string;
+    ownerId?: string;
+    search?: string;
+    skip?: number;
+    take?: number;
+  } = {},
   scope: CurrentUser
 ) {
   return prisma.opportunity.findMany({
     where: opportunityWhere(scope, params),
     include: { customer: true, owner: true },
     orderBy: { createdAt: "desc" },
+    skip: params.skip ?? 0,
+    take: params.take ?? 50,
   });
+}
+
+/**
+ * 商机分页计数：where 与 listOpportunities 共用 opportunityWhere，
+ * 保证筛选（阶段/客户/负责人）与权限口径下总数与列表一致。
+ */
+export async function countOpportunitiesForPage(
+  params: {
+    stage?: string;
+    customerId?: string;
+    ownerId?: string;
+    search?: string;
+  } = {},
+  scope: CurrentUser
+): Promise<number> {
+  return prisma.opportunity.count({ where: opportunityWhere(scope, params) });
 }
 
 /** 按 ID 查询商机详情；无权限或不存在时返回 null。 */

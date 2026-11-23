@@ -6,6 +6,7 @@ import {
 } from "../../auth/scope";
 import type { Customer, Prisma } from "../../../generated/prisma/client";
 import type { CustomerLevel } from "../../../generated/prisma/enums";
+import { maskCustomerFields, visibleCustomerFields } from "./field-permission";
 
 /**
  * 客户数据访问层。
@@ -70,11 +71,11 @@ export type PublicPoolCustomerSummary = {
   industry: string | null;
 };
 
-/** 查询客户列表（含负责人与联系人数量）。 */
-export async function listCustomers(
+/** 客户列表的公共 where，list 与分页 count 共用，保证搜索/筛选口径一致。 */
+function customerListWhere(
   params: ListCustomersParams,
   scope: AccessScope
-) {
+): Prisma.CustomerWhereInput {
   const where: Prisma.CustomerWhereInput = { ...ownerWhere(scope) };
   if (params.search) {
     where.OR = [
@@ -91,8 +92,16 @@ export async function listCustomers(
     // 普通负责人认领前只能看最小信息：请用 listPublicPoolCustomers。
     where.ownerId = null;
   }
-  return prisma.customer.findMany({
-    where,
+  return where;
+}
+
+/** 查询客户列表（含负责人与联系人数量）。支持分页。 */
+export async function listCustomers(
+  params: ListCustomersParams,
+  scope: AccessScope
+) {
+  const rows = await prisma.customer.findMany({
+    where: customerListWhere(params, scope),
     include: {
       owner: true,
       _count: { select: { contacts: true, opportunities: true } },
@@ -101,6 +110,24 @@ export async function listCustomers(
     skip: params.skip ?? 0,
     take: params.take ?? 50,
   });
+  const visible = await visibleCustomerFields(scope.role);
+  const allVisible = ["phone", "email", "address"].every((f) =>
+    visible.has(f as never)
+  );
+  return allVisible
+    ? rows
+    : rows.map((row) => maskCustomerFields(row, visible));
+}
+
+/**
+ * 客户分页计数：where 与 listCustomers 共用 customerListWhere，
+ * 保证搜索/筛选条件下总数与列表一致。
+ */
+export async function countCustomersForPage(
+  params: ListCustomersParams,
+  scope: AccessScope
+): Promise<number> {
+  return prisma.customer.count({ where: customerListWhere(params, scope) });
 }
 
 /**
@@ -108,17 +135,26 @@ export async function listCustomers(
  * 用重载表达两种返回类型，避免把最小投影混进客户列表的主类型。
  */
 export async function listPublicPoolCustomers(
-  scope: AccessScope
+  scope: AccessScope,
+  pagination?: { skip?: number; take?: number }
 ): Promise<
-  PublicPoolCustomerSummary[] | Array<Customer & { _count: { contacts: number; opportunities: number } }>
+  | PublicPoolCustomerSummary[]
+  | Array<Customer & { _count: { contacts: number; opportunities: number } }>
 >;
-export async function listPublicPoolCustomers(scope: AccessScope) {
+export async function listPublicPoolCustomers(
+  scope: AccessScope,
+  pagination: { skip?: number; take?: number } = {}
+) {
   const where: Prisma.CustomerWhereInput = { ownerId: null };
+  const skip = pagination.skip ?? 0;
+  const take = pagination.take ?? 50;
   if (scope.role === "OWNER") {
     return prisma.customer.findMany({
       where,
       select: PUBLIC_POOL_OWNER_SELECT,
       orderBy: { createdAt: "desc" },
+      skip,
+      take,
     });
   }
   return prisma.customer.findMany({
@@ -128,7 +164,18 @@ export async function listPublicPoolCustomers(scope: AccessScope) {
       _count: { select: { contacts: true, opportunities: true } },
     },
     orderBy: { createdAt: "desc" },
+    skip,
+    take,
   });
+}
+
+/** 公海分页计数：只统计 ownerId 为空的客户。 */
+export async function countPublicPoolCustomers(
+  scope: AccessScope
+): Promise<number> {
+  // 公海对负责人/管理员可见范围一致（都是 ownerId 为空），scope 仅用于语义对齐。
+  void scope;
+  return prisma.customer.count({ where: { ownerId: null } });
 }
 
 /** 按 ID 查询客户详情（含联系人、商机、权限范围内的跟进记录）。 */
@@ -143,7 +190,7 @@ export async function getCustomer(id: string, scope: AccessScope) {
           ],
         };
 
-  return prisma.customer.findFirst({
+  const found = await prisma.customer.findFirst({
     where: { id, ...ownerWhere(scope) },
     include: {
       owner: true,
@@ -155,8 +202,15 @@ export async function getCustomer(id: string, scope: AccessScope) {
         include: { owner: true },
         orderBy: { createdAt: "desc" },
       },
+      chatBindings: { orderBy: { createdAt: "desc" } },
     },
   });
+  if (!found) return null;
+  const visible = await visibleCustomerFields(scope.role);
+  const allVisible = ["phone", "email", "address"].every((f) =>
+    visible.has(f as never)
+  );
+  return allVisible ? found : maskCustomerFields(found, visible);
 }
 
 /** 创建客户：普通负责人强制归属自己，管理员可指定或暂不分配。 */
@@ -270,4 +324,22 @@ export async function deleteCustomer(
 /** 统计当前可见客户数量。 */
 export async function countCustomers(scope: AccessScope): Promise<number> {
   return prisma.customer.count({ where: ownerWhere(scope) });
+}
+
+/**
+ * 保存客户自定义字段（JSON 扩展）。权限口径与 updateCustomer 一致：
+ * 普通负责人只能改自己负责的客户，管理员可改全部。
+ */
+export async function saveCustomerCustomFields(
+  id: string,
+  fields: Record<string, string>,
+  scope: AccessScope
+): Promise<void> {
+  const result = await prisma.customer.updateMany({
+    where: { id, ...ownerWhere(scope) },
+    data: { customFields: fields },
+  });
+  if (result.count === 0) {
+    throw new CustomerAccessError();
+  }
 }

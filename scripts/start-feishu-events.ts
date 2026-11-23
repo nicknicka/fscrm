@@ -13,12 +13,12 @@ import "./env-bootstrap";
 import { startFeishuEvents } from "../src/lib/feishu/events/connection";
 import { prisma } from "../src/lib/db/client";
 
-function main() {
+async function main() {
   console.log("[fscrm] 正在启动飞书事件长连接...");
 
-  let wsClient;
+  let running;
   try {
-    wsClient = startFeishuEvents();
+    running = await startFeishuEvents();
   } catch (error) {
     // 凭证未配置等错误：给出清晰提示后退出
     console.error("[fscrm] 启动失败:", error);
@@ -31,7 +31,7 @@ function main() {
   const shutdown = async () => {
     console.log("\n[fscrm] 正在关闭...");
     try {
-      wsClient.close();
+      await running.stop();
     } catch {
       // 忽略关闭异常
     }

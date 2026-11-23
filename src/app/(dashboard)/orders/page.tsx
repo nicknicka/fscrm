@@ -1,20 +1,36 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { NavLink } from "@/components/nav-link";
+import { ExportButton } from "@/components/export-button";
+import { Pagination } from "@/components/pagination";
 import { Enter } from "@/components/stagger";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
-import { listOrdersForCurrentUser } from "./actions";
+import { buildPaginationMeta, parsePagination } from "@/lib/pagination";
+import { countOrdersForCurrentUser, listOrdersForCurrentUser } from "./actions";
 
 /** 订单列表；读取权限在服务入口按当前用户收窄。 */
-export default async function OrdersPage() {
-  const orders = await listOrdersForCurrentUser();
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string | string[];
+    pageSize?: string | string[];
+  }>;
+}) {
+  const pagination = parsePagination(await searchParams);
+  const [orders, total] = await Promise.all([
+    listOrdersForCurrentUser(pagination),
+    countOrdersForCurrentUser(),
+  ]);
+  const meta = buildPaginationMeta(pagination, total);
 
   return (
     <div>
       <Enter>
         <PageHeader
           title="订单"
-          description="由合同转化形成、进入履约阶段的业务单据"
+          description={`共 ${total} 笔订单 · 由合同转化形成、进入履约阶段`}
+          action={<ExportButton dataset="orders" />}
         />
       </Enter>
 
@@ -82,6 +98,8 @@ export default async function OrdersPage() {
                 </tr>
               ))}
             </tbody>
+
+            {total > 0 && <Pagination meta={meta} pathname="/orders" />}
           </table>
         </Enter>
       )}

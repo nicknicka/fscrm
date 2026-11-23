@@ -34,14 +34,22 @@ export default async function ContractDetailPage({
           title="合同详情"
           description={contract.customer.name}
           action={
-            <form action={convertToOrder}>
-              <button
-                type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            <div className="flex items-center gap-2">
+              <a
+                href={`/print/contract/${contract.id}`}
+                className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
               >
-                转为订单
-              </button>
-            </form>
+                打印
+              </a>
+              <form action={convertToOrder}>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  转为订单
+                </button>
+              </form>
+            </div>
           }
         />
       </div>

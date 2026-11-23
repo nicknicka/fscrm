@@ -10,7 +10,13 @@ import {
   CustomerLifecycle,
 } from "@/generated/prisma/enums";
 import { customerLifecycleLabel } from "@/lib/customer-lifecycle";
+import {
+  CUSTOMER_FIELD_DEFINITIONS,
+  normalizeCustomFields,
+} from "@/lib/custom-fields";
+import { saveCustomerCustomFieldsAction } from "./custom-fields-actions";
 import { ContactsManager } from "./contacts/contacts-manager";
+import { ChatBindingManager } from "./chat-binding-manager";
 import { CustomerDetailForm } from "./customer-detail-form";
 import { updateCustomerLifecycleAction } from "../lifecycle-actions";
 import { listAssignableUsers } from "@/lib/db/repositories/user";
@@ -49,6 +55,7 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+  const customFields = normalizeCustomFields(customer.customFields);
   const users =
     currentUser.role === "ADMIN"
       ? (await listAssignableUsers(currentUser)).map((user) => ({
@@ -94,6 +101,30 @@ export default async function CustomerDetailPage({
               <div className="text-zinc-700">{customer.remark}</div>
             </div>
           )}
+          <form
+            action={saveCustomerCustomFieldsAction.bind(null, customer.id)}
+            className="mt-4 border-t border-zinc-100 pt-4"
+          >
+            <h3 className="mb-2 text-sm font-semibold">自定义字段</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {CUSTOMER_FIELD_DEFINITIONS.map((def) => (
+                <label key={def.key} className="text-xs text-zinc-600">
+                  {def.label}
+                  <input
+                    name={`cf_${def.key}`}
+                    defaultValue={customFields[def.key] ?? ""}
+                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
+                  />
+                </label>
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="mt-3 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              保存自定义字段
+            </button>
+          </form>
           <CustomerDetailForm
             customerId={customer.id}
             level={customer.level}
@@ -146,6 +177,19 @@ export default async function CustomerDetailPage({
             phone: contact.phone,
             email: contact.email,
             remark: contact.remark,
+          }))}
+        />
+
+        {/* 飞书群绑定 */}
+        <ChatBindingManager
+          customerId={customer.id}
+          bindings={(customer.chatBindings ?? []).map((binding) => ({
+            chatId: binding.chatId,
+            boundByName:
+              binding.boundByUserId === currentUser.id
+                ? currentUser.name
+                : null,
+            createdAt: binding.createdAt.toLocaleDateString("zh-CN"),
           }))}
         />
 

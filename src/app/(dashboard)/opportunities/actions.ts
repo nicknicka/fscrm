@@ -18,11 +18,9 @@ import {
   type AccessScope,
 } from "@/lib/auth/scope";
 import { notifyUser } from "@/lib/feishu/message/notify";
+import { auditWrite } from "@/lib/db/repositories/audit-log";
 import { OpportunityStage } from "@/generated/prisma/enums";
-import {
-  parseFollowUpMode,
-  parseNextFollowUpAt,
-} from "@/lib/follow-up-form";
+import { parseFollowUpMode, parseNextFollowUpAt } from "@/lib/follow-up-form";
 
 /** 商机相关的 Server Actions。每个入口都从会话重新认证并授权。 */
 
@@ -139,6 +137,7 @@ export async function updateOpportunityStageAction(
   const user = await requireCurrentUser();
   const stage = parseStage(formData.get("stage"));
   await updateOpportunity(id, { stage }, user);
+  await auditWrite(user, "UPDATE", "Opportunity", id, `阶段更新为 ${stage}`);
   revalidatePath("/opportunities");
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/funnel");

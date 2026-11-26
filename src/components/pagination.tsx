@@ -31,7 +31,7 @@ export function Pagination({
   // 而不是让用户对着空列表不知所措。
   if (meta.page > meta.totalPages) {
     return (
-      <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      <div className="mt-4 rounded-lg border border-warn/25 bg-warn-bg px-4 py-3 text-sm text-warn">
         第 {meta.page} 页已超出范围（共 {meta.totalPages} 页）。
         <Link
           href={link(meta.totalPages)}
@@ -49,8 +49,8 @@ export function Pagination({
   );
 
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-600">
-      <div className="text-zinc-500">
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-soft">
+      <div className="text-ink-faint">
         共 {meta.total} 条 · 第 {meta.page} / {meta.totalPages} 页
       </div>
 
@@ -58,12 +58,12 @@ export function Pagination({
         {meta.hasPrev && meta.prevPage !== null ? (
           <Link
             href={link(meta.prevPage)}
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50"
+            className="rounded-lg border border-line-strong px-3 py-1.5 hover:bg-paper-sunk"
           >
             上一页
           </Link>
         ) : (
-          <span className="rounded-lg border border-zinc-200 px-3 py-1.5 text-zinc-300">
+          <span className="rounded-lg border border-line px-3 py-1.5 text-ink-faint">
             上一页
           </span>
         )}
@@ -75,8 +75,8 @@ export function Pagination({
             aria-current={number === meta.page ? "page" : undefined}
             className={
               number === meta.page
-                ? "rounded-lg bg-zinc-800 px-3 py-1.5 font-medium text-white"
-                : "rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50"
+                ? "rounded-lg bg-ink-800 px-3 py-1.5 font-medium text-white"
+                : "rounded-lg border border-line-strong px-3 py-1.5 hover:bg-paper-sunk"
             }
           >
             {number}
@@ -86,12 +86,12 @@ export function Pagination({
         {meta.hasNext && meta.nextPage !== null ? (
           <Link
             href={link(meta.nextPage)}
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 hover:bg-zinc-50"
+            className="rounded-lg border border-line-strong px-3 py-1.5 hover:bg-paper-sunk"
           >
             下一页
           </Link>
         ) : (
-          <span className="rounded-lg border border-zinc-200 px-3 py-1.5 text-zinc-300">
+          <span className="rounded-lg border border-line px-3 py-1.5 text-ink-faint">
             下一页
           </span>
         )}
@@ -104,7 +104,7 @@ export function Pagination({
             <input key={key} type="hidden" name={key} value={first} />
           ) : null;
         })}
-        <label htmlFor="pageSize" className="text-zinc-500">
+        <label htmlFor="pageSize" className="text-ink-faint">
           每页
         </label>
         <select
@@ -112,7 +112,7 @@ export function Pagination({
           name="pageSize"
           defaultValue={meta.pageSize}
           onChange={(event) => event.currentTarget.form?.requestSubmit()}
-          className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+          className="rounded-lg border border-line-strong bg-paper-raised px-2 py-1 text-sm"
         >
           {PAGE_SIZE_OPTIONS.map((size) => (
             <option key={size} value={size}>

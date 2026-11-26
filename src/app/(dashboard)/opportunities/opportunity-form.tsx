@@ -24,7 +24,7 @@ export function OpportunityForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="btn btn-primary"
       >
         + 新建商机
       </button>
@@ -32,13 +32,13 @@ export function OpportunityForm({
   }
 
   return (
-    <div className="w-full rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <div className="w-full rounded-xl border border-line bg-paper-raised p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-semibold">新建商机</h2>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-sm text-zinc-500 hover:text-zinc-800"
+          className="text-sm text-ink-faint hover:text-ink"
         >
           取消
         </button>
@@ -54,13 +54,13 @@ export function OpportunityForm({
           placeholder="如：年度采购合同"
         />
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             关联客户
           </label>
           <select
             name="customerId"
             required
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             <option value="">请选择客户</option>
             {customers.map((c) => (
@@ -71,13 +71,13 @@ export function OpportunityForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             销售阶段
           </label>
           <select
             name="stage"
             defaultValue={stages[0]?.value ?? OpportunityStage.CONTACT}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             {stages.map((stage) => (
               <option key={stage.value} value={stage.value}>
@@ -88,13 +88,13 @@ export function OpportunityForm({
         </div>
         <Field label="预计金额" name="amount" placeholder="如：50000" />
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             负责人
           </label>
           <select
             name="ownerId"
             defaultValue={defaultOwnerId}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             {users.map((user) => (
               <option key={user.id} value={user.id}>
@@ -109,20 +109,17 @@ export function OpportunityForm({
           placeholder="YYYY-MM-DD"
         />
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             备注
           </label>
           <textarea
             name="remark"
             rows={2}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           />
         </div>
         <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <button type="submit" className="btn btn-primary">
             保存商机
           </button>
         </div>
@@ -144,14 +141,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700">
-        {label}
-      </label>
+      <label className="mb-1 block text-sm font-medium text-ink">{label}</label>
       <input
         name={name}
         required={required}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none focus:border-brass-500"
       />
     </div>
   );

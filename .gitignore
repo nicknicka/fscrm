@@ -44,3 +44,8 @@ next-env.d.ts
 # local tooling caches (scaffold workarounds)
 .npm-cache/
 .scaffold-home/
+
+# local design / QA artifacts (not source)
+/.oil-ui/
+/.playwright-cli/
+/output/

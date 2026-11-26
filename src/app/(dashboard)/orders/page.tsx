@@ -8,6 +8,9 @@ import { contractStatusLabel, orderStatusLabel } from "@/lib/document-status";
 import { buildPaginationMeta, parsePagination } from "@/lib/pagination";
 import { countOrdersForCurrentUser, listOrdersForCurrentUser } from "./actions";
 
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
+
 /** 订单列表；读取权限在服务入口按当前用户收窄。 */
 export default async function OrdersPage({
   searchParams,
@@ -39,10 +42,10 @@ export default async function OrdersPage({
       ) : (
         <Enter
           effect="fade"
-          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
+          className="overflow-x-auto rounded-xl border border-line bg-paper-raised"
         >
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-zinc-200 bg-zinc-50 text-xs text-zinc-500">
+            <thead className="border-b border-line bg-paper-sunk text-xs text-ink-faint">
               <tr>
                 <th className="px-4 py-3 font-medium">客户</th>
                 <th className="px-4 py-3 font-medium">关联商机</th>
@@ -52,16 +55,16 @@ export default async function OrdersPage({
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-4 py-3 font-medium text-zinc-800">
+                <tr key={order.id} className="row-glow">
+                  <td className="px-4 py-3 font-medium text-ink">
                     {order.customer.name}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {order.opportunity.name}
                   </td>
-                  <td className="px-4 py-3 text-zinc-800">
+                  <td className="px-4 py-3 text-ink">
                     ¥{order.amount.toLocaleString("zh-CN")}
                   </td>
                   <td className="px-4 py-3">
@@ -75,7 +78,7 @@ export default async function OrdersPage({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-zinc-600">
+                      <span className="text-ink-soft">
                         ¥{order.sourceContract.amount.toLocaleString("zh-CN")}
                       </span>
                       <Badge tone="zinc">
@@ -83,14 +86,14 @@ export default async function OrdersPage({
                           order.sourceContract.status}
                       </Badge>
                     </div>
-                    <div className="mt-0.5 text-xs text-zinc-400">
+                    <div className="mt-0.5 text-xs text-ink-faint">
                       来源：{order.sourceContractId}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <NavLink
                       href={`/orders/${order.id}`}
-                      className="text-sm text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
+                      className="text-sm text-brass-600 transition-colors duration-[var(--motion-fast)] hover:text-brass-500 hover:underline"
                     >
                       详情
                     </NavLink>
@@ -98,9 +101,8 @@ export default async function OrdersPage({
                 </tr>
               ))}
             </tbody>
-
-            {total > 0 && <Pagination meta={meta} pathname="/orders" />}
           </table>
+          {total > 0 && <Pagination meta={meta} pathname="/orders" />}
         </Enter>
       )}
     </div>

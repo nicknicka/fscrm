@@ -7,7 +7,11 @@ const ADMIN_ID = "user_admin";
 type TxMock = {
   customer: { create: ReturnType<typeof vi.fn> };
   opportunity: { create: ReturnType<typeof vi.fn> };
-  lead: { updateMany: ReturnType<typeof vi.fn> };
+  lead: {
+    updateMany: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+  followUp: { updateMany: ReturnType<typeof vi.fn> };
 };
 
 const mocks = vi.hoisted(() => ({
@@ -18,12 +22,9 @@ const mocks = vi.hoisted(() => ({
   tx: {
     customer: { create: vi.fn() },
     opportunity: { create: vi.fn() },
-    lead: { updateMany: vi.fn() },
-  } as {
-    customer: { create: ReturnType<typeof vi.fn> };
-    opportunity: { create: ReturnType<typeof vi.fn> };
-    lead: { updateMany: ReturnType<typeof vi.fn> };
-  },
+    lead: { updateMany: vi.fn(), update: vi.fn() },
+    followUp: { updateMany: vi.fn() },
+  } as TxMock,
 }));
 
 vi.mock("@/lib/db/client", () => ({
@@ -85,6 +86,8 @@ function happyPath() {
     async (fn: (tx: TxMock) => Promise<unknown>) => fn(mocks.tx)
   );
   mocks.tx.lead.updateMany.mockResolvedValue({ count: 1 });
+  mocks.tx.lead.update.mockResolvedValue({ ...lead, status: "CONVERTED" });
+  mocks.tx.followUp.updateMany.mockResolvedValue({ count: 0 });
   mocks.tx.customer.create.mockResolvedValue(customer);
   mocks.tx.opportunity.create.mockResolvedValue({
     ...opportunity,
@@ -260,5 +263,30 @@ describe("线索转化服务（prisma.$transaction 接缝）", () => {
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
     expect(mocks.tx.customer.create).toHaveBeenCalledTimes(1);
     expect(mocks.tx.opportunity.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("回写转化产物 ID，使「查看商机」能直达详情", async () => {
+    await convertLeadToCustomerAndOpportunity(lead.id, owner);
+
+    expect(mocks.tx.lead.update).toHaveBeenCalledWith({
+      where: { id: lead.id },
+      data: {
+        convertedCustomerId: customer.id,
+        convertedOpportunityId: opportunity.id,
+      },
+    });
+  });
+
+  it("把线索的培育期跟进记录并入新商机，并清空 leadId", async () => {
+    await convertLeadToCustomerAndOpportunity(lead.id, owner);
+
+    expect(mocks.tx.followUp.updateMany).toHaveBeenCalledWith({
+      where: { leadId: lead.id },
+      data: {
+        leadId: null,
+        opportunityId: opportunity.id,
+        customerId: customer.id,
+      },
+    });
   });
 });

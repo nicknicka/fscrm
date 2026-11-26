@@ -17,7 +17,7 @@ import type { ModelConfigView } from "@/lib/ai/model-config";
  */
 
 const inputClass =
-  "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500";
+  "w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none transition-colors focus:border-brass-500";
 
 /** 常见服务商的预填项，降低「不知道填什么」的门槛。 */
 const PRESETS = [
@@ -54,8 +54,8 @@ function ResultBanner({
     <div
       className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
         ok
-          ? "border-green-200 bg-green-50 text-green-800"
-          : "border-red-200 bg-red-50 text-red-800"
+          ? "border-ok/25 bg-ok-bg text-ok"
+          : "border-danger/25 bg-danger-bg text-danger"
       }`}
     >
       {children}
@@ -84,29 +84,31 @@ export function ModelConfigForm({
   return (
     <div>
       {current ? (
-        <div className="mb-4 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-zinc-600">
+        <div className="mb-4 rounded-lg border border-line bg-paper-sunk px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-ink-soft">
             <span>
               当前生效：
-              <strong className="text-zinc-900">{current.label}</strong>
+              <strong className="text-ink">{current.label}</strong>
             </span>
             <span>
               模型{" "}
-              <code className="rounded bg-white px-1">{current.model}</code>
+              <code className="rounded bg-paper-raised px-1">
+                {current.model}
+              </code>
             </span>
             <span>
               Key{" "}
-              <code className="rounded bg-white px-1">
+              <code className="rounded bg-paper-raised px-1">
                 {current.apiKeyMasked}
               </code>
             </span>
             <span
               className={
                 current.lastTestOk
-                  ? "text-green-700"
+                  ? "text-ok"
                   : current.lastTestOk === false
-                    ? "text-red-700"
-                    : "text-zinc-500"
+                    ? "text-danger"
+                    : "text-ink-faint"
               }
             >
               {current.lastTestOk === null
@@ -117,13 +119,13 @@ export function ModelConfigForm({
             </span>
           </div>
           {current.lastTestMessage && current.lastTestOk === false && (
-            <p className="mt-2 text-xs text-red-700">
+            <p className="mt-2 text-xs text-danger">
               {current.lastTestMessage}
             </p>
           )}
         </div>
       ) : (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-4 rounded-lg border border-warn/25 bg-warn-bg px-4 py-3 text-sm text-warn">
           还没有配置模型服务。机器人收到消息时会退回到关键词识别，无法理解自然语言。
         </div>
       )}
@@ -136,9 +138,7 @@ export function ModelConfigForm({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-700">
-              服务商名称
-            </span>
+            <span className="mb-1 block font-medium text-ink">服务商名称</span>
             <input
               name="label"
               defaultValue={current?.label ?? ""}
@@ -149,9 +149,7 @@ export function ModelConfigForm({
           </label>
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-700">
-              模型 ID
-            </span>
+            <span className="mb-1 block font-medium text-ink">模型 ID</span>
             <input
               name="model"
               defaultValue={current?.model ?? ""}
@@ -163,7 +161,7 @@ export function ModelConfigForm({
         </div>
 
         <label className="block text-sm">
-          <span className="mb-1 block font-medium text-zinc-700">
+          <span className="mb-1 block font-medium text-ink">
             Base URL（OpenAI 兼容接口根地址）
           </span>
           <input
@@ -173,17 +171,17 @@ export function ModelConfigForm({
             className={inputClass}
             required
           />
-          <span className="mt-1 block text-xs text-zinc-500">
+          <span className="mt-1 block text-xs text-ink-faint">
             填到 <code>/v1</code> 即可，系统会自动补
             <code>/chat/completions</code>；也可以直接填完整端点。
           </span>
         </label>
 
         <label className="block text-sm">
-          <span className="mb-1 block font-medium text-zinc-700">
+          <span className="mb-1 block font-medium text-ink">
             API Key
             {current && (
-              <span className="ml-2 font-normal text-zinc-500">
+              <span className="ml-2 font-normal text-ink-faint">
                 留空则沿用已保存的 Key
               </span>
             )}
@@ -195,17 +193,13 @@ export function ModelConfigForm({
             placeholder={current ? current.apiKeyMasked : "sk-..."}
             className={inputClass}
           />
-          <span className="mt-1 block text-xs text-zinc-500">
+          <span className="mt-1 block text-xs text-ink-faint">
             Key 加密后存储在数据库，页面与接口都不会返回明文。
           </span>
         </label>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={pending} className="btn btn-primary">
             {pending ? "保存并测试中…" : "保存并测试"}
           </button>
           <button
@@ -216,18 +210,18 @@ export function ModelConfigForm({
                 setTestResult(await testModelConfigAction());
               })
             }
-            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50"
+            className="rounded-lg border border-line-strong bg-paper-raised px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-paper-sunk disabled:opacity-50"
           >
             {testing ? "测试中…" : "只测试当前配置"}
           </button>
 
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-ink-faint">
             快速填充：
             {PRESETS.map((preset) => (
               <button
                 key={preset.label}
                 type="button"
-                className="ml-2 text-blue-600 underline-offset-2 hover:underline"
+                className="ml-2 text-brass-600 underline-offset-2 hover:underline"
                 onClick={() => {
                   const form = formRef.current;
                   if (!form) return;

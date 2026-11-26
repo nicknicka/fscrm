@@ -9,6 +9,7 @@ export interface FunnelStageConversion {
   stage: string;
   label: string;
   count: number;
+  amount: number;
   rate: number;
 }
 
@@ -27,12 +28,14 @@ export async function loadFunnelData() {
     loadWinRate(currentUser),
   ]);
   const counts = new Map(grouped.map((row) => [row.stage, row.count]));
+  const amounts = new Map(grouped.map((row) => [row.stage, row.amount]));
   const stageConfigs = configs.length > 0 ? configs : OPPORTUNITY_STAGES;
   const stages = stageConfigs.map(({ value, label, tone }) => ({
     stage: value,
     label,
     tone,
     count: counts.get(value) ?? 0,
+    amount: amounts.get(value) ?? 0,
     href: `/opportunities?stage=${value}`,
   }));
 
@@ -48,6 +51,7 @@ export async function loadFunnelData() {
         stage: value,
         label,
         count,
+        amount: amounts.get(value) ?? 0,
         rate: total > 0 ? Math.round((count / total) * 1000) / 10 : 0,
       };
     });

@@ -33,7 +33,7 @@ export function ExportButton({
     <a
       href={href}
       download
-      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+      className="rounded-lg border border-line-strong px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunk"
     >
       导出{EXPORT_LABELS[dataset]}CSV
     </a>

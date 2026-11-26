@@ -1,29 +1,199 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * ── fscrm 设计令牌 ─────────────────────────────────────────
+ * 方向：墨玉深侧栏 × 暖纸内容区的商务编辑风。
+ * 深色导航是空间锚，内容区像一张摊开的纸：层级靠阴影与留白，不靠描边堆叠。
+ * 琥珀金只做点睛：品牌标识、选中态指示、关键数字的高亮时刻。
+ */
 
-  /* ── 动效令牌 ────────────────────────────────────────────────
-   * 三档时长 + 三档缓动，所有过渡只从这里取值，避免各组件自己写魔法数字。
+:root {
+  /*
+   * 表面层级（亮色）：越"重要"的表面越亮、越白、阴影越深。
+   *   page  纸张底色 → card 抬起的白卡 → hero 唯一的重墨块
+   * hero 在亮色里是"压下去的一块墨"，是全站最重的东西。
+   */
+  --paper: #f6f4ef;
+  /* 卡片用"纸白"而非纯白：纯白读作塑料，纸白读作另一张纸。
+     与页面底拉开 1.06:1——靠色差 + 阴影双通道分层，不是靠一道阴影硬撑。 */
+  --paper-raised: #fdfbf7;
+  --paper-sunk: #f1eee7;
+  --hero-surface: #1d1c16;
+  --hero-text: #f0eee5;
+  --hero-muted: rgb(255 255 255 / 0.58);
+
+  /* 墨色层：侧栏与页内深色区块，带一点暖，不发蓝 */
+  --ink-950: #16150f;
+  --ink-900: #1d1c16;
+  --ink-800: #2a2921;
+  --ink-700: #3a382e;
+
+  /* 文字墨色：纯黑太死，取带暖调的近黑 */
+  --ink: #1c1b16;
+  --ink-soft: #55534a;
+  --ink-faint: #6b685c;
+
+  /* 琥珀金：品牌与强调。用量克制，出现即重点 */
+  /* 亮色琥珀对白底必须 ≥3:1（非文本图形要求）；#c9963c 只有 2.65，
+     深一档到 #b07f2e 得 3.55，条形与描边在亮色下才立得住 */
+  --brass-600: #9c6e18;
+  --brass-500: #b07f2e;
+  --brass-400: #d9ad5c;
+  --brass-100: #f6ecd7;
+  --brass-50: #fbf6ea;
+
+  /* 功能色（在琥珀金体系里重新校过饱和度，不与纸面打架） */
+  --ok: #2e7d4f;
+  --ok-bg: #e8f3ec;
+  --warn: #a05e12;
+  --warn-bg: #faf0dd;
+  --danger: #b3402e;
+  --danger-bg: #f9e9e5;
+  --info: #31648f;
+  --info-bg: #e9f1f8;
+
+  /* 描边：纸面上不用灰 200，用带暖调的发丝线 */
+  --line: #e7e4dc;
+  --line-strong: #d8d4c8;
+
+  /*
+   * 阴影阶梯：纸上有卡。
+   * 每档两层——近距细影负责"纸被压出的边"，远距柔影负责"离开纸面的高度"。
+   * 只给一层会要么像贴纸（只有细影）要么像浮空（只有柔影）。
+   */
+  --shadow-xs:
+    0 1px 2px rgb(28 27 22 / 0.07), 0 4px 10px -4px rgb(28 27 22 / 0.08);
+  --shadow-sm:
+    0 1px 2px rgb(28 27 22 / 0.07), 0 3px 10px -3px rgb(28 27 22 / 0.08);
+  /* 远影用 0 spread（不是负值）：负 spread 会把阴影收进卡片内，
+     宽卡片（表格、详情页大卡）左右两侧就完全看不到影子了。 */
+  --shadow-md: 0 1px 3px rgb(28 27 22 / 0.07), 0 8px 22px 0 rgb(28 27 22 / 0.1);
+  --shadow-lg:
+    0 2px 6px rgb(28 27 22 / 0.08), 0 18px 44px 0 rgb(28 27 22 / 0.16);
+  /* 卡片上缘的一线高光：纸被光擦过的边缘 */
+  --card-edge: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  /* 纸纹强度：亮色 5%。再高显脏，再低（<3%）缩放下就看不见了。 */
+  --paper-grain: 0.05;
+
+  /* ── 动效令牌 ──────────────────────────────────────────────
+   * 三档时长 + 三档缓动，所有过渡只从这里取值。
    * exit 一律比 enter 快、且位移更小：离场不抢注意力，入场才值得被看见。
    */
-  --motion-fast: 140ms; /* 悬停、按下：即时反馈 */
-  --motion-base: 220ms; /* 状态切换：颜色、描边、进度 */
-  --motion-slow: 320ms; /* 内容入场：行、卡片、区块 */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* 快进慢出，默认入场 */
-  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0); /* 只用于离场 */
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* 双向对称 */
-  /* 弹簧曲线（linear() 采样）：落点有轻微回落，比 ease 更有重量感 */
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 360ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: linear(0, 0.32 8%, 0.79 20%, 1.03 30%, 1.01 46%, 1);
 
-  /* 列表入场的逐行延迟上限：超过 12 行后不再继续累积，避免长表格等半天 */
   --stagger-step: 28ms;
 }
 
+/*
+ * ── 暗色主题 ─────────────────────────────────────────────
+ * 不翻转整套配色，而是把「纸面」降成「砚面」：同一套层级关系，
+ * 亮色来自明度更高的暖白文字与发丝线。侧栏本来就是深色，
+ * 暗色模式下它的墨更深半档，与内容区保持对比。
+ * 由 <html data-theme="dark"> 驱动（theme-toggle.tsx 写入并持久化）。
+ */
+/*
+ * 暗色主题：不是把亮色反相，而是把「纸」换成「砚」。
+ * 关键约束是保留两阶表面——侧栏最深、内容区抬高一档，
+ * 否则暗色下导航与内容糊成一整块，丢掉亮色版最值钱的材质对比。
+ */
+:root[data-theme="dark"] {
+  /*
+   * 表面层级（暗色）：方向与亮色相同——越重要的表面越"高"，
+   * 但"高"在暗色里意味着更亮，而不是更暗。
+   *   page #232219 → card #2e2b21 → hero #38341f（比卡片再亮，带琥珀底噪）
+   * 上一版把 hero 做成比页面更暗，等于把主角压成了凹槽，
+   * 同一组件在两种主题下承担了相反的视觉角色——这是这轮修掉的。
+   */
+  --paper: #232219;
+  --paper-raised: #342f24;
+  --paper-sunk: #1c1b14;
+  --hero-surface: #423c2e;
+
+  --ink: #f0eee5;
+  --ink-soft: #c0bdaf;
+  --ink-faint: #9c988a; /* 对卡片底 4.90:1，达到正文标准 */
+
+  --ink-950: #0b0a06;
+  --ink-900: #12110c; /* 侧栏：全站最深，与内容区拉开 */
+  --ink-800: #1c1b14;
+  --ink-700: #2a2921;
+  /* hero 上的次级信息：亮暗各取一档，保证在 hero 底上 ≥4.5 */
+  --hero-text: #f0eee5;
+  --hero-muted: rgb(255 255 255 / 0.62);
+  /* 暗色不全关：极低强度的暗调噪点补住"平底"感，
+     强度约为亮色的一半——深底上同样的强度会明显显脏。 */
+  --paper-grain: 0.022;
+  /* 暗色卡片的上缘高光要比亮色弱得多，否则边缘发白 */
+  /* 暗底上阴影看不见，"抬起感"只能靠两件事：
+     顶面一道更亮的内高光 + 卡片表面比页面底亮一档（已由 --paper-raised 保证）。 */
+  --card-edge: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.35), 0 10px 26px 0 rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.4), 0 18px 48px 0 rgb(0 0 0 / 0.5);
+
+  /* 暗底上金色整体提亮，保证在深色卡片上不"发闷" */
+  --brass-600: #e8c078;
+  --brass-500: #d9ad5c;
+  --brass-400: #c9963c;
+  --brass-100: #3f3319;
+  --brass-50: #2e2615;
+
+  /* 暗色描边要能读出来：与卡片底色至少拉开一档，否则卡片边界消失 */
+  --line: #4a4636;
+  --line-strong: #5e5947;
+  /* 暗色下卡片的"抬起感"靠这条顶部内高光，而不是靠描边变粗 */
+  --card-edge: inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  --ok: #5cb388;
+  --ok-bg: #1c2e22;
+  --warn: #e0b06e;
+  --warn-bg: #322714;
+  --danger: #e0917c;
+  --danger-bg: #35201b;
+  --info: #6b9cc4;
+  --info-bg: #1c2836;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.35), 0 16px 48px -12px rgb(0 0 0 / 0.6);
+}
+
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-brass-600: var(--brass-600);
+  --color-brass-500: var(--brass-500);
+  --color-brass-400: var(--brass-400);
+  --color-brass-100: var(--brass-100);
+  --color-brass-50: var(--brass-50);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --ease-out-expo: var(--ease-out-expo);
@@ -32,42 +202,119 @@
   --ease-spring: var(--ease-spring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* 编辑风排版：中文间稍松、数字用等宽特性对齐 */
+  font-feature-settings:
+    "ss01",
+    "cv11",
+    "tnum" 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
 }
 
 /*
- * ── 内容入场 ──────────────────────────────────────────────
+ * 纸纹：一层极淡的噪点压在内容之下。
  *
- * 由 React 侧（stagger.tsx）决定"要不要播"：只有首屏加载时才给节点挂上
- * data-enter / data-stagger，动画播完即摘掉属性。客户端页面切换不重播 ——
- * 这不是偏好而是约束：客户端导航时 React 会给页面套上 View Transition 快照，
- * 过渡结束会中止节点上的 CSS 动画，若动画起始帧是 opacity:0 且带 fill，
- * 内容就会永久停在不可见状态（实测可复现）。分工因此是：
- *   首屏加载 → 逐块 / 逐行入场；页面切换 → View Transition 的淡入与滑动。
- *
- * 具体效果：
- *   [data-enter="rise"]  页头与指标卡，上移 10px 落入
- *   [data-enter="fade"]  表格容器与说明区块，轻落位
- *   [data-stagger] > *   列表项逐行落入，延迟 28ms 递增、12 项封顶
+ * 纸张之所以像纸，是因为它不绝对平整——纯色 #f6f4ef 在屏幕上就是一块塑料。
+ * 这里用内联 SVG 的 feTurbulence 生成噪点（无外部请求、无图片、可随主题淡出），
+ * 强度由 --paper-grain 控制：亮色 5%，暗色 2.2%。
+ * 颗粒频率故意放低（0.55），让颗粒在 2px 级别——放大颗粒比提高强度安全，
+ * 既能在缩放后保留肌理，又不容易在浅色大面积区显脏。
+ * fixed + pointer-events:none，不参与布局，也不吃点击。
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--paper-grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/*
+ * ── 数字排版 ───────────────────────────────────────────────
+ * 所有金额、计数、百分比走等宽数字，表格里天然对齐。
+ * 字号只有四档，任何数字都必须落在其中一档上——这是评奖级评审最先挑的东西：
+ * 同一个系统里出现五种不同的数字大小，专业感立刻塌。
+ *   .num-hero   42px  一个页面只有一个（商机金额、单据总额）
+ *   .num-kpi    34px  汇总卡片的主角数字
+ *   .num-stat   24px  列表/统计卡里的数字
+ *   .num-inline 随正文字号，只保证等宽对齐
+ */
+.tnum,
+.num-hero,
+.num-kpi,
+.num-stat {
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+.num-hero {
+  font-size: 2.625rem; /* 42px */
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.num-kpi {
+  font-size: 2.125rem; /* 34px */
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.num-stat {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--brass-100);
+  color: var(--ink);
+}
+
+/* 主题切换过渡：颜色与底色平滑换，不做位移动画 */
+html.theme-animating,
+html.theme-animating *,
+html.theme-animating *::before,
+html.theme-animating *::after {
+  transition:
+    background-color var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard) !important;
+}
+
+/* 细滚动条：深侧栏内隐藏轨道，内容区贴边细条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ── 内容入场 ──────────────────────────────────────────────
+ * 分工见 stagger.tsx 头注：首屏 CSS 入场，页面切换走 View Transition。
+ * 这里只提供三组 keyframes：rise（主角落入）、settle（次内容轻落位）。
  */
 @keyframes enter-rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
+    filter: blur(2px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -95,17 +342,13 @@ body {
   animation-delay: calc(min(var(--i, 0), 12) * var(--stagger-step));
 }
 
-/* 放在 keyframes 之后的兜底：万一动画被外部中止，也不会留下不可见的节点 */
+/* 兜底：动画被外部中止也不留不可见节点 */
 [data-enter],
 [data-stagger] > * {
   opacity: 1;
 }
 
-/*
- * 进度条展开：从左侧长到目标宽度，延迟 = 所在行的入场延迟 + 90ms，
- * 读起来是"行先到、条再量出来"。只做 scaleX，不触发重排。
- * 类名由 React 侧控制：首屏才挂，摘掉后条就是静态宽度。
- */
+/* 进度条展开：行先到、条再量出来。只做 scaleX，不触发重排。 */
 @keyframes bar-grow {
   from {
     transform: scaleX(0);
@@ -126,20 +369,40 @@ body {
   }
 }
 
-/*
- * 操作引导：脉冲光圈与气泡入场动画
- * 注意：引导层的内容是"靶子"，定位靠 getBoundingClientRect，因此这里只做
- * 光圈的呼吸与气泡的落位，不对遮罩块做位移，避免高亮洞在动画期间和靶子错位。
+/* ── 侧栏选中态指示条 ──────────────────────────────────────
+ * 金色短线从左侧长出：导航定位不靠色块，靠一个克制的标记。
+ */
+@keyframes nav-mark-in {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.nav-mark {
+  transform-origin: center top;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-mark {
+    animation: nav-mark-in var(--motion-base) var(--ease-spring) both;
+  }
+}
+
+/* ── 操作引导 ──────────────────────────────────────────────
+ * 光圈与气泡动画。光圈改用琥珀金，与品牌一致。
  */
 @keyframes guide-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55);
+    box-shadow: 0 0 0 0 rgb(201 150 60 / 0.5);
   }
   70% {
-    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 12px rgb(201 150 60 / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgb(201 150 60 / 0);
   }
 }
 
@@ -162,11 +425,56 @@ body {
   animation: guide-fade-in var(--motion-slow) var(--ease-out-expo);
 }
 
-/*
- * 引导气泡：每步换目标时，气泡从上一个位置挪到新位置，而不是瞬间跳过去。
- * 位置用 left/top 过渡（气泡的定位方式会在 top/bottom 之间切换，混写会跳）；
- * 入场只做一次淡入，不重复位移，避免和换位的过渡叠加成"抖一下"。
- */
+/* 高亮框：3px 金色描边 + 外发光 + 内提亮。
+ * 只压暗四周的话，目标仍淹没在灰雾里；目标本身必须"亮起来"才看得出要点哪里。 */
+.guide-highlight {
+  border: 3px solid var(--brass-400);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 0 0 1px rgb(12 10 8 / 0.55),
+    0 0 0 6px rgb(217 173 92 / 0.22),
+    0 0 28px 6px rgb(217 173 92 / 0.42),
+    inset 0 0 0 9999px rgb(255 255 255 / 0.06);
+  outline: 1px solid rgb(255 255 255 / 0.35);
+  outline-offset: -1px;
+}
+
+/* 指向目标的箭头：轻微左右摆动，明确"点这里"。 */
+@keyframes guide-pointer-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+}
+
+.guide-pointer {
+  animation: guide-pointer-nudge 1.2s ease-in-out infinite;
+  text-shadow: 0 1px 6px rgb(12 10 8 / 0.6);
+}
+
+/* 等待完成时的细环：表示"正在等结果"，不是卡死。 */
+@keyframes guide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.guide-spinner {
+  width: 12px;
+  height: 12px;
+  margin-top: 2px;
+  flex: none;
+  border-radius: 9999px;
+  border: 2px solid var(--brass-400);
+  border-top-color: transparent;
+  animation: guide-spin 0.8s linear infinite;
+}
+
 .guide-bubble {
   transition:
     left var(--motion-base) var(--ease-out-expo),
@@ -174,7 +482,6 @@ body {
   animation: guide-fade-in var(--motion-slow) var(--ease-out-expo);
 }
 
-/* 遮罩本身淡入：引导出现时先亮起来，再对准靶子 */
 @keyframes guide-scrim-in {
   from {
     opacity: 0;
@@ -187,10 +494,7 @@ body {
   animation: guide-scrim-in 200ms var(--ease-out-expo) both;
 }
 
-/*
- * 减弱动效：所有位移、缩放、循环动画与逐行延迟一律取消，只保留极短的透明度过渡。
- * 入场动画直接不播 —— 内容以终态呈现，不会出现"停在中间帧"或"卡在不可见"的情况。
- */
+/* ── 减弱动效 ────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion-fast: 1ms;
@@ -215,7 +519,6 @@ body {
     animation: none;
   }
 
-  /* 一律不产生位移：只留颜色与透明度 */
   *,
   *::before,
   *::after {
@@ -228,11 +531,8 @@ body {
 }
 
 /* ── 页面切换 ──────────────────────────────────────────────
- * 由 page-transition.tsx 在路由变化后挂上 data-enter，下一帧摘掉，
- * 于是新页面从进入方向偏移 12px 滑入落定。方向随点击时的层级比较决定：
- * 深入页面从右侧来（nav-forward），返回从左侧来（nav-back）。
- * 位移只有 12px：足够读作"换了一页"，又不至于让人追着元素看。
- * 用 transition 而非 animation：过渡可被打断，比动画更耐得住快速连点。
+ * 见 page-transition.tsx：路由变化后挂 data-enter，下一帧摘掉。
+ * 深入页面从右侧来，返回从左侧来。位移 12px：读得出换页，不追元素。
  */
 .page-enter {
   transition:
@@ -250,14 +550,160 @@ body {
   translate: -12px 0;
 }
 
-/* 侧边栏是空间锚点：页面切换时它不动，用户据此确认"换的是内容不是整个应用" */
+/* 侧栏是空间锚点：页面切换时它不动 */
 
-/*
- * 首次落位阶段关掉位移过渡：气泡从占位位置直接出现在目标旁，
- * 避免从左上角一路滑过页面标题，看起来像两层文字叠在一起。
- */
+/* 首次落位关掉换位过渡：气泡直接出现在目标旁，不滑过页面标题 */
 .guide-bubble.guide-bubble-static {
   transition: none;
+}
+
+/*
+ * ── 按钮三级 ───────────────────────────────────────────────
+ * 全站只有这三类按钮。主按钮统一为金底深字：琥珀金上的白字对比度只有
+ * 约 3.3:1，达不到 AA；换成深墨字后约 10:1，同时是整套系统里最"贵"的
+ * 那个表面，主操作就该抢眼。
+ */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0.625rem 0.875rem;
+    min-height: 2.25rem;
+    white-space: nowrap;
+    transition:
+      background-color var(--motion-fast) var(--ease-standard),
+      filter var(--motion-fast) var(--ease-standard),
+      border-color var(--motion-fast) var(--ease-standard),
+      translate var(--motion-fast) var(--ease-standard);
+  }
+  .btn:active {
+    translate: 0 1px;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    translate: none;
+  }
+
+  .btn-primary {
+    background: var(--brass-500);
+    color: var(--ink-950);
+    font-weight: 600;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 1px 2px rgb(28 27 22 / 0.12);
+  }
+  .btn-primary:hover {
+    background: var(--brass-400);
+  }
+
+  .btn-secondary {
+    background: var(--paper-raised);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+  }
+  .btn-secondary:hover {
+    background: var(--paper-sunk);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--brass-600);
+    padding-inline: 0.5rem;
+  }
+  .btn-ghost:hover {
+    background: var(--brass-50);
+  }
+
+  .btn-danger-ghost {
+    background: transparent;
+    color: var(--ink-faint);
+    padding: 0.375rem;
+    min-height: auto;
+  }
+  .btn-danger-ghost:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+}
+
+/*
+ * 主面板表面。
+ * 不写成 bg-hero 工具类：@theme inline 里指向 var() 的色值 Tailwind 不生成
+ * 工具类，类名存在但计算值为透明——这类"看起来写了其实没生效"最难查。
+ */
+.surface-hero {
+  background-color: var(--hero-surface);
+}
+
+/* 纸面卡片通用质感：发丝描边 + 微阴影 + 顶部一线高光 */
+.card {
+  position: relative;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  /* 上缘一线高光 + 近距细影 + 远距柔影：三层叠出"纸上的卡" */
+  box-shadow: var(--card-edge), var(--shadow-xs);
+}
+
+/* 悬停浮起：阴影加深快于位移，读起来是"被光抬起来"而不是"跳起来" */
+/* 暗色下卡片靠"顶面被光擦过"的一线高光分层，而不是靠描边加粗 */
+.card-hover {
+  transition:
+    box-shadow var(--motion-base) var(--ease-out-expo),
+    border-color var(--motion-base) var(--ease-out-expo),
+    translate var(--motion-base) var(--ease-out-expo);
+}
+.card-hover:hover {
+  translate: 0 -2px;
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── 表格行 hover 微光 ─────────────────────────────────────
+ * 行悬停时底色换成暖纸下沉色，同时左侧浮出一条金色细线——
+ * 定位感来自标记而不是整行刷色，长表格扫读时眼睛跟得住。
+ * 用法：tbody 的 tr 上加 row-glow；tr 需要 position:relative 的替代
+ * （tr 上 relative 在部分浏览器无效），所以金线画在 ::after 并用
+ * transform 做进入动画，不触发重排。
+ */
+.row-glow {
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+.row-glow:hover {
+  background-color: var(--paper-sunk);
+}
+.row-glow > td:first-child,
+.row-glow > th:first-child {
+  position: relative;
+}
+.row-glow > td:first-child::before,
+.row-glow > th:first-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--brass-500);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition:
+    opacity var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-out-expo);
+}
+.row-glow:hover > td:first-child::before,
+.row-glow:hover > th:first-child::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
 
 /* 单据打印：隐藏非打印元素，去掉背景与阴影，保证纸张上只有单据正文。 */

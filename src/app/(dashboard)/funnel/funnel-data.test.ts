@@ -117,10 +117,16 @@ describe("销售漏斗顶部汇总", () => {
     const data = await loadFunnelData();
 
     expect(data.summary.stageConversions).toEqual([
-      { stage: "CONTACT", label: "初步接触", count: 3, rate: 50 },
-      { stage: "NEED_CONFIRM", label: "需求确认", count: 0, rate: 0 },
-      { stage: "QUOTE", label: "报价", count: 1, rate: 16.7 },
-      { stage: "NEGOTIATE", label: "谈判", count: 0, rate: 0 },
+      { stage: "CONTACT", label: "已建立联系", count: 3, amount: 0, rate: 50 },
+      {
+        stage: "NEED_CONFIRM",
+        label: "需求确认",
+        count: 0,
+        amount: 0,
+        rate: 0,
+      },
+      { stage: "QUOTE", label: "报价", count: 1, amount: 0, rate: 16.7 },
+      { stage: "NEGOTIATE", label: "谈判", count: 0, amount: 0, rate: 0 },
     ]);
   });
 

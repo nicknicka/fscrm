@@ -18,11 +18,7 @@ export function SyncButton() {
   return (
     <div className="mt-4">
       <form action={formAction}>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className="btn btn-primary">
           {pending ? "同步中…" : "立即同步通讯录"}
         </button>
       </form>
@@ -31,8 +27,8 @@ export function SyncButton() {
         <div
           className={`mt-3 rounded-lg border px-4 py-3 text-sm ${
             state.ok
-              ? "border-green-200 bg-green-50 text-green-800"
-              : "border-red-200 bg-red-50 text-red-800"
+              ? "border-ok/25 bg-ok-bg text-ok"
+              : "border-danger/25 bg-danger-bg text-danger"
           }`}
         >
           {state.ok ? (
@@ -57,7 +53,7 @@ export function FeishuStatus({ config }: { config: FeishuConfig }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        configured ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+        configured ? "bg-ok-bg text-ok" : "bg-warn-bg text-warn"
       }`}
     >
       {configured ? "已配置凭证" : "凭证未配置"}

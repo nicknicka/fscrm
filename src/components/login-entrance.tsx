@@ -20,7 +20,7 @@ export function LoginEntrance({ children }: { children: ReactNode }) {
 
   return (
     <section
-      className={`w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm transition-[opacity,translate,scale] duration-[var(--motion-slow)] ease-[var(--ease-out-expo)] ${
+      className={`w-full max-w-[26rem] rounded-2xl border border-line bg-paper-raised p-9 shadow-[var(--shadow-md)] transition-[opacity,translate,scale] duration-[var(--motion-slow)] ease-[var(--ease-out-expo)] ${
         mounted ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
       style={{

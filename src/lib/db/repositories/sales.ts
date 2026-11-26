@@ -129,6 +129,27 @@ export async function countLeads(scope: AccessScope): Promise<number> {
   return prisma.lead.count({ where: ownerWhere(scope) });
 }
 
+/**
+ * 按状态统计线索数（全量，不受分页影响）。
+ *
+ * 与 listLeads / countLeadsForPage 共用 leadWhere，所以带上同一套搜索与负责人
+ * 条件时，各状态之和恒等于列表的总数——状态卡的分母因此可以复用 total，
+ * 不必自己再加一次。
+ */
+export async function countLeadsByStatus(
+  params: { ownerId?: string; search?: string },
+  scope: AccessScope
+): Promise<Record<string, number>> {
+  const groups = await prisma.lead.groupBy({
+    by: ["status"],
+    where: leadWhere(params, scope),
+    _count: { _all: true },
+  });
+  return Object.fromEntries(
+    groups.map((group) => [group.status, group._count._all])
+  );
+}
+
 /** 创建线索。普通负责人创建的线索归属本人，管理员可指定负责人。 */
 export async function createLead(
   data: Prisma.LeadCreateInput,
@@ -314,15 +335,18 @@ export async function countOpportunities(scope: CurrentUser): Promise<number> {
  */
 export async function countOpportunitiesByStage(
   scope: CurrentUser
-): Promise<Array<{ stage: OpportunityStage; count: number }>> {
+): Promise<Array<{ stage: OpportunityStage; count: number; amount: number }>> {
   const groups = await prisma.opportunity.groupBy({
     by: ["stage"],
     where: ownerWhere({ userId: scope.id, role: scope.role }),
     _count: { _all: true },
+    // 漏斗每一级要同时回答"几单"和"多少钱"，金额在阶段间才是可比的
+    _sum: { amount: true },
   });
   return groups.map((group) => ({
     stage: group.stage,
     count: group._count._all,
+    amount: group._sum?.amount ?? 0,
   }));
 }
 

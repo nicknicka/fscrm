@@ -30,7 +30,7 @@ export default async function StageSettingsPage() {
 
   return (
     <div>
-      <Link href="/settings" className="text-sm text-blue-600 hover:underline">
+      <Link href="/settings" className="text-sm text-brass-600 hover:underline">
         ← 返回设置
       </Link>
       <div className="mt-4">
@@ -42,10 +42,10 @@ export default async function StageSettingsPage() {
 
       <form
         action={saveStageConfigsAction}
-        className="rounded-xl border border-zinc-200 bg-white p-6"
+        className="rounded-xl border border-line bg-paper-raised p-6"
       >
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 text-xs text-zinc-500">
+          <thead className="border-b border-line text-xs text-ink-faint">
             <tr>
               <th className="py-3 font-medium">阶段值</th>
               <th className="py-3 font-medium">显示名</th>
@@ -54,12 +54,12 @@ export default async function StageSettingsPage() {
               <th className="py-3 font-medium">启用</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-line">
             {configs.map((config) => (
-              <tr key={config.value}>
+              <tr key={config.value} className="row-glow">
                 {/* 按顺序输入排序：所有行都以隐藏 stage 提交，服务端按渲染序赋 position */}
                 <input type="hidden" name="stage" value={config.value} />
-                <td className="py-3 font-mono text-xs text-zinc-500">
+                <td className="py-3 font-mono text-xs text-ink-faint">
                   {config.value}
                 </td>
                 <td className="py-3">
@@ -67,7 +67,7 @@ export default async function StageSettingsPage() {
                     name={`label_${config.value}`}
                     defaultValue={config.label}
                     required
-                    className="rounded-lg border border-zinc-300 px-3 py-1.5"
+                    className="rounded-lg border border-line-strong px-3 py-1.5"
                   />
                 </td>
                 <td className="py-3">
@@ -76,14 +76,14 @@ export default async function StageSettingsPage() {
                     type="number"
                     min="0"
                     defaultValue={config.position}
-                    className="w-20 rounded-lg border border-zinc-300 px-3 py-1.5"
+                    className="w-20 rounded-lg border border-line-strong px-3 py-1.5"
                   />
                 </td>
                 <td className="py-3">
                   <select
                     name={`tone_${config.value}`}
                     defaultValue={config.tone}
-                    className="rounded-lg border border-zinc-300 px-3 py-1.5"
+                    className="rounded-lg border border-line-strong px-3 py-1.5"
                   >
                     {toneOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -97,7 +97,7 @@ export default async function StageSettingsPage() {
                     type="checkbox"
                     name={`active_${config.value}`}
                     defaultChecked={config.isActive}
-                    className="rounded border-zinc-300"
+                    className="rounded border-line-strong"
                   />
                 </td>
               </tr>
@@ -105,13 +105,10 @@ export default async function StageSettingsPage() {
           </tbody>
         </table>
 
-        <div className="mt-6 border-t border-zinc-100 pt-5 text-xs text-zinc-500">
+        <div className="mt-6 border-t border-line pt-5 text-xs text-ink-faint">
           顺序数字越小越靠前；停用阶段不在新建表单、列表筛选与漏斗中展示，历史数据不受影响。
         </div>
-        <button
-          type="submit"
-          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <button type="submit" className="mt-4 btn btn-primary">
           保存配置
         </button>
       </form>

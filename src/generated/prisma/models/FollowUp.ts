@@ -28,6 +28,7 @@ export type FollowUpMinAggregateOutputType = {
   id: string | null;
   customerId: string | null;
   opportunityId: string | null;
+  leadId: string | null;
   ownerId: string | null;
   mode: $Enums.FollowUpMode | null;
   content: string | null;
@@ -40,6 +41,7 @@ export type FollowUpMaxAggregateOutputType = {
   id: string | null;
   customerId: string | null;
   opportunityId: string | null;
+  leadId: string | null;
   ownerId: string | null;
   mode: $Enums.FollowUpMode | null;
   content: string | null;
@@ -52,6 +54,7 @@ export type FollowUpCountAggregateOutputType = {
   id: number;
   customerId: number;
   opportunityId: number;
+  leadId: number;
   ownerId: number;
   mode: number;
   content: number;
@@ -65,6 +68,7 @@ export type FollowUpMinAggregateInputType = {
   id?: true;
   customerId?: true;
   opportunityId?: true;
+  leadId?: true;
   ownerId?: true;
   mode?: true;
   content?: true;
@@ -77,6 +81,7 @@ export type FollowUpMaxAggregateInputType = {
   id?: true;
   customerId?: true;
   opportunityId?: true;
+  leadId?: true;
   ownerId?: true;
   mode?: true;
   content?: true;
@@ -89,6 +94,7 @@ export type FollowUpCountAggregateInputType = {
   id?: true;
   customerId?: true;
   opportunityId?: true;
+  leadId?: true;
   ownerId?: true;
   mode?: true;
   content?: true;
@@ -181,6 +187,7 @@ export type FollowUpGroupByOutputType = {
   id: string;
   customerId: string | null;
   opportunityId: string | null;
+  leadId: string | null;
   ownerId: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -212,6 +219,7 @@ export type FollowUpWhereInput = {
   id?: Prisma.StringFilter<"FollowUp"> | string;
   customerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   opportunityId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
+  leadId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   ownerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   mode?: Prisma.EnumFollowUpModeFilter<"FollowUp"> | $Enums.FollowUpMode;
   content?: Prisma.StringFilter<"FollowUp"> | string;
@@ -227,6 +235,10 @@ export type FollowUpWhereInput = {
     Prisma.OpportunityNullableScalarRelationFilter,
     Prisma.OpportunityWhereInput
   > | null;
+  lead?: Prisma.XOR<
+    Prisma.LeadNullableScalarRelationFilter,
+    Prisma.LeadWhereInput
+  > | null;
   owner?: Prisma.XOR<
     Prisma.UserNullableScalarRelationFilter,
     Prisma.UserWhereInput
@@ -238,6 +250,7 @@ export type FollowUpOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   opportunityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  leadId?: Prisma.SortOrderInput | Prisma.SortOrder;
   ownerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   mode?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
@@ -246,6 +259,7 @@ export type FollowUpOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder;
   customer?: Prisma.CustomerOrderByWithRelationInput;
   opportunity?: Prisma.OpportunityOrderByWithRelationInput;
+  lead?: Prisma.LeadOrderByWithRelationInput;
   owner?: Prisma.UserOrderByWithRelationInput;
   tasks?: Prisma.SalesTaskOrderByRelationAggregateInput;
 };
@@ -258,6 +272,7 @@ export type FollowUpWhereUniqueInput = Prisma.AtLeast<
     NOT?: Prisma.FollowUpWhereInput | Prisma.FollowUpWhereInput[];
     customerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
     opportunityId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
+    leadId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
     ownerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
     mode?: Prisma.EnumFollowUpModeFilter<"FollowUp"> | $Enums.FollowUpMode;
     content?: Prisma.StringFilter<"FollowUp"> | string;
@@ -273,6 +288,10 @@ export type FollowUpWhereUniqueInput = Prisma.AtLeast<
       Prisma.OpportunityNullableScalarRelationFilter,
       Prisma.OpportunityWhereInput
     > | null;
+    lead?: Prisma.XOR<
+      Prisma.LeadNullableScalarRelationFilter,
+      Prisma.LeadWhereInput
+    > | null;
     owner?: Prisma.XOR<
       Prisma.UserNullableScalarRelationFilter,
       Prisma.UserWhereInput
@@ -286,6 +305,7 @@ export type FollowUpOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   opportunityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  leadId?: Prisma.SortOrderInput | Prisma.SortOrder;
   ownerId?: Prisma.SortOrderInput | Prisma.SortOrder;
   mode?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
@@ -309,6 +329,8 @@ export type FollowUpScalarWhereWithAggregatesInput = {
   customerId?:
     Prisma.StringNullableWithAggregatesFilter<"FollowUp"> | string | null;
   opportunityId?:
+    Prisma.StringNullableWithAggregatesFilter<"FollowUp"> | string | null;
+  leadId?:
     Prisma.StringNullableWithAggregatesFilter<"FollowUp"> | string | null;
   ownerId?:
     Prisma.StringNullableWithAggregatesFilter<"FollowUp"> | string | null;
@@ -334,6 +356,7 @@ export type FollowUpCreateInput = {
   updatedAt?: Date | string;
   customer?: Prisma.CustomerCreateNestedOneWithoutFollowUpsInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutFollowUpsInput;
+  lead?: Prisma.LeadCreateNestedOneWithoutFollowUpsInput;
   owner?: Prisma.UserCreateNestedOneWithoutFollowUpsInput;
   tasks?: Prisma.SalesTaskCreateNestedManyWithoutFollowUpInput;
 };
@@ -342,6 +365,7 @@ export type FollowUpUncheckedCreateInput = {
   id?: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -362,6 +386,7 @@ export type FollowUpUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customer?: Prisma.CustomerUpdateOneWithoutFollowUpsNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutFollowUpsNestedInput;
+  lead?: Prisma.LeadUpdateOneWithoutFollowUpsNestedInput;
   owner?: Prisma.UserUpdateOneWithoutFollowUpsNestedInput;
   tasks?: Prisma.SalesTaskUpdateManyWithoutFollowUpNestedInput;
 };
@@ -371,6 +396,7 @@ export type FollowUpUncheckedUpdateInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -386,6 +412,7 @@ export type FollowUpCreateManyInput = {
   id?: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -410,6 +437,7 @@ export type FollowUpUncheckedUpdateManyInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -434,6 +462,7 @@ export type FollowUpCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  leadId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   mode?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
@@ -446,6 +475,7 @@ export type FollowUpMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  leadId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   mode?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
@@ -458,6 +488,7 @@ export type FollowUpMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
   opportunityId?: Prisma.SortOrder;
+  leadId?: Prisma.SortOrder;
   ownerId?: Prisma.SortOrder;
   mode?: Prisma.SortOrder;
   content?: Prisma.SortOrder;
@@ -651,6 +682,96 @@ export type FollowUpUncheckedUpdateManyWithoutCustomerNestedInput = {
     Prisma.FollowUpScalarWhereInput | Prisma.FollowUpScalarWhereInput[];
 };
 
+export type FollowUpCreateNestedManyWithoutLeadInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.FollowUpCreateWithoutLeadInput,
+        Prisma.FollowUpUncheckedCreateWithoutLeadInput
+      >
+    | Prisma.FollowUpCreateWithoutLeadInput[]
+    | Prisma.FollowUpUncheckedCreateWithoutLeadInput[];
+  connectOrCreate?:
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput[];
+  createMany?: Prisma.FollowUpCreateManyLeadInputEnvelope;
+  connect?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+};
+
+export type FollowUpUncheckedCreateNestedManyWithoutLeadInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.FollowUpCreateWithoutLeadInput,
+        Prisma.FollowUpUncheckedCreateWithoutLeadInput
+      >
+    | Prisma.FollowUpCreateWithoutLeadInput[]
+    | Prisma.FollowUpUncheckedCreateWithoutLeadInput[];
+  connectOrCreate?:
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput[];
+  createMany?: Prisma.FollowUpCreateManyLeadInputEnvelope;
+  connect?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+};
+
+export type FollowUpUpdateManyWithoutLeadNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.FollowUpCreateWithoutLeadInput,
+        Prisma.FollowUpUncheckedCreateWithoutLeadInput
+      >
+    | Prisma.FollowUpCreateWithoutLeadInput[]
+    | Prisma.FollowUpUncheckedCreateWithoutLeadInput[];
+  connectOrCreate?:
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput[];
+  upsert?:
+    | Prisma.FollowUpUpsertWithWhereUniqueWithoutLeadInput
+    | Prisma.FollowUpUpsertWithWhereUniqueWithoutLeadInput[];
+  createMany?: Prisma.FollowUpCreateManyLeadInputEnvelope;
+  set?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  disconnect?:
+    Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  delete?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  connect?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  update?:
+    | Prisma.FollowUpUpdateWithWhereUniqueWithoutLeadInput
+    | Prisma.FollowUpUpdateWithWhereUniqueWithoutLeadInput[];
+  updateMany?:
+    | Prisma.FollowUpUpdateManyWithWhereWithoutLeadInput
+    | Prisma.FollowUpUpdateManyWithWhereWithoutLeadInput[];
+  deleteMany?:
+    Prisma.FollowUpScalarWhereInput | Prisma.FollowUpScalarWhereInput[];
+};
+
+export type FollowUpUncheckedUpdateManyWithoutLeadNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.FollowUpCreateWithoutLeadInput,
+        Prisma.FollowUpUncheckedCreateWithoutLeadInput
+      >
+    | Prisma.FollowUpCreateWithoutLeadInput[]
+    | Prisma.FollowUpUncheckedCreateWithoutLeadInput[];
+  connectOrCreate?:
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput
+    | Prisma.FollowUpCreateOrConnectWithoutLeadInput[];
+  upsert?:
+    | Prisma.FollowUpUpsertWithWhereUniqueWithoutLeadInput
+    | Prisma.FollowUpUpsertWithWhereUniqueWithoutLeadInput[];
+  createMany?: Prisma.FollowUpCreateManyLeadInputEnvelope;
+  set?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  disconnect?:
+    Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  delete?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  connect?: Prisma.FollowUpWhereUniqueInput | Prisma.FollowUpWhereUniqueInput[];
+  update?:
+    | Prisma.FollowUpUpdateWithWhereUniqueWithoutLeadInput
+    | Prisma.FollowUpUpdateWithWhereUniqueWithoutLeadInput[];
+  updateMany?:
+    | Prisma.FollowUpUpdateManyWithWhereWithoutLeadInput
+    | Prisma.FollowUpUpdateManyWithWhereWithoutLeadInput[];
+  deleteMany?:
+    Prisma.FollowUpScalarWhereInput | Prisma.FollowUpScalarWhereInput[];
+};
+
 export type FollowUpCreateNestedManyWithoutOpportunityInput = {
   create?:
     | Prisma.XOR<
@@ -782,6 +903,7 @@ export type FollowUpCreateWithoutOwnerInput = {
   updatedAt?: Date | string;
   customer?: Prisma.CustomerCreateNestedOneWithoutFollowUpsInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutFollowUpsInput;
+  lead?: Prisma.LeadCreateNestedOneWithoutFollowUpsInput;
   tasks?: Prisma.SalesTaskCreateNestedManyWithoutFollowUpInput;
 };
 
@@ -789,6 +911,7 @@ export type FollowUpUncheckedCreateWithoutOwnerInput = {
   id?: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  leadId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
   nextFollowUpAt?: Date | string | null;
@@ -846,6 +969,7 @@ export type FollowUpScalarWhereInput = {
   id?: Prisma.StringFilter<"FollowUp"> | string;
   customerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   opportunityId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
+  leadId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   ownerId?: Prisma.StringNullableFilter<"FollowUp"> | string | null;
   mode?: Prisma.EnumFollowUpModeFilter<"FollowUp"> | $Enums.FollowUpMode;
   content?: Prisma.StringFilter<"FollowUp"> | string;
@@ -863,6 +987,7 @@ export type FollowUpCreateWithoutCustomerInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutFollowUpsInput;
+  lead?: Prisma.LeadCreateNestedOneWithoutFollowUpsInput;
   owner?: Prisma.UserCreateNestedOneWithoutFollowUpsInput;
   tasks?: Prisma.SalesTaskCreateNestedManyWithoutFollowUpInput;
 };
@@ -870,6 +995,7 @@ export type FollowUpCreateWithoutCustomerInput = {
 export type FollowUpUncheckedCreateWithoutCustomerInput = {
   id?: string;
   opportunityId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -922,6 +1048,74 @@ export type FollowUpUpdateManyWithWhereWithoutCustomerInput = {
   >;
 };
 
+export type FollowUpCreateWithoutLeadInput = {
+  id?: string;
+  mode: $Enums.FollowUpMode;
+  content: string;
+  nextFollowUpAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  customer?: Prisma.CustomerCreateNestedOneWithoutFollowUpsInput;
+  opportunity?: Prisma.OpportunityCreateNestedOneWithoutFollowUpsInput;
+  owner?: Prisma.UserCreateNestedOneWithoutFollowUpsInput;
+  tasks?: Prisma.SalesTaskCreateNestedManyWithoutFollowUpInput;
+};
+
+export type FollowUpUncheckedCreateWithoutLeadInput = {
+  id?: string;
+  customerId?: string | null;
+  opportunityId?: string | null;
+  ownerId?: string | null;
+  mode: $Enums.FollowUpMode;
+  content: string;
+  nextFollowUpAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  tasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutFollowUpInput;
+};
+
+export type FollowUpCreateOrConnectWithoutLeadInput = {
+  where: Prisma.FollowUpWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.FollowUpCreateWithoutLeadInput,
+    Prisma.FollowUpUncheckedCreateWithoutLeadInput
+  >;
+};
+
+export type FollowUpCreateManyLeadInputEnvelope = {
+  data:
+    Prisma.FollowUpCreateManyLeadInput | Prisma.FollowUpCreateManyLeadInput[];
+  skipDuplicates?: boolean;
+};
+
+export type FollowUpUpsertWithWhereUniqueWithoutLeadInput = {
+  where: Prisma.FollowUpWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.FollowUpUpdateWithoutLeadInput,
+    Prisma.FollowUpUncheckedUpdateWithoutLeadInput
+  >;
+  create: Prisma.XOR<
+    Prisma.FollowUpCreateWithoutLeadInput,
+    Prisma.FollowUpUncheckedCreateWithoutLeadInput
+  >;
+};
+
+export type FollowUpUpdateWithWhereUniqueWithoutLeadInput = {
+  where: Prisma.FollowUpWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.FollowUpUpdateWithoutLeadInput,
+    Prisma.FollowUpUncheckedUpdateWithoutLeadInput
+  >;
+};
+
+export type FollowUpUpdateManyWithWhereWithoutLeadInput = {
+  where: Prisma.FollowUpScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.FollowUpUpdateManyMutationInput,
+    Prisma.FollowUpUncheckedUpdateManyWithoutLeadInput
+  >;
+};
+
 export type FollowUpCreateWithoutOpportunityInput = {
   id?: string;
   mode: $Enums.FollowUpMode;
@@ -930,6 +1124,7 @@ export type FollowUpCreateWithoutOpportunityInput = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   customer?: Prisma.CustomerCreateNestedOneWithoutFollowUpsInput;
+  lead?: Prisma.LeadCreateNestedOneWithoutFollowUpsInput;
   owner?: Prisma.UserCreateNestedOneWithoutFollowUpsInput;
   tasks?: Prisma.SalesTaskCreateNestedManyWithoutFollowUpInput;
 };
@@ -937,6 +1132,7 @@ export type FollowUpCreateWithoutOpportunityInput = {
 export type FollowUpUncheckedCreateWithoutOpportunityInput = {
   id?: string;
   customerId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -998,6 +1194,7 @@ export type FollowUpCreateWithoutTasksInput = {
   updatedAt?: Date | string;
   customer?: Prisma.CustomerCreateNestedOneWithoutFollowUpsInput;
   opportunity?: Prisma.OpportunityCreateNestedOneWithoutFollowUpsInput;
+  lead?: Prisma.LeadCreateNestedOneWithoutFollowUpsInput;
   owner?: Prisma.UserCreateNestedOneWithoutFollowUpsInput;
 };
 
@@ -1005,6 +1202,7 @@ export type FollowUpUncheckedCreateWithoutTasksInput = {
   id?: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -1052,6 +1250,7 @@ export type FollowUpUpdateWithoutTasksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customer?: Prisma.CustomerUpdateOneWithoutFollowUpsNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutFollowUpsNestedInput;
+  lead?: Prisma.LeadUpdateOneWithoutFollowUpsNestedInput;
   owner?: Prisma.UserUpdateOneWithoutFollowUpsNestedInput;
 };
 
@@ -1060,6 +1259,7 @@ export type FollowUpUncheckedUpdateWithoutTasksInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -1074,6 +1274,7 @@ export type FollowUpCreateManyOwnerInput = {
   id?: string;
   customerId?: string | null;
   opportunityId?: string | null;
+  leadId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
   nextFollowUpAt?: Date | string | null;
@@ -1092,6 +1293,7 @@ export type FollowUpUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customer?: Prisma.CustomerUpdateOneWithoutFollowUpsNestedInput;
   opportunity?: Prisma.OpportunityUpdateOneWithoutFollowUpsNestedInput;
+  lead?: Prisma.LeadUpdateOneWithoutFollowUpsNestedInput;
   tasks?: Prisma.SalesTaskUpdateManyWithoutFollowUpNestedInput;
 };
 
@@ -1100,6 +1302,7 @@ export type FollowUpUncheckedUpdateWithoutOwnerInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1115,6 +1318,7 @@ export type FollowUpUncheckedUpdateManyWithoutOwnerInput = {
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
   content?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1127,6 +1331,7 @@ export type FollowUpUncheckedUpdateManyWithoutOwnerInput = {
 export type FollowUpCreateManyCustomerInput = {
   id?: string;
   opportunityId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -1145,6 +1350,7 @@ export type FollowUpUpdateWithoutCustomerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   opportunity?: Prisma.OpportunityUpdateOneWithoutFollowUpsNestedInput;
+  lead?: Prisma.LeadUpdateOneWithoutFollowUpsNestedInput;
   owner?: Prisma.UserUpdateOneWithoutFollowUpsNestedInput;
   tasks?: Prisma.SalesTaskUpdateManyWithoutFollowUpNestedInput;
 };
@@ -1153,6 +1359,7 @@ export type FollowUpUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -1168,6 +1375,65 @@ export type FollowUpUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   opportunityId?:
     Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mode?:
+    Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  nextFollowUpAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type FollowUpCreateManyLeadInput = {
+  id?: string;
+  customerId?: string | null;
+  opportunityId?: string | null;
+  ownerId?: string | null;
+  mode: $Enums.FollowUpMode;
+  content: string;
+  nextFollowUpAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type FollowUpUpdateWithoutLeadInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  mode?:
+    Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  nextFollowUpAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  customer?: Prisma.CustomerUpdateOneWithoutFollowUpsNestedInput;
+  opportunity?: Prisma.OpportunityUpdateOneWithoutFollowUpsNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutFollowUpsNestedInput;
+  tasks?: Prisma.SalesTaskUpdateManyWithoutFollowUpNestedInput;
+};
+
+export type FollowUpUncheckedUpdateWithoutLeadInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  opportunityId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  mode?:
+    Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  nextFollowUpAt?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  tasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutFollowUpNestedInput;
+};
+
+export type FollowUpUncheckedUpdateManyWithoutLeadInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  opportunityId?:
+    Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -1181,6 +1447,7 @@ export type FollowUpUncheckedUpdateManyWithoutCustomerInput = {
 export type FollowUpCreateManyOpportunityInput = {
   id?: string;
   customerId?: string | null;
+  leadId?: string | null;
   ownerId?: string | null;
   mode: $Enums.FollowUpMode;
   content: string;
@@ -1199,6 +1466,7 @@ export type FollowUpUpdateWithoutOpportunityInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   customer?: Prisma.CustomerUpdateOneWithoutFollowUpsNestedInput;
+  lead?: Prisma.LeadUpdateOneWithoutFollowUpsNestedInput;
   owner?: Prisma.UserUpdateOneWithoutFollowUpsNestedInput;
   tasks?: Prisma.SalesTaskUpdateManyWithoutFollowUpNestedInput;
 };
@@ -1206,6 +1474,7 @@ export type FollowUpUpdateWithoutOpportunityInput = {
 export type FollowUpUncheckedUpdateWithoutOpportunityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -1220,6 +1489,7 @@ export type FollowUpUncheckedUpdateWithoutOpportunityInput = {
 export type FollowUpUncheckedUpdateManyWithoutOpportunityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
   customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  leadId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   mode?:
     Prisma.EnumFollowUpModeFieldUpdateOperationsInput | $Enums.FollowUpMode;
@@ -1276,6 +1546,7 @@ export type FollowUpSelect<
     id?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    leadId?: boolean;
     ownerId?: boolean;
     mode?: boolean;
     content?: boolean;
@@ -1284,6 +1555,7 @@ export type FollowUpSelect<
     updatedAt?: boolean;
     customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+    lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
     owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
     tasks?: boolean | Prisma.FollowUp$tasksArgs<ExtArgs>;
     _count?: boolean | Prisma.FollowUpCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1299,6 +1571,7 @@ export type FollowUpSelectCreateManyAndReturn<
     id?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    leadId?: boolean;
     ownerId?: boolean;
     mode?: boolean;
     content?: boolean;
@@ -1307,6 +1580,7 @@ export type FollowUpSelectCreateManyAndReturn<
     updatedAt?: boolean;
     customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+    lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
     owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
   },
   ExtArgs["result"]["followUp"]
@@ -1320,6 +1594,7 @@ export type FollowUpSelectUpdateManyAndReturn<
     id?: boolean;
     customerId?: boolean;
     opportunityId?: boolean;
+    leadId?: boolean;
     ownerId?: boolean;
     mode?: boolean;
     content?: boolean;
@@ -1328,6 +1603,7 @@ export type FollowUpSelectUpdateManyAndReturn<
     updatedAt?: boolean;
     customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
     opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+    lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
     owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
   },
   ExtArgs["result"]["followUp"]
@@ -1337,6 +1613,7 @@ export type FollowUpSelectScalar = {
   id?: boolean;
   customerId?: boolean;
   opportunityId?: boolean;
+  leadId?: boolean;
   ownerId?: boolean;
   mode?: boolean;
   content?: boolean;
@@ -1352,6 +1629,7 @@ export type FollowUpOmit<
   | "id"
   | "customerId"
   | "opportunityId"
+  | "leadId"
   | "ownerId"
   | "mode"
   | "content"
@@ -1366,6 +1644,7 @@ export type FollowUpInclude<
 > = {
   customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+  lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
   owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
   tasks?: boolean | Prisma.FollowUp$tasksArgs<ExtArgs>;
   _count?: boolean | Prisma.FollowUpCountOutputTypeDefaultArgs<ExtArgs>;
@@ -1376,6 +1655,7 @@ export type FollowUpIncludeCreateManyAndReturn<
 > = {
   customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+  lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
   owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
 };
 export type FollowUpIncludeUpdateManyAndReturn<
@@ -1384,6 +1664,7 @@ export type FollowUpIncludeUpdateManyAndReturn<
 > = {
   customer?: boolean | Prisma.FollowUp$customerArgs<ExtArgs>;
   opportunity?: boolean | Prisma.FollowUp$opportunityArgs<ExtArgs>;
+  lead?: boolean | Prisma.FollowUp$leadArgs<ExtArgs>;
   owner?: boolean | Prisma.FollowUp$ownerArgs<ExtArgs>;
 };
 
@@ -1395,6 +1676,7 @@ export type $FollowUpPayload<
   objects: {
     customer: Prisma.$CustomerPayload<ExtArgs> | null;
     opportunity: Prisma.$OpportunityPayload<ExtArgs> | null;
+    lead: Prisma.$LeadPayload<ExtArgs> | null;
     owner: Prisma.$UserPayload<ExtArgs> | null;
     /**
      * 由本跟进记录生成的任务（可选）。
@@ -1405,13 +1687,18 @@ export type $FollowUpPayload<
     {
       id: string;
       /**
-       * 关联的客户；跟进可挂在客户或商机下，二者至少有一个。
+       * 关联的客户；跟进可挂在客户、商机或线索下，至少有一个。
        */
       customerId: string | null;
       /**
        * 关联的商机。
        */
       opportunityId: string | null;
+      /**
+       * 关联的线索：培育期的跟进记在这里。线索转化时该字段被清空，
+       * 记录同时挂到新商机下，所以培育历史不会留在无人可见的旧对象上。
+       */
+      leadId: string | null;
       /**
        * 跟进人，对应 User。
        */
@@ -2000,6 +2287,19 @@ export interface Prisma__FollowUpClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  lead<T extends Prisma.FollowUp$leadArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.FollowUp$leadArgs<ExtArgs>>
+  ): Prisma.Prisma__LeadClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$LeadPayload<ExtArgs>,
+      T,
+      "findUniqueOrThrow",
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   owner<T extends Prisma.FollowUp$ownerArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.FollowUp$ownerArgs<ExtArgs>>
   ): Prisma.Prisma__UserClient<
@@ -2063,6 +2363,7 @@ export interface FollowUpFieldRefs {
   readonly id: Prisma.FieldRef<"FollowUp", "String">;
   readonly customerId: Prisma.FieldRef<"FollowUp", "String">;
   readonly opportunityId: Prisma.FieldRef<"FollowUp", "String">;
+  readonly leadId: Prisma.FieldRef<"FollowUp", "String">;
   readonly ownerId: Prisma.FieldRef<"FollowUp", "String">;
   readonly mode: Prisma.FieldRef<"FollowUp", "FollowUpMode">;
   readonly content: Prisma.FieldRef<"FollowUp", "String">;
@@ -2576,6 +2877,28 @@ export type FollowUp$opportunityArgs<
    */
   include?: Prisma.OpportunityInclude<ExtArgs> | null;
   where?: Prisma.OpportunityWhereInput;
+};
+
+/**
+ * FollowUp.lead
+ */
+export type FollowUp$leadArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Lead
+   */
+  select?: Prisma.LeadSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Lead
+   */
+  omit?: Prisma.LeadOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LeadInclude<ExtArgs> | null;
+  where?: Prisma.LeadWhereInput;
 };
 
 /**

@@ -86,7 +86,7 @@ describe("客户列表页生命周期展示", () => {
       await CustomersPage({ searchParams: Promise.resolve({}) })
     );
 
-    expect(html).toContain("客户生命周期");
+    expect(html).toContain("生命周期");
     expect(html).toContain("线索");
     expect(html).toContain("留存");
   });

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 本地设计 / QA 产物，不参与 lint
+    ".oil-ui/**",
+    ".playwright-cli/**",
+    "output/**",
   ]),
   {
     rules: {

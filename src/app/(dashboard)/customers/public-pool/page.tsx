@@ -1,5 +1,6 @@
-import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, PageHeader } from "@/components/ui";
 import { NavLink } from "@/components/nav-link";
+import { EmptyStatePanel } from "@/components/empty-state";
 import { Pagination } from "@/components/pagination";
 import { Enter } from "@/components/stagger";
 import { requireCurrentUser } from "@/lib/auth/session";
@@ -16,6 +17,9 @@ import {
   claimPublicCustomerFormAction,
   setCustomerOwnerFormAction,
 } from "../public-pool-actions";
+
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
 
 /**
  * 公海列表页：展示所有尚无负责人的客户。
@@ -53,21 +57,96 @@ export default async function PublicPoolPage({
     [CustomerLevel.LOW]: "低价值",
   };
 
+  // 等级分布：状态带上的一线比例图
+  const levelCounts = customers.reduce(
+    (acc, c) => {
+      acc[c.level] = (acc[c.level] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+  const levelOrder = [
+    CustomerLevel.HIGH,
+    CustomerLevel.MEDIUM,
+    CustomerLevel.LOW,
+  ];
+  const levelColor: Record<string, string> = {
+    [CustomerLevel.HIGH]: "bg-danger",
+    [CustomerLevel.MEDIUM]: "bg-brass-500",
+    [CustomerLevel.LOW]: "bg-line-strong",
+  };
+
   return (
     <div>
       <Enter>
         <PageHeader title="公海" description={`共 ${total} 个公海客户`} />
       </Enter>
 
+      {/* 状态带：待认领总数 + 价值构成。公海的问题是「里面有什么好货」 */}
+      {total > 0 && (
+        <Enter effect="fade" className="card mb-6 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-faint">
+                待认领
+              </div>
+              <div className="num-kpi mt-1 text-ink">{total}</div>
+            </div>
+            <div className="min-w-56 flex-1 sm:max-w-md">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-paper-sunk">
+                {levelOrder.map((level) => {
+                  const count = levelCounts[level] ?? 0;
+                  if (count === 0) return null;
+                  return (
+                    <span
+                      key={level}
+                      className={`h-full ${levelColor[level]}`}
+                      style={{
+                        width: `${(count / customers.length) * 100}%`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
+                {levelOrder.map((level) => {
+                  const count = levelCounts[level] ?? 0;
+                  if (count === 0) return null;
+                  return (
+                    <span key={level} className="flex items-center gap-1.5">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${levelColor[level]}`}
+                      />
+                      {levelLabel[level]}{" "}
+                      <span className="tnum text-ink-faint">{count}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Enter>
+      )}
+
       {customers.length === 0 ? (
-        <EmptyState message="公海暂无客户。" />
+        <Enter effect="fade">
+          <EmptyStatePanel
+            title="公海已经清空"
+            description="没有待认领的客户。客户被释放、或负责人被清空后，会重新出现在这里。"
+            action={
+              <NavLink href="/customers" className="btn btn-primary">
+                去客户列表
+              </NavLink>
+            }
+          />
+        </Enter>
       ) : (
         <Enter
           effect="fade"
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          className="overflow-hidden rounded-xl border border-line bg-paper-raised"
         >
           <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-50 text-zinc-500">
+            <thead className="bg-paper-sunk text-ink-faint">
               <tr>
                 <th className="px-4 py-3 font-medium">客户名称</th>
                 <th className="px-4 py-3 font-medium">等级</th>
@@ -78,23 +157,20 @@ export default async function PublicPoolPage({
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {customers.map((customer: PublicPoolCustomerSummary) => (
-                <tr
-                  key={customer.id}
-                  className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
-                >
+                <tr key={customer.id} className="row-glow">
                   <td className="px-4 py-3">
                     {scope.role === "ADMIN" ? (
                       <NavLink
                         href={`/customers/${customer.id}`}
-                        className="font-medium text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
+                        className="font-medium text-brass-600 transition-colors duration-[var(--motion-fast)] hover:text-brass-500 hover:underline"
                       >
                         {customer.name}
                       </NavLink>
                     ) : (
                       // 普通负责人认领前只能看到最小信息，详情页仍受负责人范围限制。
-                      <span className="font-medium text-zinc-900">
+                      <span className="font-medium text-ink">
                         {customer.name}
                       </span>
                     )}
@@ -104,11 +180,11 @@ export default async function PublicPoolPage({
                       {levelLabel[customer.level]}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {customer.industry ?? "—"}
                   </td>
                   {scope.role === "ADMIN" && (
-                    <td className="px-4 py-3 text-zinc-600">
+                    <td className="px-4 py-3 text-ink-soft">
                       {"_count" in customer
                         ? `${(customer as { _count: { contacts: number; opportunities: number } })._count.contacts} / ${(customer as { _count: { contacts: number; opportunities: number } })._count.opportunities}`
                         : "—"}
@@ -124,7 +200,7 @@ export default async function PublicPoolPage({
                       >
                         <button
                           type="submit"
-                          className="min-h-11 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-blue-700"
+                          className="min-h-11 btn btn-primary"
                         >
                           认领
                         </button>
@@ -140,7 +216,7 @@ export default async function PublicPoolPage({
                       >
                         <select
                           name="ownerId"
-                          className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+                          className="rounded-lg border border-line-strong bg-paper-raised px-2 py-1 text-sm"
                           defaultValue=""
                         >
                           <option value="">移入公海</option>
@@ -152,7 +228,7 @@ export default async function PublicPoolPage({
                         </select>
                         <button
                           type="submit"
-                          className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+                          className="min-h-11 rounded-lg border border-line-strong px-3 py-2 text-sm text-ink hover:bg-paper-sunk"
                         >
                           保存
                         </button>
@@ -162,11 +238,10 @@ export default async function PublicPoolPage({
                 </tr>
               ))}
             </tbody>
-
-            {total > 0 && (
-              <Pagination meta={meta} pathname="/customers/public-pool" />
-            )}
           </table>
+          {total > 0 && (
+            <Pagination meta={meta} pathname="/customers/public-pool" />
+          )}
         </Enter>
       )}
     </div>

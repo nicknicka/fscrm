@@ -49,3 +49,6 @@ next-env.d.ts
 /.oil-ui/
 /.playwright-cli/
 /output/
+
+# local dev scratch tools (not source)
+/scripts/_mint.ts

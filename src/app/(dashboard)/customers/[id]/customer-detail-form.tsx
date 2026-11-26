@@ -48,14 +48,14 @@ export function CustomerDetailForm({
   );
 
   return (
-    <form action={formAction} className="mt-5 border-t border-zinc-100 pt-4">
+    <form action={formAction} className="mt-5 border-t border-line pt-4">
       <h3 className="mb-3 text-sm font-semibold">编辑基本信息</h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label="客户等级" name="level">
           <select
             name="level"
             defaultValue={level}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             <option value={CustomerLevel.HIGH}>高价值</option>
             <option value={CustomerLevel.MEDIUM}>中价值</option>
@@ -67,7 +67,7 @@ export function CustomerDetailForm({
             <select
               name="ownerId"
               defaultValue={ownerId ?? ""}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
             >
               <option value="">移入公海</option>
               {users.map((user) => (
@@ -83,28 +83,26 @@ export function CustomerDetailForm({
         <Field label="邮箱" name="email" defaultValue={email ?? ""} />
         <Field label="地址" name="address" defaultValue={address ?? ""} />
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             备注
           </label>
           <textarea
             name="remark"
             rows={2}
             defaultValue={remark ?? ""}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           />
         </div>
         <div className="sm:col-span-2 flex items-center gap-3">
           <button
             type="submit"
             disabled={pending}
-            className="min-h-11 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="min-h-11 btn btn-primary"
           >
             {pending ? "保存中…" : "保存基本信息"}
           </button>
           {state.message && (
-            <span
-              className={`text-sm ${state.ok ? "text-green-700" : "text-red-600"}`}
-            >
+            <span className={`text-sm ${state.ok ? "text-ok" : "text-danger"}`}>
               {state.message}
             </span>
           )}
@@ -127,14 +125,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700">
-        {label}
-      </label>
+      <label className="mb-1 block text-sm font-medium text-ink">{label}</label>
       {children ?? (
         <input
           name={name}
           defaultValue={defaultValue}
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none focus:border-brass-500"
         />
       )}
     </div>

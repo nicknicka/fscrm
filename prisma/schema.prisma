@@ -140,6 +140,8 @@ model Customer {
   orders     Order[]
   chatBindings ChatBinding[]
   salesTasks SalesTask[]
+  /// 由哪些线索转化而来（来源可追溯）。
+  convertedFromLeads Lead[] @relation("LeadConvertedCustomer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -178,6 +180,16 @@ model Lead {
   contactEmail String?
   remark     String?
 
+  /// 转化产物：转化时在同一事务内写入，使「查看商机」能直达详情。
+  /// 未转化时为 null；商机被删时置空（线索记录本身保留，历史不清空）。
+  convertedCustomerId   String?
+  convertedCustomer     Customer?    @relation("LeadConvertedCustomer", fields: [convertedCustomerId], references: [id], onDelete: SetNull)
+  convertedOpportunityId String?
+  convertedOpportunity   Opportunity? @relation("LeadConvertedOpportunity", fields: [convertedOpportunityId], references: [id], onDelete: SetNull)
+
+  /// 培育期的跟进记录；转化时并入新商机（见 convertLeadToCustomerAndOpportunity）。
+  followUps  FollowUp[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -206,6 +218,8 @@ model Opportunity {
   orders            Order[]
   discountApprovals DiscountApproval[]
   salesTasks        SalesTask[]
+  /// 由哪些线索转化而来（来源可追溯）。
+  convertedFromLeads Lead[] @relation("LeadConvertedOpportunity")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -216,12 +230,16 @@ model Opportunity {
 /// 跟进记录：对某次跟进的时间、方式、内容与下一步的结构化记录。
 model FollowUp {
   id          String       @id @default(uuid())
-  /// 关联的客户；跟进可挂在客户或商机下，二者至少有一个。
+  /// 关联的客户；跟进可挂在客户、商机或线索下，至少有一个。
   customerId  String?
   customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   /// 关联的商机。
   opportunityId String?
   opportunity  Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  /// 关联的线索：培育期的跟进记在这里。线索转化时该字段被清空，
+  /// 记录同时挂到新商机下，所以培育历史不会留在无人可见的旧对象上。
+  leadId      String?
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
   /// 跟进人，对应 User。
   ownerId     String?
   owner       User?        @relation(fields: [ownerId], references: [id])

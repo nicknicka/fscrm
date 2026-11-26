@@ -25,6 +25,9 @@ import {
   listReconciliationsForCurrentUser,
 } from "../reconciliation-actions";
 
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
+
 /** 订单详情页；越权与不存在统一按 notFound 处理。 */
 export default async function OrderDetailPage({
   params,
@@ -47,19 +50,19 @@ export default async function OrderDetailPage({
 
   return (
     <div>
-      <Link href="/orders" className="text-sm text-blue-600 hover:underline">
+      <Link href="/orders" className="text-sm text-brass-600 hover:underline">
         ← 返回订单列表
       </Link>
       <div className="mt-4">
         <PageHeader title="订单详情" description={order.customer.name} />
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-6">
+      <section className="rounded-xl border border-line bg-paper-raised p-6">
         <h2 className="mb-4 text-base font-semibold">基本信息</h2>
         <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <Info label="订单编号" value={order.id} />
           <div>
-            <dt className="text-xs text-zinc-500">订单状态</dt>
+            <dt className="text-xs text-ink-faint">订单状态</dt>
             <dd className="mt-0.5">
               <Badge
                 tone={order.status === OrderStatus.CANCELLED ? "red" : "blue"}
@@ -78,9 +81,9 @@ export default async function OrderDetailPage({
                       value: status,
                       label: `推进到「${orderStatusLabel[status]}」`,
                     }))}
-                    className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+                    className="rounded-lg border border-line-strong bg-paper-raised px-2 py-1 text-sm"
                   />
-                  <span className="text-xs text-zinc-400">选择即生效</span>
+                  <span className="text-xs text-ink-faint">选择即生效</span>
                 </form>
               )}
             </dd>
@@ -97,8 +100,8 @@ export default async function OrderDetailPage({
           />
         </dl>
 
-        <div className="mt-6 border-t border-zinc-100 pt-5">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-700">回款</h3>
+        <div className="mt-6 border-t border-line pt-5">
+          <h3 className="mb-3 text-sm font-semibold text-ink">回款</h3>
           <dl className="mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <Info
               label="回款合计"
@@ -112,12 +115,12 @@ export default async function OrderDetailPage({
 
           <ul className="mb-4 space-y-2 text-sm">
             {payments.length === 0 ? (
-              <li className="text-zinc-500">暂无回款记录</li>
+              <li className="text-ink-faint">暂无回款记录</li>
             ) : (
               payments.map((payment) => (
                 <li
                   key={payment.id}
-                  className="flex justify-between rounded-lg bg-zinc-50 px-3 py-2"
+                  className="flex justify-between rounded-lg bg-paper-sunk px-3 py-2"
                 >
                   <span>{payment.receivedAt.toLocaleString("zh-CN")}</span>
                   <span className="font-medium">
@@ -130,7 +133,7 @@ export default async function OrderDetailPage({
 
           <form action={addPaymentFormAction} className="flex flex-wrap gap-3">
             <input type="hidden" name="orderId" value={order.id} />
-            <label className="flex-1 text-xs text-zinc-600">
+            <label className="flex-1 text-xs text-ink-soft">
               回款金额
               <input
                 name="amount"
@@ -138,29 +141,27 @@ export default async function OrderDetailPage({
                 min="0.01"
                 step="0.01"
                 required
-                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
               />
             </label>
-            <label className="flex-1 text-xs text-zinc-600">
+            <label className="flex-1 text-xs text-ink-soft">
               到账时间
               <input
                 name="receivedAt"
                 type="datetime-local"
+                lang="zh-CN"
                 required
-                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
               />
             </label>
-            <button
-              type="submit"
-              className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
+            <button type="submit" className="self-end btn btn-primary text-sm">
               登记回款
             </button>
           </form>
         </div>
 
-        <div className="mt-6 border-t border-zinc-100 pt-5">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-700">回款计划</h3>
+        <div className="mt-6 border-t border-line pt-5">
+          <h3 className="mb-3 text-sm font-semibold text-ink">回款计划</h3>
           <dl className="mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
             <Info
               label="计划合计"
@@ -179,7 +180,10 @@ export default async function OrderDetailPage({
           {plans.plans.length > 0 && (
             <ul className="mb-4 space-y-2 text-sm">
               {plans.plans.map((plan) => (
-                <li key={plan.id} className="rounded-lg bg-zinc-50 px-3 py-2">
+                <li
+                  key={plan.id}
+                  className="rounded-lg bg-paper-sunk px-3 py-2"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <span>
                       {plan.plannedAt.toLocaleString("zh-CN")}
@@ -198,7 +202,7 @@ export default async function OrderDetailPage({
                       >
                         <button
                           type="submit"
-                          className="text-xs text-red-600 hover:underline"
+                          className="text-xs text-danger hover:underline"
                         >
                           删除
                         </button>
@@ -211,9 +215,9 @@ export default async function OrderDetailPage({
                       plan.id,
                       order.id
                     )}
-                    className="mt-2 flex flex-wrap items-end gap-3 border-t border-zinc-200 pt-2"
+                    className="mt-2 flex flex-wrap items-end gap-3 border-t border-line pt-2"
                   >
-                    <label className="text-xs text-zinc-600">
+                    <label className="text-xs text-ink-soft">
                       金额
                       <input
                         name="amount"
@@ -222,22 +226,23 @@ export default async function OrderDetailPage({
                         step="0.01"
                         defaultValue={plan.amount}
                         required
-                        className="mt-1 w-28 rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                        className="mt-1 w-28 rounded-md border border-line-strong px-2 py-1 text-sm"
                       />
                     </label>
-                    <label className="text-xs text-zinc-600">
+                    <label className="text-xs text-ink-soft">
                       计划到账时间
                       <input
                         name="plannedAt"
                         type="datetime-local"
+                        lang="zh-CN"
                         defaultValue={toDateTimeLocal(plan.plannedAt)}
                         required
-                        className="mt-1 rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                        className="mt-1 rounded-md border border-line-strong px-2 py-1 text-sm"
                       />
                     </label>
                     <button
                       type="submit"
-                      className="min-h-11 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
+                      className="min-h-11 btn btn-primary text-xs"
                     >
                       保存
                     </button>
@@ -252,7 +257,7 @@ export default async function OrderDetailPage({
             className="flex flex-wrap gap-3"
           >
             <input type="hidden" name="orderId" value={order.id} />
-            <label className="flex-1 text-xs text-zinc-600">
+            <label className="flex-1 text-xs text-ink-soft">
               计划金额
               <input
                 name="amount"
@@ -260,37 +265,35 @@ export default async function OrderDetailPage({
                 min="0.01"
                 step="0.01"
                 required
-                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
               />
             </label>
-            <label className="flex-1 text-xs text-zinc-600">
+            <label className="flex-1 text-xs text-ink-soft">
               计划到账时间
               <input
                 name="plannedAt"
                 type="datetime-local"
+                lang="zh-CN"
                 required
-                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
               />
             </label>
-            <label className="w-full text-xs text-zinc-600">
+            <label className="w-full text-xs text-ink-soft">
               备注（可选）
               <input
                 name="note"
                 type="text"
-                className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
               />
             </label>
-            <button
-              type="submit"
-              className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
+            <button type="submit" className="self-end btn btn-primary text-sm">
               添加计划
             </button>
           </form>
         </div>
 
-        <div className="mt-6 border-t border-zinc-100 pt-5">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-700">对账</h3>
+        <div className="mt-6 border-t border-line pt-5">
+          <h3 className="mb-3 text-sm font-semibold text-ink">对账</h3>
           <dl className="mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
             <Info
               label="当前差额"
@@ -312,12 +315,12 @@ export default async function OrderDetailPage({
               {reconciliations.map((record) => (
                 <li
                   key={record.id}
-                  className="rounded-lg bg-zinc-50 px-3 py-2 text-zinc-700"
+                  className="rounded-lg bg-paper-sunk px-3 py-2 text-ink"
                 >
                   <div className="flex justify-between">
                     <span>
                       {record.createdAt.toLocaleString("zh-CN")}
-                      <span className="ml-2 text-xs text-zinc-500">
+                      <span className="ml-2 text-xs text-ink-faint">
                         {record.status === "VOID" ? "已作废" : "已确认"}
                       </span>
                     </span>
@@ -326,7 +329,7 @@ export default async function OrderDetailPage({
                     </span>
                   </div>
                   {record.note && (
-                    <div className="mt-1 text-xs text-zinc-500">
+                    <div className="mt-1 text-xs text-ink-faint">
                       {record.note}
                     </div>
                   )}
@@ -341,17 +344,17 @@ export default async function OrderDetailPage({
               className="flex flex-wrap gap-3"
             >
               <input type="hidden" name="orderId" value={order.id} />
-              <label className="flex-1 text-xs text-zinc-600">
+              <label className="flex-1 text-xs text-ink-soft">
                 对账备注（可选）
                 <input
                   name="note"
                   type="text"
-                  className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-line-strong px-3 py-2 text-sm"
                 />
               </label>
               <button
                 type="submit"
-                className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="self-end btn btn-primary text-sm"
               >
                 确认对账
               </button>
@@ -359,9 +362,9 @@ export default async function OrderDetailPage({
           )}
         </div>
 
-        <div className="mt-6 border-t border-zinc-100 pt-5">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-700">来源合同</h3>
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm">
+        <div className="mt-6 border-t border-line pt-5">
+          <h3 className="mb-3 text-sm font-semibold text-ink">来源合同</h3>
+          <div className="rounded-lg border border-line bg-paper-sunk p-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">
                 ¥{order.sourceContract.amount.toLocaleString("zh-CN")}
@@ -371,12 +374,12 @@ export default async function OrderDetailPage({
                   order.sourceContract.status}
               </Badge>
             </div>
-            <div className="mt-2 text-xs text-zinc-500">
+            <div className="mt-2 text-xs text-ink-faint">
               合同编号：{order.sourceContractId}
             </div>
             <Link
               href={`/contracts/${order.sourceContractId}`}
-              className="mt-3 inline-block text-sm text-blue-600 hover:underline"
+              className="mt-3 inline-block text-sm text-brass-600 hover:underline"
             >
               查看来源合同 →
             </Link>
@@ -396,8 +399,8 @@ function toDateTimeLocal(date: Date): string {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-zinc-500">{label}</dt>
-      <dd className="mt-0.5 break-all text-sm text-zinc-800">{value}</dd>
+      <dt className="text-xs text-ink-faint">{label}</dt>
+      <dd className="mt-0.5 break-all text-sm text-ink">{value}</dd>
     </div>
   );
 }

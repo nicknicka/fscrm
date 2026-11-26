@@ -17,7 +17,7 @@ describe("阶段展示读取", () => {
   it("配置表为空时回落默认阶段", async () => {
     const displays = await loadStageDisplays();
     expect(displays).toHaveLength(6);
-    expect(displays[0].label).toBe("初步接触");
+    expect(displays[0].label).toBe("已建立联系");
   });
 
   it("配置存在时使用管理员配置的显示名", async () => {

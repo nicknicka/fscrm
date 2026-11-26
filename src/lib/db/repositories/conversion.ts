@@ -59,10 +59,7 @@ export async function convertLeadToCustomerAndOpportunity(
   const ownerId = resolveAssignableOwnerId(scope, requestedOwnerId);
 
   const lead = await prisma.lead.findUnique({ where: { id: leadId } });
-  if (
-    !lead ||
-    (scope.role === "OWNER" && lead.ownerId !== scope.userId)
-  ) {
+  if (!lead || (scope.role === "OWNER" && lead.ownerId !== scope.userId)) {
     throw new LeadConversionError("FORBIDDEN");
   }
 
@@ -94,6 +91,27 @@ export async function convertLeadToCustomerAndOpportunity(
         customer: { connect: { id: customer.id } },
         remark: sourceRemark(lead.source, lead.remark),
         ...(ownerId ? { owner: { connect: { id: ownerId } } } : {}),
+      },
+    });
+
+    // 把培育期的跟进记录并到新商机下，并清空 leadId：
+    // 线索本身即将变成「已转化」的历史档案，跟进记录若留在它身上就没人看了。
+    // 同时补上 customerId，让这些记录在客户时间线里也能出现。
+    await tx.followUp.updateMany({
+      where: { leadId },
+      data: {
+        leadId: null,
+        opportunityId: opportunity.id,
+        customerId: customer.id,
+      },
+    });
+
+    // 回写转化产物，使「查看商机」能直达详情而不是回到列表。
+    await tx.lead.update({
+      where: { id: leadId },
+      data: {
+        convertedCustomerId: customer.id,
+        convertedOpportunityId: opportunity.id,
       },
     });
 

@@ -4,6 +4,9 @@ import { requireCurrentUser } from "@/lib/auth/session";
 import { scanReminders, type ReminderBatch } from "@/lib/reminders/scan";
 import { SendRemindersButton } from "./send-button";
 
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
+
 /**
  * 待办提醒页：把「机器人会推什么」变成能看见的列表。
  *
@@ -58,39 +61,39 @@ export default async function RemindersPage() {
           {visible.map((batch) => (
             <section
               key={`${batch.ownerId}-${batch.kind}`}
-              className="rounded-xl border border-zinc-200 bg-white p-5"
+              className="rounded-xl border border-line bg-paper-raised p-5"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <Badge tone={KIND_TONE[batch.kind]}>
                     {KIND_LABEL[batch.kind]}
                   </Badge>
-                  <h2 className="text-sm font-semibold text-zinc-900">
+                  <h2 className="text-sm font-semibold text-ink">
                     {batch.ownerName}
                   </h2>
-                  <span className="text-sm text-zinc-500">
+                  <span className="text-sm text-ink-faint">
                     {batch.total} 条
                   </span>
                 </div>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-ink-faint">
                   {batch.ownerOpenId
                     ? "飞书已绑定，会收到卡片"
                     : "未绑定飞书，收不到卡片"}
                 </span>
               </div>
 
-              <ul className="mt-3 divide-y divide-zinc-100">
+              <ul className="mt-3 divide-y divide-line">
                 {batch.items.map((item) => (
                   <li
                     key={item.id}
                     className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
                   >
-                    <span className="text-zinc-800">{item.title}</span>
-                    <span className="text-zinc-500">{item.detail}</span>
+                    <span className="text-ink">{item.title}</span>
+                    <span className="text-ink-faint">{item.detail}</span>
                     {item.customerId && (
                       <Link
                         href={`/customers/${item.customerId}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-brass-600 hover:underline"
                       >
                         打开 →
                       </Link>
@@ -98,7 +101,7 @@ export default async function RemindersPage() {
                   </li>
                 ))}
                 {batch.total > batch.items.length && (
-                  <li className="py-2 text-xs text-zinc-400">
+                  <li className="py-2 text-xs text-ink-faint">
                     还有 {batch.total - batch.items.length} 条未展示
                   </li>
                 )}

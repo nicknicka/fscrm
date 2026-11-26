@@ -174,6 +174,8 @@ export const LeadScalarFieldEnum = {
   contactPhone: "contactPhone",
   contactEmail: "contactEmail",
   remark: "remark",
+  convertedCustomerId: "convertedCustomerId",
+  convertedOpportunityId: "convertedOpportunityId",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
 } as const;
@@ -201,6 +203,7 @@ export const FollowUpScalarFieldEnum = {
   id: "id",
   customerId: "customerId",
   opportunityId: "opportunityId",
+  leadId: "leadId",
   ownerId: "ownerId",
   mode: "mode",
   content: "content",

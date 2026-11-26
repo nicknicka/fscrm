@@ -36,7 +36,7 @@ export const STAGE_ORDER: OpportunityStage[] = [
 ];
 
 export const STAGE_LABEL: Record<string, string> = {
-  CONTACT: "初步接触",
+  CONTACT: "已建立联系",
   NEED_CONFIRM: "需求确认",
   QUOTE: "报价",
   NEGOTIATE: "谈判",

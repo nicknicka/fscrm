@@ -87,6 +87,62 @@ export async function updateOpportunityAction(id: string, formData: FormData) {
   return { ok: true as const };
 }
 
+/**
+ * 单字段就地更新。
+ *
+ * 详情页的字段就地编辑一次只改一个值，不能走 updateOpportunityAction——
+ * 那个接口要求整张表单齐全，缺的字段会被当成"清空"。这里按字段名只写一个
+ * 键，其余数据保持原样。只允许改白名单里的字段。
+ */
+export async function patchOpportunityFieldAction(
+  id: string,
+  formData: FormData
+) {
+  const user = await requireCurrentUser();
+  const scope = accessScopeFor(user);
+  const field = String(formData.get("__editing") ?? "");
+  const raw = String(formData.get(field) ?? "").trim();
+
+  const data: Record<string, unknown> = {};
+  switch (field) {
+    case "name":
+      if (!raw) throw new Error("商机名称不能为空");
+      data.name = raw;
+      break;
+    case "amount":
+      data.amount = raw ? Number(raw) : null;
+      break;
+    case "expectedCloseDate":
+      data.expectedCloseDate = raw ? new Date(raw) : null;
+      break;
+    case "remark":
+      data.remark = raw || null;
+      break;
+    case "ownerId": {
+      const ownerId = resolveAssignableOwnerId(scope, raw || null);
+      if (scope.role === "ADMIN" && ownerId) {
+        data.owner = { connect: { id: ownerId } };
+      }
+      break;
+    }
+    default:
+      throw new Error(`不支持修改字段：${field}`);
+  }
+
+  try {
+    await updateOpportunity(id, data, user);
+  } catch (error) {
+    rethrowOpportunityAccessError(error);
+  }
+
+  revalidatePath("/opportunities");
+  revalidatePath(`/opportunities/${id}`);
+  revalidatePath("/funnel");
+  revalidatePath("/analytics");
+  revalidatePath("/targets");
+  return { ok: true as const };
+}
+
 export async function createOpportunityAction(formData: FormData) {
   const user = await requireCurrentUser();
   const name = String(formData.get("name") ?? "").trim();

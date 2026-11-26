@@ -21,8 +21,8 @@ beforeEach(() => {
 describe("按销售阶段统计商机数量", () => {
   it("管理员实时聚合全部商机，并按阶段返回计数", async () => {
     prismaMock.opportunity.groupBy.mockResolvedValue([
-      { stage: "CONTACT", _count: { _all: 3 } },
-      { stage: "WON", _count: { _all: 1 } },
+      { stage: "CONTACT", _count: { _all: 3 }, _sum: { amount: 30000 } },
+      { stage: "WON", _count: { _all: 1 }, _sum: { amount: 120000 } },
     ]);
 
     const counts = await countOpportunitiesByStage(admin);
@@ -31,16 +31,17 @@ describe("按销售阶段统计商机数量", () => {
       by: ["stage"],
       where: {},
       _count: { _all: true },
+      _sum: { amount: true },
     });
     expect(counts).toEqual([
-      { stage: "CONTACT", count: 3 },
-      { stage: "WON", count: 1 },
+      { stage: "CONTACT", count: 3, amount: 30000 },
+      { stage: "WON", count: 1, amount: 120000 },
     ]);
   });
 
   it("普通负责人只聚合本人负责商机的阶段计数", async () => {
     prismaMock.opportunity.groupBy.mockResolvedValue([
-      { stage: "QUOTE", _count: { _all: 2 } },
+      { stage: "QUOTE", _count: { _all: 2 }, _sum: { amount: 50000 } },
     ]);
 
     const counts = await countOpportunitiesByStage(owner);
@@ -49,8 +50,9 @@ describe("按销售阶段统计商机数量", () => {
       by: ["stage"],
       where: { ownerId: owner.id },
       _count: { _all: true },
+      _sum: { amount: true },
     });
-    expect(counts).toEqual([{ stage: "QUOTE", count: 2 }]);
+    expect(counts).toEqual([{ stage: "QUOTE", count: 2, amount: 50000 }]);
   });
 
   it("没有商机时返回空数组，由上层补齐为零计数阶段", async () => {

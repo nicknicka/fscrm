@@ -29,7 +29,7 @@ const admin = { id: "admin_1", name: "管理员", role: "ADMIN" as const };
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(countOpportunitiesByStage).mockResolvedValue([
-    { stage: "QUOTE" as never, count: 3 },
+    { stage: "QUOTE" as never, count: 3, amount: 0 },
   ]);
   prismaMock.opportunity.findMany.mockResolvedValue([]);
   prismaMock.customer.groupBy.mockResolvedValue([]);

@@ -14,6 +14,9 @@ import {
   listContractsForCurrentUser,
 } from "./actions";
 
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
+
 /** 合同列表；读取权限在服务入口按当前用户收窄。 */
 export default async function ContractsPage({
   searchParams,
@@ -45,10 +48,10 @@ export default async function ContractsPage({
       ) : (
         <Enter
           effect="fade"
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          className="overflow-hidden rounded-xl border border-line bg-paper-raised"
         >
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-zinc-200 bg-zinc-50 text-xs text-zinc-500">
+            <thead className="border-b border-line bg-paper-sunk text-xs text-ink-faint">
               <tr>
                 <th className="px-4 py-3 font-medium">客户</th>
                 <th className="px-4 py-3 font-medium">关联商机</th>
@@ -58,16 +61,16 @@ export default async function ContractsPage({
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {contracts.map((contract) => (
-                <tr key={contract.id}>
-                  <td className="px-4 py-3 font-medium text-zinc-800">
+                <tr key={contract.id} className="row-glow">
+                  <td className="px-4 py-3 font-medium text-ink">
                     {contract.customer.name}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {contract.opportunity.name}
                   </td>
-                  <td className="px-4 py-3 text-zinc-800">
+                  <td className="px-4 py-3 text-ink">
                     ¥{contract.amount.toLocaleString("zh-CN")}
                   </td>
                   <td className="px-4 py-3">
@@ -81,7 +84,7 @@ export default async function ContractsPage({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-600">
+                      <span className="text-ink-soft">
                         ¥
                         {contract.sourceQuotation.amount.toLocaleString(
                           "zh-CN"
@@ -93,14 +96,14 @@ export default async function ContractsPage({
                         ] ?? contract.sourceQuotation.status}
                       </Badge>
                     </div>
-                    <div className="mt-0.5 text-xs text-zinc-400">
+                    <div className="mt-0.5 text-xs text-ink-faint">
                       来源：{contract.sourceQuotationId}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <NavLink
                       href={`/contracts/${contract.id}`}
-                      className="text-sm text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
+                      className="text-sm text-brass-600 transition-colors duration-[var(--motion-fast)] hover:text-brass-500 hover:underline"
                     >
                       详情
                     </NavLink>
@@ -108,9 +111,8 @@ export default async function ContractsPage({
                 </tr>
               ))}
             </tbody>
-
-            {total > 0 && <Pagination meta={meta} pathname="/contracts" />}
           </table>
+          {total > 0 && <Pagination meta={meta} pathname="/contracts" />}
         </Enter>
       )}
     </div>

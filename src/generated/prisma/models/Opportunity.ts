@@ -276,6 +276,7 @@ export type OpportunityWhereInput = {
   orders?: Prisma.OrderListRelationFilter;
   discountApprovals?: Prisma.DiscountApprovalListRelationFilter;
   salesTasks?: Prisma.SalesTaskListRelationFilter;
+  convertedFromLeads?: Prisma.LeadListRelationFilter;
 };
 
 export type OpportunityOrderByWithRelationInput = {
@@ -297,6 +298,7 @@ export type OpportunityOrderByWithRelationInput = {
   orders?: Prisma.OrderOrderByRelationAggregateInput;
   discountApprovals?: Prisma.DiscountApprovalOrderByRelationAggregateInput;
   salesTasks?: Prisma.SalesTaskOrderByRelationAggregateInput;
+  convertedFromLeads?: Prisma.LeadOrderByRelationAggregateInput;
 };
 
 export type OpportunityWhereUniqueInput = Prisma.AtLeast<
@@ -331,6 +333,7 @@ export type OpportunityWhereUniqueInput = Prisma.AtLeast<
     orders?: Prisma.OrderListRelationFilter;
     discountApprovals?: Prisma.DiscountApprovalListRelationFilter;
     salesTasks?: Prisma.SalesTaskListRelationFilter;
+    convertedFromLeads?: Prisma.LeadListRelationFilter;
   },
   "id"
 >;
@@ -401,6 +404,7 @@ export type OpportunityCreateInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateInput = {
@@ -420,6 +424,7 @@ export type OpportunityUncheckedCreateInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUpdateInput = {
@@ -442,6 +447,7 @@ export type OpportunityUpdateInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateInput = {
@@ -464,6 +470,7 @@ export type OpportunityUncheckedUpdateInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateManyInput = {
@@ -519,6 +526,11 @@ export type OpportunityOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder;
 };
 
+export type OpportunityNullableScalarRelationFilter = {
+  is?: Prisma.OpportunityWhereInput | null;
+  isNot?: Prisma.OpportunityWhereInput | null;
+};
+
 export type OpportunityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
   customerId?: Prisma.SortOrder;
@@ -564,11 +576,6 @@ export type OpportunityMinOrderByAggregateInput = {
 
 export type OpportunitySumOrderByAggregateInput = {
   amount?: Prisma.SortOrder;
-};
-
-export type OpportunityNullableScalarRelationFilter = {
-  is?: Prisma.OpportunityWhereInput | null;
-  isNot?: Prisma.OpportunityWhereInput | null;
 };
 
 export type OpportunityScalarRelationFilter = {
@@ -772,6 +779,34 @@ export type OpportunityUncheckedUpdateManyWithoutCustomerNestedInput = {
     Prisma.OpportunityScalarWhereInput | Prisma.OpportunityScalarWhereInput[];
 };
 
+export type OpportunityCreateNestedOneWithoutConvertedFromLeadsInput = {
+  create?: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedCreateWithoutConvertedFromLeadsInput
+  >;
+  connectOrCreate?: Prisma.OpportunityCreateOrConnectWithoutConvertedFromLeadsInput;
+  connect?: Prisma.OpportunityWhereUniqueInput;
+};
+
+export type OpportunityUpdateOneWithoutConvertedFromLeadsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedCreateWithoutConvertedFromLeadsInput
+  >;
+  connectOrCreate?: Prisma.OpportunityCreateOrConnectWithoutConvertedFromLeadsInput;
+  upsert?: Prisma.OpportunityUpsertWithoutConvertedFromLeadsInput;
+  disconnect?: Prisma.OpportunityWhereInput | boolean;
+  delete?: Prisma.OpportunityWhereInput | boolean;
+  connect?: Prisma.OpportunityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.OpportunityUpdateToOneWithWhereWithoutConvertedFromLeadsInput,
+      Prisma.OpportunityUpdateWithoutConvertedFromLeadsInput
+    >,
+    Prisma.OpportunityUncheckedUpdateWithoutConvertedFromLeadsInput
+  >;
+};
+
 export type EnumOpportunityStageFieldUpdateOperationsInput = {
   set?: $Enums.OpportunityStage;
 };
@@ -964,6 +999,7 @@ export type OpportunityCreateWithoutOwnerInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutOwnerInput = {
@@ -982,6 +1018,7 @@ export type OpportunityUncheckedCreateWithoutOwnerInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutOwnerInput = {
@@ -1063,6 +1100,7 @@ export type OpportunityCreateWithoutCustomerInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutCustomerInput = {
@@ -1081,6 +1119,7 @@ export type OpportunityUncheckedCreateWithoutCustomerInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutCustomerInput = {
@@ -1126,6 +1165,116 @@ export type OpportunityUpdateManyWithWhereWithoutCustomerInput = {
   >;
 };
 
+export type OpportunityCreateWithoutConvertedFromLeadsInput = {
+  id?: string;
+  name: string;
+  stage?: $Enums.OpportunityStage;
+  amount?: number | null;
+  expectedCloseDate?: Date | string | null;
+  remark?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  customer: Prisma.CustomerCreateNestedOneWithoutOpportunitiesInput;
+  owner?: Prisma.UserCreateNestedOneWithoutOpportunitiesInput;
+  followUps?: Prisma.FollowUpCreateNestedManyWithoutOpportunityInput;
+  quotations?: Prisma.QuotationCreateNestedManyWithoutOpportunityInput;
+  contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
+  discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
+  salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+};
+
+export type OpportunityUncheckedCreateWithoutConvertedFromLeadsInput = {
+  id?: string;
+  customerId: string;
+  name: string;
+  stage?: $Enums.OpportunityStage;
+  amount?: number | null;
+  expectedCloseDate?: Date | string | null;
+  ownerId?: string | null;
+  remark?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutOpportunityInput;
+  quotations?: Prisma.QuotationUncheckedCreateNestedManyWithoutOpportunityInput;
+  contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
+  discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
+  salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+};
+
+export type OpportunityCreateOrConnectWithoutConvertedFromLeadsInput = {
+  where: Prisma.OpportunityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedCreateWithoutConvertedFromLeadsInput
+  >;
+};
+
+export type OpportunityUpsertWithoutConvertedFromLeadsInput = {
+  update: Prisma.XOR<
+    Prisma.OpportunityUpdateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedUpdateWithoutConvertedFromLeadsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.OpportunityCreateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedCreateWithoutConvertedFromLeadsInput
+  >;
+  where?: Prisma.OpportunityWhereInput;
+};
+
+export type OpportunityUpdateToOneWithWhereWithoutConvertedFromLeadsInput = {
+  where?: Prisma.OpportunityWhereInput;
+  data: Prisma.XOR<
+    Prisma.OpportunityUpdateWithoutConvertedFromLeadsInput,
+    Prisma.OpportunityUncheckedUpdateWithoutConvertedFromLeadsInput
+  >;
+};
+
+export type OpportunityUpdateWithoutConvertedFromLeadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  stage?:
+    | Prisma.EnumOpportunityStageFieldUpdateOperationsInput
+    | $Enums.OpportunityStage;
+  amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+  expectedCloseDate?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutOpportunitiesNestedInput;
+  owner?: Prisma.UserUpdateOneWithoutOpportunitiesNestedInput;
+  followUps?: Prisma.FollowUpUpdateManyWithoutOpportunityNestedInput;
+  quotations?: Prisma.QuotationUpdateManyWithoutOpportunityNestedInput;
+  contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
+  discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
+  salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+};
+
+export type OpportunityUncheckedUpdateWithoutConvertedFromLeadsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  stage?:
+    | Prisma.EnumOpportunityStageFieldUpdateOperationsInput
+    | $Enums.OpportunityStage;
+  amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null;
+  expectedCloseDate?:
+    Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutOpportunityNestedInput;
+  quotations?: Prisma.QuotationUncheckedUpdateManyWithoutOpportunityNestedInput;
+  contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
+  discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
+  salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+};
+
 export type OpportunityCreateWithoutFollowUpsInput = {
   id?: string;
   name: string;
@@ -1142,6 +1291,7 @@ export type OpportunityCreateWithoutFollowUpsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutFollowUpsInput = {
@@ -1160,6 +1310,7 @@ export type OpportunityUncheckedCreateWithoutFollowUpsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutFollowUpsInput = {
@@ -1209,6 +1360,7 @@ export type OpportunityUpdateWithoutFollowUpsInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutFollowUpsInput = {
@@ -1230,6 +1382,7 @@ export type OpportunityUncheckedUpdateWithoutFollowUpsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutQuotationsInput = {
@@ -1248,6 +1401,7 @@ export type OpportunityCreateWithoutQuotationsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutQuotationsInput = {
@@ -1266,6 +1420,7 @@ export type OpportunityUncheckedCreateWithoutQuotationsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutQuotationsInput = {
@@ -1315,6 +1470,7 @@ export type OpportunityUpdateWithoutQuotationsInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutQuotationsInput = {
@@ -1336,6 +1492,7 @@ export type OpportunityUncheckedUpdateWithoutQuotationsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutContractsInput = {
@@ -1354,6 +1511,7 @@ export type OpportunityCreateWithoutContractsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutContractsInput = {
@@ -1372,6 +1530,7 @@ export type OpportunityUncheckedCreateWithoutContractsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutContractsInput = {
@@ -1421,6 +1580,7 @@ export type OpportunityUpdateWithoutContractsInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutContractsInput = {
@@ -1442,6 +1602,7 @@ export type OpportunityUncheckedUpdateWithoutContractsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutOrdersInput = {
@@ -1460,6 +1621,7 @@ export type OpportunityCreateWithoutOrdersInput = {
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutOrdersInput = {
@@ -1478,6 +1640,7 @@ export type OpportunityUncheckedCreateWithoutOrdersInput = {
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutOrdersInput = {
@@ -1527,6 +1690,7 @@ export type OpportunityUpdateWithoutOrdersInput = {
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutOrdersInput = {
@@ -1548,6 +1712,7 @@ export type OpportunityUncheckedUpdateWithoutOrdersInput = {
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutDiscountApprovalsInput = {
@@ -1566,6 +1731,7 @@ export type OpportunityCreateWithoutDiscountApprovalsInput = {
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutDiscountApprovalsInput = {
@@ -1584,6 +1750,7 @@ export type OpportunityUncheckedCreateWithoutDiscountApprovalsInput = {
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   salesTasks?: Prisma.SalesTaskUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutDiscountApprovalsInput = {
@@ -1633,6 +1800,7 @@ export type OpportunityUpdateWithoutDiscountApprovalsInput = {
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutDiscountApprovalsInput = {
@@ -1654,6 +1822,7 @@ export type OpportunityUncheckedUpdateWithoutDiscountApprovalsInput = {
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateWithoutSalesTasksInput = {
@@ -1672,6 +1841,7 @@ export type OpportunityCreateWithoutSalesTasksInput = {
   contracts?: Prisma.ContractCreateNestedManyWithoutOpportunityInput;
   orders?: Prisma.OrderCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityUncheckedCreateWithoutSalesTasksInput = {
@@ -1690,6 +1860,7 @@ export type OpportunityUncheckedCreateWithoutSalesTasksInput = {
   contracts?: Prisma.ContractUncheckedCreateNestedManyWithoutOpportunityInput;
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOpportunityInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedCreateNestedManyWithoutOpportunityInput;
+  convertedFromLeads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedOpportunityInput;
 };
 
 export type OpportunityCreateOrConnectWithoutSalesTasksInput = {
@@ -1739,6 +1910,7 @@ export type OpportunityUpdateWithoutSalesTasksInput = {
   contracts?: Prisma.ContractUpdateManyWithoutOpportunityNestedInput;
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutSalesTasksInput = {
@@ -1760,6 +1932,7 @@ export type OpportunityUncheckedUpdateWithoutSalesTasksInput = {
   contracts?: Prisma.ContractUncheckedUpdateManyWithoutOpportunityNestedInput;
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityCreateManyOwnerInput = {
@@ -1793,6 +1966,7 @@ export type OpportunityUpdateWithoutOwnerInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutOwnerInput = {
@@ -1814,6 +1988,7 @@ export type OpportunityUncheckedUpdateWithoutOwnerInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateManyWithoutOwnerInput = {
@@ -1862,6 +2037,7 @@ export type OpportunityUpdateWithoutCustomerInput = {
   orders?: Prisma.OrderUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateWithoutCustomerInput = {
@@ -1883,6 +2059,7 @@ export type OpportunityUncheckedUpdateWithoutCustomerInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOpportunityNestedInput;
   discountApprovals?: Prisma.DiscountApprovalUncheckedUpdateManyWithoutOpportunityNestedInput;
   salesTasks?: Prisma.SalesTaskUncheckedUpdateManyWithoutOpportunityNestedInput;
+  convertedFromLeads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedOpportunityNestedInput;
 };
 
 export type OpportunityUncheckedUpdateManyWithoutCustomerInput = {
@@ -1911,6 +2088,7 @@ export type OpportunityCountOutputType = {
   orders: number;
   discountApprovals: number;
   salesTasks: number;
+  convertedFromLeads: number;
 };
 
 export type OpportunityCountOutputTypeSelect<
@@ -1924,6 +2102,8 @@ export type OpportunityCountOutputTypeSelect<
   discountApprovals?:
     boolean | OpportunityCountOutputTypeCountDiscountApprovalsArgs;
   salesTasks?: boolean | OpportunityCountOutputTypeCountSalesTasksArgs;
+  convertedFromLeads?:
+    boolean | OpportunityCountOutputTypeCountConvertedFromLeadsArgs;
 };
 
 /**
@@ -1999,6 +2179,16 @@ export type OpportunityCountOutputTypeCountSalesTasksArgs<
   where?: Prisma.SalesTaskWhereInput;
 };
 
+/**
+ * OpportunityCountOutputType without action
+ */
+export type OpportunityCountOutputTypeCountConvertedFromLeadsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.LeadWhereInput;
+};
+
 export type OpportunitySelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
@@ -2023,6 +2213,8 @@ export type OpportunitySelect<
     discountApprovals?:
       boolean | Prisma.Opportunity$discountApprovalsArgs<ExtArgs>;
     salesTasks?: boolean | Prisma.Opportunity$salesTasksArgs<ExtArgs>;
+    convertedFromLeads?:
+      boolean | Prisma.Opportunity$convertedFromLeadsArgs<ExtArgs>;
     _count?: boolean | Prisma.OpportunityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs["result"]["opportunity"]
@@ -2112,6 +2304,8 @@ export type OpportunityInclude<
   discountApprovals?:
     boolean | Prisma.Opportunity$discountApprovalsArgs<ExtArgs>;
   salesTasks?: boolean | Prisma.Opportunity$salesTasksArgs<ExtArgs>;
+  convertedFromLeads?:
+    boolean | Prisma.Opportunity$convertedFromLeadsArgs<ExtArgs>;
   _count?: boolean | Prisma.OpportunityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type OpportunityIncludeCreateManyAndReturn<
@@ -2143,6 +2337,10 @@ export type $OpportunityPayload<
     orders: Prisma.$OrderPayload<ExtArgs>[];
     discountApprovals: Prisma.$DiscountApprovalPayload<ExtArgs>[];
     salesTasks: Prisma.$SalesTaskPayload<ExtArgs>[];
+    /**
+     * 由哪些线索转化而来（来源可追溯）。
+     */
+    convertedFromLeads: Prisma.$LeadPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -2807,6 +3005,19 @@ export interface Prisma__OpportunityClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$SalesTaskPayload<ExtArgs>,
+        T,
+        "findMany",
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  convertedFromLeads<
+    T extends Prisma.Opportunity$convertedFromLeadsArgs<ExtArgs> = {},
+  >(
+    args?: Prisma.Subset<T, Prisma.Opportunity$convertedFromLeadsArgs<ExtArgs>>
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$LeadPayload<ExtArgs>,
         T,
         "findMany",
         GlobalOmitOptions
@@ -3525,6 +3736,34 @@ export type Opportunity$salesTasksArgs<
   skip?: number;
   distinct?:
     Prisma.SalesTaskScalarFieldEnum | Prisma.SalesTaskScalarFieldEnum[];
+};
+
+/**
+ * Opportunity.convertedFromLeads
+ */
+export type Opportunity$convertedFromLeadsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Lead
+   */
+  select?: Prisma.LeadSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Lead
+   */
+  omit?: Prisma.LeadOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LeadInclude<ExtArgs> | null;
+  where?: Prisma.LeadWhereInput;
+  orderBy?:
+    Prisma.LeadOrderByWithRelationInput | Prisma.LeadOrderByWithRelationInput[];
+  cursor?: Prisma.LeadWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.LeadScalarFieldEnum | Prisma.LeadScalarFieldEnum[];
 };
 
 /**

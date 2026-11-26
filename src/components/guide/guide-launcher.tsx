@@ -33,7 +33,7 @@ export function GuideLauncher() {
         type="button"
         onClick={() => setRunning(true)}
         data-guide="guide-launcher"
-        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-50"
+        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/90"
         title="播放操作指南"
       >
         <span className="text-base">◈</span>

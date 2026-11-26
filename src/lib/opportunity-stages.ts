@@ -2,7 +2,7 @@ import { OpportunityStage } from "@/generated/prisma/enums";
 
 /** 销售阶段在漏斗与商机列表中的统一展示信息，顺序即漏斗顺序。 */
 export const OPPORTUNITY_STAGES = [
-  { value: OpportunityStage.CONTACT, label: "初步接触", tone: "blue" },
+  { value: OpportunityStage.CONTACT, label: "已建立联系", tone: "blue" },
   { value: OpportunityStage.NEED_CONFIRM, label: "需求确认", tone: "blue" },
   { value: OpportunityStage.QUOTE, label: "报价", tone: "amber" },
   { value: OpportunityStage.NEGOTIATE, label: "谈判", tone: "blue" },

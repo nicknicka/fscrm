@@ -27,7 +27,7 @@ export default async function FieldPermissionsPage() {
 
   return (
     <div>
-      <Link href="/settings" className="text-sm text-blue-600 hover:underline">
+      <Link href="/settings" className="text-sm text-brass-600 hover:underline">
         ← 返回设置
       </Link>
       <div className="mt-4">
@@ -39,14 +39,14 @@ export default async function FieldPermissionsPage() {
 
       <form
         action={saveFieldPermissionsAction}
-        className="rounded-xl border border-zinc-200 bg-white p-6"
+        className="rounded-xl border border-line bg-paper-raised p-6"
       >
         <h2 className="mb-4 text-base font-semibold">负责人可见字段</h2>
         <div className="space-y-3">
           {CUSTOMER_SENSITIVE_FIELDS.map((field) => (
             <label
               key={field}
-              className="flex items-center gap-2 text-sm text-zinc-700"
+              className="flex items-center gap-2 text-sm text-ink"
             >
               <input
                 type="checkbox"
@@ -54,19 +54,16 @@ export default async function FieldPermissionsPage() {
                 defaultChecked={
                   ownerVisible.size === 0 || ownerVisible.has(field)
                 }
-                className="rounded border-zinc-300"
+                className="rounded border-line-strong"
               />
               {labels[field]}
             </label>
           ))}
         </div>
-        <p className="mt-4 text-xs text-zinc-500">
+        <p className="mt-4 text-xs text-ink-faint">
           管理员始终可见全部字段。取消勾选后，负责人在客户列表与详情中看到的该字段为空。
         </p>
-        <button
-          type="submit"
-          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <button type="submit" className="mt-4 btn btn-primary">
           保存
         </button>
       </form>

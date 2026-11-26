@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { QuotationStatus } from "@/generated/prisma/enums";
 import { quotationStatusLabel } from "@/lib/document-status";
+import { formatMoney } from "@/lib/format-numbers";
 import {
   createQuotationFormAction,
   updateQuotationFormAction,
@@ -32,10 +33,9 @@ export interface QuotationView {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500";
+  "w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none focus:border-brass-500";
 
-const submitClass =
-  "min-h-11 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700";
+const submitClass = "btn btn-primary min-h-11";
 
 export function QuotationsManager({
   opportunityId,
@@ -58,16 +58,21 @@ export function QuotationsManager({
     convertQuotationToContractFormAction.bind(null, quotationId, opportunityId);
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">报价（{quotations.length}）</h2>
+    <section className="card p-6 lg:col-span-2">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-[15px] font-semibold tracking-tight text-ink">
+          报价
+          <span className="tnum ml-1.5 text-sm font-normal text-ink-faint">
+            {quotations.length}
+          </span>
+        </h2>
         <button
           type="button"
           onClick={() => {
             setCreating((value) => !value);
             setEditingId(null);
           }}
-          className="rounded-lg border border-blue-600 px-2.5 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
+          className="rounded-lg border border-brass-600 px-3 py-1.5 text-sm font-medium text-brass-600 transition-colors hover:bg-brass-50"
         >
           {creating ? "取消" : "+ 新增报价"}
         </button>
@@ -77,24 +82,27 @@ export function QuotationsManager({
         <form
           action={createBound}
           onSubmit={refreshAfterSubmit}
-          className="mb-5 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
+          className="mb-5 space-y-3 rounded-lg border border-line bg-paper-sunk p-4"
         >
           <ItemFields />
           <div className="flex items-center gap-3">
             <button type="submit" className={submitClass}>
               保存报价
             </button>
-            <span className="text-xs text-zinc-500">金额由条目自动汇总</span>
+            <span className="text-xs text-ink-faint">金额由条目自动汇总</span>
           </div>
         </form>
       )}
 
       {quotations.length === 0 ? (
-        <p className="text-sm text-zinc-500">暂无报价</p>
+        <p className="text-sm text-ink-faint">暂无报价</p>
       ) : (
-        <ul className="divide-y divide-zinc-100">
+        <ul className="space-y-3">
           {quotations.map((quotation) => (
-            <li key={quotation.id} className="py-3 text-sm">
+            <li
+              key={quotation.id}
+              className="rounded-xl border border-line bg-paper-raised p-4 text-sm shadow-[var(--shadow-xs)]"
+            >
               {editingId === quotation.id ? (
                 <form
                   action={updateBound(quotation.id)}
@@ -102,7 +110,7 @@ export function QuotationsManager({
                   className="space-y-3"
                 >
                   <label className="block">
-                    <span className="mb-1 block text-xs text-zinc-600">
+                    <span className="mb-1 block text-xs text-ink-soft">
                       状态
                     </span>
                     <select
@@ -125,38 +133,56 @@ export function QuotationsManager({
                     <button
                       type="button"
                       onClick={() => setEditingId(null)}
-                      className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-600 hover:bg-zinc-50"
+                      className="min-h-11 rounded-lg border border-line-strong px-3 py-2.5 text-sm text-ink-soft hover:bg-paper-sunk"
                     >
                       取消
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        ¥{quotation.amount.toLocaleString("zh-CN")}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-baseline gap-3">
+                      <span className="tnum text-xl font-semibold tracking-tight text-ink">
+                        {formatMoney(quotation.amount)}
                       </span>
-                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                          quotation.status === QuotationStatus.CONFIRMED
+                            ? "bg-ok-bg text-ok ring-ok/20"
+                            : quotation.status === QuotationStatus.CANCELLED
+                              ? "bg-paper-sunk text-ink-faint ring-line-strong/60"
+                              : "bg-warn-bg text-warn ring-warn/25"
+                        }`}
+                      >
                         {quotationStatusLabel[quotation.status]}
                       </span>
                     </div>
-                    <div className="mt-1 text-xs text-zinc-500">
-                      {quotation.items.length === 0
-                        ? "暂无条目"
-                        : quotation.items
-                            .map(
-                              (item) =>
-                                `${item.name} × ${item.quantity} @ ¥${item.unitPrice}`
-                            )
-                            .join("；")}
-                    </div>
+                    {/* 条目明细：小票式排版，数量单价右对齐 */}
+                    {quotation.items.length > 0 && (
+                      <ul className="mt-2.5 space-y-1">
+                        {quotation.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-baseline gap-2 text-xs text-ink-soft"
+                          >
+                            <span className="truncate">{item.name}</span>
+                            <span
+                              aria-hidden
+                              className="mx-1 flex-1 border-b border-dotted border-line-strong"
+                            />
+                            <span className="tnum shrink-0 text-ink-faint">
+                              × {item.quantity} @ {formatMoney(item.unitPrice)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <a
                       href={`/print/quotation/${quotation.id}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-brass-600 hover:underline"
                     >
                       打印
                     </a>
@@ -166,7 +192,7 @@ export function QuotationsManager({
                         setCreating(false);
                         setEditingId(quotation.id);
                       }}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-brass-600 hover:underline"
                     >
                       编辑
                     </button>
@@ -184,7 +210,7 @@ export function QuotationsManager({
                             ? undefined
                             : "报价已确认后才可转为合同"
                         }
-                        className="min-h-11 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                        className="btn btn-primary min-h-11 disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-faint"
                       >
                         转为合同
                       </button>
@@ -204,7 +230,7 @@ export function QuotationsManager({
 function ItemFields({ items = [] }: { items?: QuotationItemView[] }) {
   return (
     <div className="space-y-2">
-      <div className="text-xs text-zinc-600">报价条目</div>
+      <div className="text-xs text-ink-soft">报价条目</div>
       {(items.length > 0
         ? items
         : [{ id: "new", name: "", quantity: 1, unitPrice: 0 }]

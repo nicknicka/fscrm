@@ -30,25 +30,25 @@ export default async function AdminUsersPage() {
         description="查看负责人的当前角色，并任命或撤销管理员"
       />
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-6">
+      <section className="rounded-xl border border-line bg-paper-raised p-6">
         {users.length === 0 ? (
           <EmptyState message="暂无用户" />
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-zinc-200 text-xs text-zinc-500">
+            <thead className="border-b border-line text-xs text-ink-faint">
               <tr>
                 <th className="pb-3 font-medium">用户</th>
                 <th className="pb-3 font-medium">角色</th>
                 <th className="pb-3 text-right font-medium">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {users.map((user) => (
-                <tr key={user.id} className="py-3">
+                <tr key={user.id} className="row-glow">
                   <td className="py-3">
-                    <div className="font-medium text-zinc-900">{user.name}</div>
+                    <div className="font-medium text-ink">{user.name}</div>
                     {user.email && (
-                      <div className="mt-0.5 text-xs text-zinc-500">
+                      <div className="mt-0.5 text-xs text-ink-faint">
                         {user.email}
                       </div>
                     )}
@@ -64,7 +64,7 @@ export default async function AdminUsersPage() {
                         <input type="hidden" name="userId" value={user.id} />
                         <button
                           type="submit"
-                          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                          className="rounded-lg border border-line-strong px-3 py-1.5 text-xs font-medium text-ink hover:bg-paper-sunk"
                         >
                           撤销管理员
                         </button>
@@ -74,7 +74,7 @@ export default async function AdminUsersPage() {
                         <input type="hidden" name="userId" value={user.id} />
                         <button
                           type="submit"
-                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                          className="btn btn-primary text-xs"
                         >
                           任命为管理员
                         </button>

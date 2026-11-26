@@ -16,7 +16,7 @@ export default async function ModelSettingsPage() {
 
   return (
     <div>
-      <Link href="/settings" className="text-sm text-blue-600 hover:underline">
+      <Link href="/settings" className="text-sm text-brass-600 hover:underline">
         ← 返回设置
       </Link>
       <div className="mt-4">
@@ -26,9 +26,9 @@ export default async function ModelSettingsPage() {
         />
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-6">
+      <section className="rounded-xl border border-line bg-paper-raised p-6">
         <h2 className="text-base font-semibold">连接配置</h2>
-        <p className="mt-2 mb-6 text-sm leading-6 text-zinc-600">
+        <p className="mt-2 mb-6 text-sm leading-6 text-ink-soft">
           销售在飞书里 @机器人 说「今天电话聊了，预算 80 万，下周三要方案」，
           模型负责把这句话拆成结构化字段：客户、跟进方式、摘要、下一步时间。
           模型只做理解，客户匹配与写入规则仍由代码控制，因此模型出错最坏只是
@@ -38,7 +38,7 @@ export default async function ModelSettingsPage() {
         {currentUser.role === "ADMIN" ? (
           <ModelConfigForm current={current} />
         ) : (
-          <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+          <p className="rounded-lg border border-line bg-paper-sunk px-4 py-3 text-sm text-ink-soft">
             只有管理员可以查看与修改模型配置。当前
             {current
               ? `已配置：${current.label} / ${current.model}`
@@ -48,9 +48,9 @@ export default async function ModelSettingsPage() {
         )}
       </section>
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
+      <section className="mt-6 rounded-xl border border-line bg-paper-raised p-6">
         <h2 className="text-base font-semibold">没有模型也能用</h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-600">
+        <p className="mt-2 text-sm leading-6 text-ink-soft">
           未配置模型或调用失败时，机器人会退回关键词识别：从消息里找出现有客户名称、
           按「电话 / 见面 / 邮件 / 微信」判断跟进方式、识别「明天 / 下周三 / 3
           天后」

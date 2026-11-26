@@ -21,7 +21,7 @@ export function CustomerForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="btn btn-primary"
       >
         + 新建客户
       </button>
@@ -29,13 +29,13 @@ export function CustomerForm({
   }
 
   return (
-    <div className="w-full rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <div className="w-full rounded-xl border border-line bg-paper-raised p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-semibold">新建客户</h2>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-sm text-zinc-500 hover:text-zinc-800"
+          className="text-sm text-ink-faint hover:text-ink"
         >
           取消
         </button>
@@ -52,13 +52,13 @@ export function CustomerForm({
           placeholder="如：Acme 科技"
         />
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             客户等级
           </label>
           <select
             name="level"
             defaultValue={CustomerLevel.MEDIUM}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             <option value={CustomerLevel.HIGH}>高价值</option>
             <option value={CustomerLevel.MEDIUM}>中价值</option>
@@ -66,12 +66,12 @@ export function CustomerForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             负责人
           </label>
           <select
             name="ownerId"
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           >
             <option value="">暂不分配</option>
             {users.map((user) => (
@@ -86,20 +86,17 @@ export function CustomerForm({
         <Field label="邮箱" name="email" placeholder="联系邮箱" />
         <Field label="地址" name="address" placeholder="所在地址" />
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-zinc-700">
+          <label className="mb-1 block text-sm font-medium text-ink">
             备注
           </label>
           <textarea
             name="remark"
             rows={2}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm"
           />
         </div>
         <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <button type="submit" className="btn btn-primary">
             保存客户
           </button>
         </div>
@@ -122,14 +119,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700">
-        {label}
-      </label>
+      <label className="mb-1 block text-sm font-medium text-ink">{label}</label>
       <input
         name={name}
         required={required}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none focus:border-brass-500"
       />
     </div>
   );

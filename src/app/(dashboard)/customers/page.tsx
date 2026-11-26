@@ -3,6 +3,7 @@ import { Pagination } from "@/components/pagination";
 import { NavLink } from "@/components/nav-link";
 import { ExportButton } from "@/components/export-button";
 import { Enter } from "@/components/stagger";
+import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { accessScopeFor } from "@/lib/auth/scope";
 import {
@@ -17,6 +18,9 @@ import { CustomerForm } from "./customer-form";
 import { CustomerImportPanel } from "./customer-import-panel";
 import { deleteCustomerAction } from "./actions";
 import { setCustomerOwnerFormAction } from "./public-pool-actions";
+
+/* 这些页面读取会话与数据库，属于请求时数据，无法静态预渲染。 */
+export const instant = false;
 
 /**
  * 客户列表页。
@@ -49,10 +53,10 @@ export default async function CustomersPage({
   ]);
   const meta = buildPaginationMeta(pagination, total);
 
-  const levelTone: Record<string, "red" | "amber" | "zinc"> = {
-    [CustomerLevel.HIGH]: "red",
-    [CustomerLevel.MEDIUM]: "amber",
-    [CustomerLevel.LOW]: "zinc",
+  const levelTone: Record<string, "default" | "amber" | "zinc"> = {
+    [CustomerLevel.HIGH]: "amber",
+    [CustomerLevel.MEDIUM]: "zinc",
+    [CustomerLevel.LOW]: "default",
   };
   const levelLabel: Record<string, string> = {
     [CustomerLevel.HIGH]: "高价值",
@@ -86,11 +90,11 @@ export default async function CustomersPage({
           name="q"
           defaultValue={q}
           placeholder="搜索客户名称、电话或邮箱"
-          className="w-full max-w-sm rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="w-full max-w-sm rounded-lg border border-line-strong bg-paper-raised px-3 py-2 text-sm outline-none focus:border-brass-500"
         />
         <button
           type="submit"
-          className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-zinc-900"
+          className="rounded-lg bg-ink-800 px-4 py-2 text-sm font-medium text-white transition-colors duration-[var(--motion-fast)] hover:bg-ink-800"
         >
           搜索
         </button>
@@ -102,33 +106,47 @@ export default async function CustomersPage({
       ) : (
         <Enter
           effect="fade"
-          className="overflow-x-auto rounded-xl border border-zinc-200 bg-white"
+          className="overflow-x-auto rounded-xl border border-line bg-paper-raised"
         >
           <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="bg-zinc-50 text-zinc-500">
+            <thead className="bg-paper-sunk text-ink-faint">
               <tr>
-                <th className="px-4 py-3 font-medium">客户名称</th>
-                <th className="px-4 py-3 font-medium">客户来源</th>
-                <th className="px-4 py-3 font-medium">等级</th>
-                <th className="px-4 py-3 font-medium">客户生命周期</th>
-                <th className="px-4 py-3 font-medium">行业</th>
-                <th className="px-4 py-3 font-medium">负责人</th>
-                <th className="px-4 py-3 font-medium">联系人/商机</th>
-                <th className="px-4 py-3 font-medium">操作</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  客户名称
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  等级
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  生命周期
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  行业
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  负责人
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium">
+                  联系人/商机
+                </th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-right">
+                  操作
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {customers.map((customer, idx) => (
-                <tr
-                  key={customer.id}
-                  className="transition-colors duration-[var(--motion-fast)] hover:bg-zinc-50"
-                  {...(idx === 0 ? { "data-guide": "customer-row" } : {})}
-                >
+                <tr key={customer.id} className="row-glow group/row">
                   <td className="px-4 py-3">
-                    {/* 引导第三步的高亮目标挂在客户名称链接上（见 NavLink 的 data-guide）。 */}
+                    {/*
+                      引导第三步的高亮与点击判定都挂在客户名称链接上：
+                      挂在外层 <tr> 上时，用户点的是里面的名称链接，
+                      「点中目标本身」的判定永远收不到这一下，步骤会卡住。
+                    */}
                     <NavLink
                       href={`/customers/${customer.id}`}
-                      className="font-medium text-blue-600 transition-colors duration-[var(--motion-fast)] hover:text-blue-700 hover:underline"
+                      {...(idx === 0 ? { "data-guide": "customer-row" } : {})}
+                      className="font-medium text-brass-600 transition-colors duration-[var(--motion-fast)] hover:text-brass-500 hover:underline"
                     >
                       {customer.name}
                     </NavLink>
@@ -143,25 +161,13 @@ export default async function CustomersPage({
                       {customerLifecycleLabel[customer.lifecycle]}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
-                    {(customer as { customFields?: Record<string, unknown> })
-                      .customFields?.source
-                      ? String(
-                          (
-                            customer as {
-                              customFields: Record<string, unknown>;
-                            }
-                          ).customFields.source
-                        )
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {customer.industry ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {customer.owner?.name ?? "未分配"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
+                  <td className="px-4 py-3 text-ink-soft">
                     {(
                       customer as {
                         _count?: { contacts: number; opportunities: number };
@@ -175,20 +181,9 @@ export default async function CustomersPage({
                     )._count?.opportunities ?? 0}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <form
-                        action={deleteCustomerAction.bind(null, customer.id)}
-                      >
-                        <button
-                          type="submit"
-                          className="text-sm text-red-600 hover:underline"
-                        >
-                          删除
-                        </button>
-                      </form>
+                    <div className="flex items-center justify-end gap-1.5">
                       {scope.role === "ADMIN" && (
-                        <form
-                          className="flex gap-2"
+                        <AutoSubmitForm
                           action={setCustomerOwnerFormAction.bind(
                             null,
                             customer.id
@@ -196,34 +191,40 @@ export default async function CustomersPage({
                         >
                           <select
                             name="ownerId"
-                            className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm"
+                            className="rounded-lg border border-line-strong bg-paper-raised px-2 py-1 text-xs text-ink-soft outline-none transition-colors focus:border-brass-500"
                             defaultValue={customer.ownerId ?? ""}
+                            aria-label={`变更 ${customer.name} 的负责人`}
                           >
                             <option value="">移入公海</option>
                             {users.map((user) => (
                               <option key={user.id} value={user.id}>
-                                指定给 {user.name}
+                                {user.name}
                               </option>
                             ))}
                           </select>
-                          <button
-                            type="submit"
-                            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-                          >
-                            保存负责人
-                          </button>
-                        </form>
+                        </AutoSubmitForm>
                       )}
+                      <form
+                        action={deleteCustomerAction.bind(null, customer.id)}
+                      >
+                        <button
+                          type="submit"
+                          aria-label={`删除 ${customer.name}`}
+                          title="删除客户"
+                          className="rounded-md p-1.5 text-ink-faint opacity-0 transition-opacity duration-[var(--motion-fast)] hover:bg-danger-bg hover:text-danger focus-visible:opacity-100 group-hover/row:opacity-100"
+                        >
+                          ✕
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-
-            {total > 0 && (
-              <Pagination meta={meta} pathname="/customers" filters={{ q }} />
-            )}
           </table>
+          {total > 0 && (
+            <Pagination meta={meta} pathname="/customers" filters={{ q }} />
+          )}
         </Enter>
       )}
     </div>

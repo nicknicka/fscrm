@@ -13,7 +13,7 @@ export const instant = false;
 export default function PrintLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense
-      fallback={<div className="p-8 text-sm text-zinc-500">加载单据…</div>}
+      fallback={<div className="p-8 text-sm text-ink-faint">加载单据…</div>}
     >
       {children}
     </Suspense>

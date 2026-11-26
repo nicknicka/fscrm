@@ -13,18 +13,12 @@ export function SendRemindersButton() {
   return (
     <div className="flex flex-col items-end gap-2">
       <form action={formAction}>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className="btn btn-primary">
           {pending ? "推送中…" : "立即推送到飞书"}
         </button>
       </form>
       {state && (
-        <p
-          className={`text-xs ${state.ok ? "text-green-700" : "text-red-700"}`}
-        >
+        <p className={`text-xs ${state.ok ? "text-ok" : "text-danger"}`}>
           {state.message}
         </p>
       )}
